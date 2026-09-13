@@ -27,6 +27,8 @@ Because I am using a Windows computer and I know many of you use Macs, we are do
 Please download Docker Desktop
 https://www.docker.com/products/docker-desktop/
 
+This repo now includes Dockerfiles for both the backend and frontend so you can run those services in containers.
+
 ### Database Setup
 
 Make your own env file based off of example.env
@@ -79,27 +81,43 @@ yarn migration:revert
 
 ## Start the app
 
-To start the development server run `nx serve frontend`. Open your browser and navigate to http://localhost:4200/. Happy coding!
+Build and run the containers from the repo root.
+
+### 1) Start the database
+
+```bash
+docker run --name proj-fh-db \
+  --env-file .env \
+  -p 5432:5432 \
+  -d postgres:18-alpine
+```
+
+### 2) Build and run the backend container
+
+```bash
+docker build -f apps/backend/Dockerfile -t proj-fh-backend .
+docker run --rm -it \
+  --env-file .env \
+  -p 3000:3000 \
+  --name proj-fh-backend \
+  proj-fh-backend
+```
+
+### 3) Build and run the frontend container
+
+```bash
+docker build -f apps/frontend/Dockerfile -t proj-fh-frontend .
+docker run --rm -it \
+  -p 4200:80 \
+  --name proj-fh-frontend \
+  proj-fh-frontend
+```
+
+Open your browser and navigate to http://localhost:4200/.
 
 ## Running tasks
 
-To run just the frontend (port 4200):
-
-```
-nx serve frontend
-```
-
-To run just the backend (port 3000):
-
-```
-nx serve backend
-```
-
-To run both the frontend and backend with one command:
-
-```
-nx run-many -t serve -p frontend backend
-```
+Use the Docker containers above for normal development. If you need to run a task locally for debugging, use the repo's existing `nx` commands only temporarily.
 
 ## Swagger
 
