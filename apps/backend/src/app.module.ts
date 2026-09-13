@@ -4,7 +4,6 @@ import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import AppDataSource from './data-source';
-import { CognitoModule } from './aws/cognito/cognito.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -13,7 +12,6 @@ import { UsersModule } from './users/users.module';
       isGlobal: true,
     }),
     TypeOrmModule.forRoot(AppDataSource.options),
-    CognitoModule,
     UsersModule,
   ],
   controllers: [AppController],

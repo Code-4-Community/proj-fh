@@ -4,38 +4,10 @@ import { Repository } from 'typeorm';
 
 import { User } from './user.entity';
 import { Status } from './types';
-import { EmailsService } from '../aws/ses/email.service';
-// import { SendEmailDTO } from '../aws/ses/sendEmail.dto';
 
 @Injectable()
 export class UsersService {
-  constructor(
-    @InjectRepository(User) private repo: Repository<User>,
-    private emailsService: EmailsService,
-  ) {}
-
-  // Example endpoint for email sending (DO NOT DEPLOY THIS)
-  /*
-  async sendTestEmail(recipient: string) {
-    const imageRes = await fetch('https://placehold.co/200x200/png');
-    const imageBuffer = Buffer.from(await imageRes.arrayBuffer());
-
-    const dto: SendEmailDTO = {
-      toEmail: recipient,
-      ccEmails: ['cc@example.com'],
-      bccEmails: ['bcc@example.com'],
-      subject: 'Test email',
-      bodyHtml: '<p>This is a test email sent from UsersService.</p>',
-      attachments: [
-        {
-          filename: 'sample.png',
-          content: imageBuffer,
-        },
-      ],
-    };
-    return this.emailsService.sendEmail(dto);
-  }
-  */
+  constructor(@InjectRepository(User) private repo: Repository<User>) {}
 
   async create(
     email: string,

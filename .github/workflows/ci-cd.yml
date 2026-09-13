@@ -1,7 +1,5 @@
-# Note:
-# This CICD requires AWS Amplify to be setup which tends to not be the case until the app is close to being deployed
-# Therefore this is not useful for a the beginning chunk of development where everything is tested locally
-# Therefore other pipelines have been made to test things locally, but once AWS Amplify is setup this can be used.
+# Legacy deployment workflow placeholder.
+# This file is intentionally left commented out and no longer contains deployment-specific cloud references.
 
 # name: Legacy CI/CD
 
@@ -84,13 +82,9 @@
 #     needs: pre-deploy
 #     if: (contains(github.event.inputs.manual-deploy, 'c4c-ops-frontend') || contains(needs.pre-deploy.outputs.affected, 'scaffolding-frontend')) && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
 #     runs-on: ubuntu-latest
-#     # For "simplicity", deployment settings are configured in the AWS Amplify Console
-#     # This just posts to a webhook telling Amplify to redeploy the main branch
 #     steps:
-#       - name: Tell Amplify to rebuild
-#         run: curl -X POST -d {} ${C4C_OPS_WEBHOOK_DEPLOY}  -H "Content-Type:application/json"
-#         env:
-#           C4C_OPS_WEBHOOK_DEPLOY: ${{ secrets.C4C_OPS_WEBHOOK_DEPLOY }}
+#       - name: Rebuild deployment target
+#         run: echo "Deployment hook omitted; this repository no longer uses a cloud deployment provider."
 
 #   deploy-backend:
 #     needs: pre-deploy
@@ -109,10 +103,4 @@
 
 #       - run: npx nx build c4c-ops-backend --configuration production
 #       - name: default deploy
-#         uses: appleboy/lambda-action@master
-#         with:
-#           aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-#           aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-#           aws_region: ${{ secrets.AWS_REGION }}
-#           function_name: c4c-ops-monolith-lambda
-#           source: dist/apps/c4c-ops/c4c-ops-backend/main.js
+#         run: echo "Legacy backend deployment step removed; the repository no longer depends on cloud-specific deployment services."
