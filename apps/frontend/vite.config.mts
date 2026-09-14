@@ -1,22 +1,12 @@
 /// <reference types="vitest" />
-import { defineConfig, loadEnv } from 'vite';
+import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
 import path from 'path';
 
-// Assumes this file is in /apps/frontend/vite.config.ts and env variables are set in /.env
-const workspaceRoot = path.resolve(__dirname, '../..');
-
-export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, workspaceRoot, '');
-  process.env.VITE_COGNITO_USER_POOL_ID = env.COGNITO_USER_POOL_ID ?? '';
-  process.env.VITE_COGNITO_USER_POOL_CLIENT_ID = env.COGNITO_CLIENT_ID ?? '';
-  process.env.VITE_COGNITO_REGION = env.COGNITO_REGION ?? '';
-
-  return {
+export default defineConfig({
     root: __dirname,
     cacheDir: '../../node_modules/.vite/frontend',
-    envDir: workspaceRoot,
 
     server: {
       port: 4200,
@@ -54,5 +44,4 @@ export default defineConfig(({ mode }) => {
         '@utils': path.resolve(__dirname, './src/utils'),
       },
     },
-  };
-});
+  });

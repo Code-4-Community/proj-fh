@@ -49,3 +49,17 @@ Thumbs.db
 # SQLite database files
 *.sqlite
 *.sqlite3
+
+# Nx cache directories
+.nx/cache
+.nx/workspace-data
+
+# yarn
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
