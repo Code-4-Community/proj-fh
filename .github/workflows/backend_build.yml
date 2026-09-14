@@ -19,7 +19,6 @@ jobs:
         node-version: 24.x
         cache: 'yarn'
 
-
     - name: Create .env file
       run: |
         echo "POSTGRES_HOST=localhost" >> .env

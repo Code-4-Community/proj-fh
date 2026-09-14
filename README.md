@@ -39,6 +39,8 @@ Since it is just for local development, you can fill in whatever password you wa
 
 This project uses PostgreSQL. You'll need a running Postgres instance before starting the backend.
 
+On Docker Desktop for Windows/macOS, use `host.docker.internal` in `.env` so the backend container can reach the Postgres container on the host machine.
+
 ```bash
 docker run --name proj-fh-db \
   --env-file .env \
@@ -102,6 +104,8 @@ docker run --rm -it \
   --name proj-fh-backend \
   proj-fh-backend
 ```
+
+> `.env` should use `POSTGRES_HOST=host.docker.internal` when running the backend inside Docker on Windows/macOS. That lets the container reach the Postgres instance published on port 5432.
 
 ### 3) Build and run the frontend container
 
