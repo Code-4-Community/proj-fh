@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { Tag } from './tag.entity';
+import { Category } from './types';
 
 /**
  * The TagsService is a NestJS service that provides business logic for managing tags in the system. 
@@ -11,4 +12,29 @@ import { Tag } from './tag.entity';
 @Injectable()
 export class TagsService {
   constructor(@InjectRepository(Tag) private repo: Repository<Tag>) {}
+
+  /**
+   * Creates a new tag in the system with the specified category, label, and slug.
+   * @param category The category of the tag, which is an enumerated value defined in the Category enum.
+   * @param label The label of the tag, which is a string representing the name or title of the tag.
+   * @param slug The slug of the tag, which is a string used for URL-friendly representation of the tag.
+   * 
+   * @returns A promise that resolves to the newly created Tag entity.
+   */
+  async create(
+    category: Category,
+    label: string,
+    slug: string,
+  ) {
+    const tagId = (await this.repo.count()) + 1;
+    const tag = this.repo.create({
+      tag_id: tagId,
+      category,
+      label,
+      slug,
+    });
+
+    return this.repo.save(tag);
+  }
+
 }
