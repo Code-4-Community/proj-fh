@@ -3,6 +3,9 @@ import axios, { type AxiosInstance } from 'axios';
 const defaultBaseUrl =
   import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000';
 
+/**
+ * ApiClient is a class that provides methods to interact with the backend API.
+ */
 export class ApiClient {
   private axiosInstance: AxiosInstance;
 

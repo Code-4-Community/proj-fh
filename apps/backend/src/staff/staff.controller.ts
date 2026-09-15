@@ -1,11 +1,9 @@
 import {
-  Body,
   Controller,
   Delete,
   Get,
   Param,
   ParseIntPipe,
-  Post,
 } from '@nestjs/common';
 import { StaffService } from './staff.service';
 import { Staff } from './staff.entity';
@@ -18,7 +16,7 @@ export class StaffController {
   constructor(private staffService: StaffService) {}
 
   @Get('/:staffId')
-  async getStaff(@Param('staffId', ParseIntPipe) staffId: number): Promise<Staff> {
+  async getStaff(@Param('staffId', ParseIntPipe) staffId: number): Promise<Staff | null> {
     return this.staffService.findOne(staffId);
   }
 
