@@ -1,7 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { BadRequestException } from '@nestjs/common';
-import { Repository } from 'typeorm';
 import { Tag } from './tag.entity';
 import { TagsService } from './tags.service';
 import { Category } from './types';
@@ -70,8 +69,7 @@ describe('TagsService', () => {
   });
 
   it('rejects when category is missing', async () => {
-    // @ts-ignore Intentionally passing a missing category to test validation.
-    await expect(
+    await expect(// @ts-expect-error Intentionally passing a missing category to test validation.
       service.create(undefined, createTagDto.label, createTagDto.slug),
     ).rejects.toThrow(
       new BadRequestException(
@@ -82,8 +80,7 @@ describe('TagsService', () => {
   });
 
   it('rejects when label is missing', async () => {
-    // @ts-ignore Intentionally passing a missing label to test validation.
-    await expect(
+    await expect(// @ts-expect-error Intentionally passing a missing label to test validation.
       service.create(createTagDto.category, undefined, createTagDto.slug),
     ).rejects.toThrow(
       new BadRequestException(
@@ -94,8 +91,7 @@ describe('TagsService', () => {
   });
 
   it('rejects when slug is missing', async () => {
-    // @ts-ignore Intentionally passing a missing slug to test validation.
-    await expect(
+    await expect(// @ts-expect-error Intentionally passing a missing slug to test validation.
       service.create(createTagDto.category, createTagDto.label, undefined),
     ).rejects.toThrow(
       new BadRequestException(
