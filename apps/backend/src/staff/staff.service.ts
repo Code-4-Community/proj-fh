@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -15,6 +15,38 @@ export class StaffService {
   constructor(@InjectRepository(Staff) private repo: Repository<Staff>) {}
 
   /**
+   * Validates the input parameters for creating a new Staff user.
+   * @param email The email address of the Staff user.
+   * @param firstName The first name of the Staff user.
+   * @param lastName The last name of the Staff user.
+   * @param type The type of the Staff user.
+   */
+  private validateCreateStaffDto(
+    email: string,
+    firstName: string,
+    lastName: string,
+    type: Type,
+  ) {
+    if (!email || !firstName || !lastName || !type) {
+      throw new BadRequestException(
+        'Email, first name, last name, and type are required to create a staff user.',
+      );
+    }
+
+    if (email.trim() === '') {
+      throw new BadRequestException('Email cannot be empty.');
+    }
+
+    if (firstName.trim() === '') {
+      throw new BadRequestException('First name cannot be empty.');
+    }
+    
+    if (lastName.trim() === '') {
+      throw new BadRequestException('Last name cannot be empty.');
+    }
+  }
+
+  /**
    * Creates a new Staff user in the system.
    * @param email The email address of the Staff user.
    * @param firstName The first name of the Staff user.
@@ -29,6 +61,9 @@ export class StaffService {
     type: Type = Type.STANDARD,
   ) {
     const staffId = (await this.repo.count()) + 1;
+
+    this.validateCreateStaffDto(email, firstName, lastName, type);
+    
     const staff = this.repo.create({
       id: staffId,
       type,

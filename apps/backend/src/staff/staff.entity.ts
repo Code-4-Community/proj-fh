@@ -17,7 +17,7 @@ export class Staff {
    * E.g. 1, 2, 3, 4, 5
    */
   @PrimaryColumn({ type: 'int'})
-  id: number;
+  id!: number;
 
   /**
    * The type of the Staff user, indicating their role or level of access within the system.
@@ -26,7 +26,7 @@ export class Staff {
    * E.g. 'ADMIN', 'STANDARD'
    */
   @Column({ type: 'enum', enum: Type })
-  type: Type;
+  type!: Type;
 
   /**
    * The first name of the Staff user. This is a string value that represents the given name of the Staff user.
@@ -34,7 +34,7 @@ export class Staff {
    * E.g. 'John', 'Jane'
    */
   @Column({ type: 'varchar', length: 255 })
-  firstName: string;
+  firstName!: string;
 
   /**
    * The last name of the Staff user. This is a string value that represents the family name or surname of the Staff user.
@@ -42,7 +42,7 @@ export class Staff {
    * E.g. 'Doe', 'Smith'
    */
   @Column({ type: 'varchar', length: 255 })
-  lastName: string;
+  lastName!: string;
 
   /**
    * The email address of the Staff user. This is a string value that represents the email contact information for the Staff user.
@@ -51,5 +51,5 @@ export class Staff {
    * E.g. 'john.doe@example.com', 'jane.smith@example.com'
    */
   @Column({ type: 'varchar', length: 255 })
-  email: string;
+  email!: string;
 }
