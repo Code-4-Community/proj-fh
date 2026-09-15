@@ -94,4 +94,11 @@ describe('TagsService', () => {
 		);
 		expect(repository.save).not.toHaveBeenCalled();
 	});
+
+    it('rejects a slug with spaces', async () => {
+        await expect(service.create(createTagDto.category, createTagDto.label, 'invalid slug')).rejects.toThrow(
+            new BadRequestException('Slug cannot contain spaces.'),
+        );
+        expect(repository.save).not.toHaveBeenCalled();
+    });
 });

@@ -31,6 +31,10 @@ export class TagsService {
     if (slug.trim() === '') {
         throw new BadRequestException('Slug cannot be empty.');
     }
+
+    if (slug.includes(' ')) {
+        throw new BadRequestException('Slug cannot contain spaces.');
+    }
 }
 
   /**
