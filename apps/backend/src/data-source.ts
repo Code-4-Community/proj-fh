@@ -22,7 +22,7 @@ const AppDataSource = new DataSource({
   password: process.env.NX_DB_PASSWORD ?? process.env.POSTGRES_PASSWORD,
   database: process.env.NX_DB_DATABASE ?? process.env.POSTGRES_DB,
   entities: ['apps/backend/src/tags/tags.entity.ts'],
-  migrations: ['apps/backend/src/migrations/*.js'],
+  migrations: ['apps/backend/src/migrations/*.js', 'apps/backend/src/migrations/*.ts'],
   // Setting synchronize: true shouldn't be used in production - otherwise you can lose production data
   synchronize: false,
   namingStrategy: new PluralNamingStrategy(),
