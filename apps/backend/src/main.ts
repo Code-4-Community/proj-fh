@@ -32,7 +32,7 @@ async function bootstrap() {
         description:
           '[TL] Replace: how clients obtain a Bearer token for this API.',
       })
-      .addTag('Users', 'Operations on users')
+      .addTag('Staff', 'Operations on staff')
       .setVersion('1.0')
       .build();
     const document = SwaggerModule.createDocument(app, config); // Create the Swagger document
