@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -12,6 +12,26 @@ import { Category } from './types';
 @Injectable()
 export class TagsService {
   constructor(@InjectRepository(Tag) private repo: Repository<Tag>) {}
+
+  /**
+   * Validates the input for creating a new tag.
+   * @param category The category of the tag.
+   * @param label The label of the tag.
+   * @param slug The slug of the tag.
+   */
+  private validateCreateTagDto(category: Category, label: string, slug: string) {
+    if (!category || !label || !slug) {
+      throw new BadRequestException('Category, label, and slug are required to create a tag.');
+    }
+
+    if (label.trim() === '') {
+        throw new BadRequestException('Label cannot be empty.');
+    }
+
+    if (slug.trim() === '') {
+        throw new BadRequestException('Slug cannot be empty.');
+    }
+}
 
   /**
    * Creates a new tag in the system with the specified category, label, and slug.
@@ -34,6 +54,8 @@ export class TagsService {
       slug,
     });
 
+    this.validateCreateTagDto(category, label, slug);
+    
     return this.repo.save(tag);
   }
 
