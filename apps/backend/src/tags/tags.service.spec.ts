@@ -69,7 +69,8 @@ describe('TagsService', () => {
   });
 
   it('rejects when category is missing', async () => {
-    await expect(// @ts-expect-error Intentionally passing a missing category to test validation.
+    await expect(
+      // @ts-expect-error Intentionally passing a missing category to test validation.
       service.create(undefined, createTagDto.label, createTagDto.slug),
     ).rejects.toThrow(
       new BadRequestException(
@@ -80,7 +81,8 @@ describe('TagsService', () => {
   });
 
   it('rejects when label is missing', async () => {
-    await expect(// @ts-expect-error Intentionally passing a missing label to test validation.
+    await expect(
+      // @ts-expect-error Intentionally passing a missing label to test validation.
       service.create(createTagDto.category, undefined, createTagDto.slug),
     ).rejects.toThrow(
       new BadRequestException(
@@ -91,7 +93,8 @@ describe('TagsService', () => {
   });
 
   it('rejects when slug is missing', async () => {
-    await expect(// @ts-expect-error Intentionally passing a missing slug to test validation.
+    await expect(
+      // @ts-expect-error Intentionally passing a missing slug to test validation.
       service.create(createTagDto.category, createTagDto.label, undefined),
     ).rejects.toThrow(
       new BadRequestException(
