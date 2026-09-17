@@ -1,0 +1,10 @@
+# Terraform local state and cache
+**/.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+
+# Variable files may contain sensitive values
+terraform.tfvars
+*.auto.tfvars
