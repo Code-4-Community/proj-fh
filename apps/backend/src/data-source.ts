@@ -21,7 +21,10 @@ const AppDataSource = new DataSource({
   username: process.env.NX_DB_USERNAME ?? process.env.POSTGRES_USER,
   password: process.env.NX_DB_PASSWORD ?? process.env.POSTGRES_PASSWORD,
   database: process.env.NX_DB_DATABASE ?? process.env.POSTGRES_DB,
-  entities: ['apps/backend/src/tags/tags.entity.ts'],
+  entities: [
+    'apps/backend/src/tags/tags.entity.ts',
+    'apps/backend/src/resources/resources.entity.ts',
+  ],
   migrations: [
     'apps/backend/src/migrations/*.js',
     'apps/backend/src/migrations/*.ts',
