@@ -26,4 +26,5 @@ export enum County {
   BRISTOL = 'Bristol',
   DUKES = 'Dukes',
   NANTUCKET = 'Nantucket',
+  FRANKLIN = 'Franklin',
 }
