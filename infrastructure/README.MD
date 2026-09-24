@@ -42,3 +42,7 @@ State is kept **locally** for now (no remote backend configured yet) - `terrafor
 ### Using the output
 
 `terraform output` will print `client_id`, `tenant_id`, and `authority`. These are the values the frontend's MSAL configuration and the backend's JWT validation will need - wiring that up is a follow-up application-code task, not part of this Terraform module.
+
+### One-Time Admin Consent (Azure Console)
+One-time "Grant admin consent" step that must be done after `terraform apply` (Entra admin center → Enterprise Applications → proj-fh → Permissions → Grant admin consent)
+This is so that account creation can be done through our proj_fh application and an Azure administrator doesn't have to create new accounts by hand. 

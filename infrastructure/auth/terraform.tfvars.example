@@ -2,11 +2,11 @@
 # terraform.tfvars is gitignored - never commit it.
 
 # Find this in the Entra admin center (entra.microsoft.com) > Overview > Tenant ID.
-# tenant_id = "00000000-0000-0000-0000-000000000000"
+tenant_id = "00000000-0000-0000-0000-000000000000"
 
 app_display_name = "proj-fh"
 
 redirect_uris = [
-  "http://localhost:5173",
+  "http://localhost:5400",
   # "https://your-prod-domain.example.com",
 ]

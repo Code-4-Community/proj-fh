@@ -12,5 +12,5 @@ variable "app_display_name" {
 variable "redirect_uris" {
   description = "Redirect URIs the SPA is allowed to send auth responses to (e.g. dev and prod frontend URLs)."
   type        = list(string)
-  default     = ["http://localhost:5173"]
+  default     = ["http://localhost:4200"]
 }
