@@ -5,6 +5,8 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import AppDataSource from './data-source';
 import { UsersModule } from './users/users.module';
+import { ResourcesController } from './resources/resources.controller';
+import { ResourcesService } from './resources/resources.service';
 
 @Module({
   imports: [
@@ -14,7 +16,7 @@ import { UsersModule } from './users/users.module';
     TypeOrmModule.forRoot(AppDataSource.options),
     UsersModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [AppController, ResourcesController],
+  providers: [AppService, ResourcesService],
 })
 export class AppModule {}
