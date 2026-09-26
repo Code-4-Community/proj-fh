@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -63,5 +63,20 @@ export class TagsService {
     this.validateCreateTagDto(category, label, slug);
 
     return this.repo.save(tag);
+  }
+  async getTagById(tagId: number) {
+    const tag = await this.repo.findOneBy( { tag_id: tagId } );
+    if (!tag) {
+      throw new NotFoundException('This tag id could not be found.');
+    }
+    return tag;
+  }
+
+  async getTagsByCategory(category: Category) {
+    if (!Object.values(Category).includes(category)) {
+      throw new BadRequestException('Invalid category.');
+    }
+
+    return this.repo.findBy( { category });
   }
 }

@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Tag } from './tag.entity';
 import { TagsService } from './tags.service';
 import { Category } from './types';
@@ -11,6 +11,8 @@ describe('TagsService', () => {
     count: jest.Mock;
     create: jest.Mock;
     save: jest.Mock;
+    findOneBy: jest.Mock;
+    findBy: jest.Mock;
   };
 
   beforeEach(async () => {
@@ -18,6 +20,8 @@ describe('TagsService', () => {
       count: jest.fn().mockResolvedValue(0),
       create: jest.fn(),
       save: jest.fn(),
+      findOneBy: jest.fn(),
+      findBy: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -123,5 +127,66 @@ describe('TagsService', () => {
       service.create(createTagDto.category, createTagDto.label, 'invalid slug'),
     ).rejects.toThrow(new BadRequestException('Slug cannot contain spaces.'));
     expect(repository.save).not.toHaveBeenCalled();
+  });
+
+  it('returns a tag when the tag id exists', async () => {
+  const tag = {
+    tag_id: 1,
+    category: Category.FOOD_SERVICE_TYPE,
+    label: 'Farmers Market',
+    slug: 'farmers-market',
+  };
+
+  repository.findOneBy.mockResolvedValue(tag);
+
+  await expect(
+    service.getTagById(1),
+  ).resolves.toEqual(tag);
+
+  expect(repository.findOneBy).toHaveBeenCalledWith({ tag_id: 1, });
+  });
+
+  it('rejects when a tag id cannot be found', async () => {
+    repository.findOneBy.mockResolvedValue(null);
+
+    await expect(
+      service.getTagById(999),
+    ).rejects.toThrow(NotFoundException);
+    });
+
+  it('returns tags when the category exists', async () => {
+  const tags = [
+    {
+      tag_id: 1,
+      category: Category.FOOD_SERVICE_TYPE,
+      label: 'Farmers Market',
+      slug: 'farmers-market',
+    },
+    {
+      tag_id: 2,
+      category: Category.FOOD_SERVICE_TYPE,
+      label: 'Food Pantry',
+      slug: 'food-pantry',
+    },
+  ];
+
+  repository.findBy.mockResolvedValue(tags);
+    await expect(service.getTagsByCategory(Category.FOOD_SERVICE_TYPE),
+    ).resolves.toEqual(tags);
+    expect(repository.findBy).toHaveBeenCalledWith({ category: Category.FOOD_SERVICE_TYPE, })
+    })
+
+  it('returns an empty array when no tags match the category', async() => {
+  repository.findBy.mockResolvedValue([]);
+
+    await expect(service.getTagsByCategory(Category.NUTRITION_PROGRAM),
+    ).resolves.toEqual([]);
+    expect(repository.findBy).toHaveBeenCalledWith({ category: Category.NUTRITION_PROGRAM, })
+    })
+
+  it('rejects an invalid/nonexistent category', async () => {
+  await expect(
+    service.getTagsByCategory('fake_category' as Category),
+    ).rejects.toThrow(BadRequestException);
   });
 });
