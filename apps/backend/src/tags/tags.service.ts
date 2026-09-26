@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 
 import { Tag } from './tag.entity';
 import { Category } from './types';
@@ -64,6 +64,13 @@ export class TagsService {
 
     return this.repo.save(tag);
   }
+
+  /**
+   * Gets a tag by its id.
+   * @param tagId The unique id associated with a tag, which is the PK of tag table.
+   *
+   * @returns A tag with all its associated info.
+   */
   async getTagById(tagId: number) {
     const tag = await this.repo.findOneBy( { tag_id: tagId } );
     if (!tag) {
@@ -72,6 +79,28 @@ export class TagsService {
     return tag;
   }
 
+  /**
+   * Gets multiple tags by their ids.
+   * @param tagIds An array of tag ids to query by.
+   *
+   * @returns An array of tags matching the provided ids.
+   */
+  async getTagsByIds(tagIds: number[]) {
+    if (!tagIds || tagIds.length === 0) {
+      throw new BadRequestException(
+        'At least one tag ID is required.',
+      );
+    }
+
+  return this.repo.findBy({ tag_id: In(tagIds), });
+  }
+
+  /**
+   * Gets (multiple) tags by their category.
+   * @param category A valid category enum used to filter the tags.
+   *
+   * @returns An array of tags.
+   */
   async getTagsByCategory(category: Category) {
     if (!Object.values(Category).includes(category)) {
       throw new BadRequestException('Invalid category.');

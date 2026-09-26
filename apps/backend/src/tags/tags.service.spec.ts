@@ -189,4 +189,33 @@ describe('TagsService', () => {
     service.getTagsByCategory('fake_category' as Category),
     ).rejects.toThrow(BadRequestException);
   });
+
+  it('gets tags by ids', async () => {
+  const tags = [
+    {
+      tag_id: 1,
+      category: Category.FOOD_TYPE,
+      label: 'Food Pantry',
+      slug: 'food-pantry',
+    },
+    {
+      tag_id: 2,
+      category: Category.FOOD_TYPE,
+      label: 'Grocery Store',
+      slug: 'grocery-store',
+    },
+  ];
+
+  repository.findBy.mockResolvedValue(tags);
+
+  await expect(
+    service.getTagsByIds([1, 2, 999]),
+  ).resolves.toEqual(tags);
+  });
+  
+  it('rejects an empty list of tag ids', async () => {
+  await expect(
+    service.getTagsByIds([]),
+  ).rejects.toThrow(BadRequestException);
+  });
 });
