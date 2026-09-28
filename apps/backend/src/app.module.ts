@@ -5,18 +5,25 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import AppDataSource from './data-source';
 import { UsersModule } from './users/users.module';
-import { ResourcesController } from './resources/resources.controller';
-import { ResourcesService } from './resources/resources.service';
+import { TagsModule } from './tags/tags.module';
+import { ResourcesModule } from './resources/resources.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: '../../.env',
     }),
-    TypeOrmModule.forRoot(AppDataSource.options),
+    TypeOrmModule.forRoot({
+      ...AppDataSource.options,
+      migrations: [], // Don't load migrations when server starts - only load them when running migration commands (i had to add this to get the server to run without errors)
+    }),
+    UsersModule,
+    ResourcesModule,
+    TagsModule,
     UsersModule,
   ],
-  controllers: [AppController, ResourcesController],
-  providers: [AppService, ResourcesService],
+  controllers: [AppController],
+  providers: [AppService]
 })
 export class AppModule {}
