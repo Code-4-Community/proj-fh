@@ -74,7 +74,7 @@ export class TagsService {
   async getTagById(tagId: number) {
     const tag = await this.repo.findOneBy( { tag_id: tagId } );
     if (!tag) {
-      throw new NotFoundException('This tag id could not be found.');
+      throw new NotFoundException(`The tag id: ${tagId} could not be found.`);
     }
     return tag;
   }
@@ -103,7 +103,7 @@ export class TagsService {
    */
   async getTagsByCategory(category: Category) {
     if (!Object.values(Category).includes(category)) {
-      throw new BadRequestException('Invalid category.');
+      throw new BadRequestException(`${category} is not a valid Category. Valid categories are: ${Object.values(Category).join(', ')}.`);
     }
 
     return this.repo.findBy( { category });

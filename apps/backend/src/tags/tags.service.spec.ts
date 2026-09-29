@@ -151,7 +151,7 @@ describe('TagsService', () => {
 
     await expect(
       service.getTagById(999),
-    ).rejects.toThrow(NotFoundException);
+    ).rejects.toThrow('The tag id: 999 could not be found.');
     });
 
   it('returns tags when the category exists', async () => {
@@ -187,7 +187,7 @@ describe('TagsService', () => {
   it('rejects an invalid/nonexistent category', async () => {
   await expect(
     service.getTagsByCategory('fake_category' as Category),
-    ).rejects.toThrow(BadRequestException);
+    ).rejects.toThrow(`fake_category is not a valid Category. Valid categories are: ${Object.values(Category).join(', ')}.`);
   });
 
   it('gets tags by ids', async () => {
@@ -216,6 +216,6 @@ describe('TagsService', () => {
   it('rejects an empty list of tag ids', async () => {
   await expect(
     service.getTagsByIds([]),
-  ).rejects.toThrow(BadRequestException);
+  ).rejects.toThrow('At least one tag ID is required.');
   });
 });
