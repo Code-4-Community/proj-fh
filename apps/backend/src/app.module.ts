@@ -6,8 +6,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import AppDataSource from './data-source';
 import { UsersModule } from './users/users.module';
-import { ResourcesController } from './resources/resources.controller';
-import { ResourcesService } from './resources/resources.service';
+import { ResourcesModule } from './resources/resources.module';
 import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
 
@@ -19,11 +18,11 @@ import { JwtAuthGuard } from './auth/jwt-auth.guard';
     TypeOrmModule.forRoot(AppDataSource.options),
     UsersModule,
     AuthModule,
+    ResourcesModule,
   ],
-  controllers: [AppController, ResourcesController],
+  controllers: [AppController],
   providers: [
     AppService,
-    ResourcesService,
     { provide: APP_GUARD, useClass: JwtAuthGuard },
   ],
 })
