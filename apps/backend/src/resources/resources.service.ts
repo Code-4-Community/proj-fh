@@ -6,4 +6,17 @@ import { Injectable } from '@nestjs/common';
  * It interacts with the database through the injected repository of the Resource entity, allowing for operations such as creating and retrieving.
  */
 @Injectable()
-export class ResourcesService {}
+export class ResourcesService {
+
+    /**
+     * A valid resource has  
+     * 
+     */
+    validateResource() {
+
+    }
+
+    createResource() {
+
+    }
+}

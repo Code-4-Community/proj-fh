@@ -1,4 +1,4 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { ResourcesService } from './resources.service';
 
@@ -10,4 +10,12 @@ import { ResourcesService } from './resources.service';
 @Controller('resources')
 export class ResourcesController {
   constructor(private resourcesService: ResourcesService) {}
+
+  /**
+   * Method to create a resource. 
+   */
+  @Post()
+  create() {
+    
+  }
 }
