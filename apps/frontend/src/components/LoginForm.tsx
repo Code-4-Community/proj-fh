@@ -7,16 +7,32 @@ import {
   signInWithEmailPassword,
 } from '../auth/cognito';
 
+/**
+ * Temporary login form component without any fancy styling.
+ * 
+ * @returns A React component representing the login form.
+ */
 const LoginForm: React.FC = () => {
+  // navigate function from react-router-dom to programmatically navigate between routes
   const navigate = useNavigate();
+  // The email of the user
   const [email, setEmail] = useState('');
+  // The password of the user, this is only given to AWS Cognito/Amplify during sign-in
   const [password, setPassword] = useState('');
+  // The new password to set when required
   const [newPassword, setNewPassword] = useState('');
+  // The confirmation of the new password
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  // Indicates whether the user is required to set a new password, dictated by AWS Cognito
   const [requiresNewPassword, setRequiresNewPassword] = useState(false);
+  // The error message to display if sign-in fails
   const [error, setError] = useState<string>();
+  // Indicates whether the form is currently processing a sign-in request
   const [busy, setBusy] = useState(false);
 
+  /**
+   * Completes the sign-in process by fetching the current identity and navigating to the success page.
+   */
   const finishSignIn = async () => {
     const identity = await apiClient.getCurrentIdentity();
     navigate('/success', {
@@ -25,8 +41,16 @@ const LoginForm: React.FC = () => {
     });
   };
 
+  /**
+   * Handles the form submission for signing in the user.
+   * @param event The form submission event.
+   * @returns A promise that resolves when the sign-in process is complete.
+   */
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    // Prevent the default form submission behavior and start the sign-in process.
     event.preventDefault();
+
+    // Set the current states so they can be communicated to the user through our UI
     setBusy(true);
     setError(undefined);
 
@@ -35,6 +59,7 @@ const LoginForm: React.FC = () => {
         if (newPassword !== confirmNewPassword) {
           throw new Error('The new passwords do not match.');
         }
+        // Calling Cognito
         await completeNewPasswordChallenge(newPassword);
         setRequiresNewPassword(false);
         setNewPassword('');
@@ -43,6 +68,7 @@ const LoginForm: React.FC = () => {
         return;
       }
 
+      // Calling Cognito
       const result = await signInWithEmailPassword(email, password);
       if (result.kind === 'NEW_PASSWORD_REQUIRED') {
         setRequiresNewPassword(true);

@@ -7,6 +7,10 @@ import { getSignedInEmail } from '../auth/cognito';
 const Root: React.FC = () => {
   const navigate = useNavigate();
 
+  /**
+   * Temporary routing logic just to test login. In the future we're going to
+   * actually role-protect routes.
+   */
   useEffect(() => {
     getSignedInEmail()
       .then(async (currentEmail) => {

@@ -5,6 +5,9 @@ type SuccessLocationState = {
   email?: string;
 };
 
+/**
+ * Temporary Success page to signify successful login
+ */
 const Success: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
