@@ -8,8 +8,9 @@ describe('App', () => {
     expect(baseElement).toBeTruthy();
   });
 
-  it('should have a greeting as the title', () => {
+  it('should show the sign-in screen', () => {
     const { getByText } = render(<App />);
-    expect(getByText(/Welcome frontend/gi)).toBeTruthy();
+    expect(getByText('Welcome back')).toBeTruthy();
+    expect(getByText('Sign in')).toBeTruthy();
   });
 });

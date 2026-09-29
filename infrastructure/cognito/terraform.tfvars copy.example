@@ -1,4 +1,0 @@
-aws_region                           = "us-east-2"
-user_pool_name                       = "proj-fh-user-pool"
-frontend_client_name                 = "proj-fh-frontend-no-secret"
-frontend_refresh_token_validity_days = 30

@@ -4,7 +4,7 @@ WORKDIR /app
 COPY . .
 
 RUN npm pkg set type=module
-RUN npm ci
+RUN yarn install --immutable
 RUN npx nx build frontend
 
 FROM nginx:1.27-alpine
