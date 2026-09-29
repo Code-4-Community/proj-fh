@@ -3,7 +3,7 @@ WORKDIR /app
 
 COPY . .
 
-RUN npm ci
+RUN yarn install --immutable    
 RUN npx nx build backend
 
 FROM node:24-alpine AS runtime
