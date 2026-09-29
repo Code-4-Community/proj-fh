@@ -12,6 +12,10 @@ export class ApiClient {
     return this.get('/api') as Promise<string>;
   }
 
+  /**
+   * Given a resource ID, extract one resource from Resource list and calls Score controller's FindById 
+   * and Tag controller's FindByIds methods to return a single merged object containing the resource, its score, and its tags.
+   */
   public async getAllResourceInfo(resourceId: string): Promise<unknown> {
     const resources = await ResourceController.FindByIds([resourceId]);
     const resource = resources?.[0];
