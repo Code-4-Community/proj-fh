@@ -1,8 +1,5 @@
 import axios, { type AxiosInstance } from 'axios';
-
-
-const defaultBaseUrl =
-  import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000';
+import { defaultBaseUrl } from './apiBaseUrl';
 
 export class ApiClient {
   private axiosInstance: AxiosInstance;
