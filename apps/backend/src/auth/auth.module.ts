@@ -3,6 +3,9 @@ import { PassportModule } from '@nestjs/passport';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './jwt.strategy';
 
+/**
+ * Auth module to handle authentication-related functionality.
+ */
 @Module({
   imports: [PassportModule.register({ defaultStrategy: 'jwt' })],
   controllers: [AuthController],

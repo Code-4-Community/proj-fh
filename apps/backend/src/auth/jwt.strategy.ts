@@ -10,10 +10,28 @@ type CognitoIdTokenPayload = {
   token_use?: string;
 };
 
+/**
+ * JWT strategy for validating Cognito ID tokens.
+ * 
+ * This strategy extracts the JWT from the Authorization header, verifies it using the JWKS endpoint,
+ * and validates the payload to ensure it contains the required claims (sub and email).
+ * 
+ * The execution chain is:
+ * 1. JwtAuthGuard calls Passport (package) with strategy name 'jwt'.
+ * 2. Passport (package) finds the registered JwtStrategy (in jwt.strategy.ts)
+ * 3. JwtStrategy validates the token.
+ * 4. Its validate() result becomes request.user.
+ * 5. request.user is autoinjected into any function with the JwtAuthGuard applied.
+ * 6. When /auth/me is called in auth.controller.ts, the user comes from that injected user
+ */
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   private readonly logger = new Logger(JwtStrategy.name);
 
+  /**
+   * Configures the JWT strategy with the necessary options for Cognito ID token validation.
+   * Throws an error if the required environment variables are not set.
+   */
   constructor() {
     const region = process.env.REGION;
     const userPoolId = process.env.AUTH_COGNITO_USER_POOL_ID;
@@ -48,6 +66,13 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     );
   }
 
+  /**
+   * Validates the Cognito ID token payload.
+   * Ensures that the token is an ID token and contains the required claims (sub and email).
+   * 
+   * @param payload The decoded Cognito ID token payload.
+   * @returns The authenticated identity containing the sub and email claims.
+   */
   validate(payload: CognitoIdTokenPayload): AuthenticatedIdentity {
     if (payload.token_use !== 'id') {
       throw new UnauthorizedException('A Cognito ID token is required.');
