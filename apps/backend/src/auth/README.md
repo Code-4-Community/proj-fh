@@ -1,6 +1,8 @@
 # Authentication
 
-The auth diagram can be found in the [Miro board](https://miro.com/app/board/uXjVHjLwe7Y=/).
+The living auth diagram can be found in the [Miro board](https://miro.com/app/board/uXjVHjLwe7Y=/). YOu can only see this if I invite you to it.
+
+Or you can look at this screenshot:
 
 ![Authentication flow](image.png)
 
@@ -10,7 +12,7 @@ The auth diagram can be found in the [Miro board](https://miro.com/app/board/uXj
 2. Passport finds the registered `JwtStrategy`.
 3. `JwtStrategy` extracts and validates the Cognito JWT from the `Authorization: Bearer <token>` header.
 4. The strategy checks the token signature, issuer, audience, expiration, and required Cognito claims.
-5. The strategy's `validate()` result becomes `request.user`.
+5. The strategy's `validate()` result becomes `request.user`, it injects that for routes in step 6.
 6. A route decorated with `@UseGuards(JwtAuthGuard)` can return or use that identity, such as `GET /api/auth/me`.
 
 Routes are public by default. Add `@UseGuards(JwtAuthGuard)` to a controller or route when authentication is required. The `@ApiBearerAuth()` decorator documents the requirement in Swagger; it does not perform authentication itself.
