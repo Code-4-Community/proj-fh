@@ -17,7 +17,7 @@ import { AuthGuard } from '@nestjs/passport';
  * 3. JwtStrategy validates the token.
  * 4. Its validate() result becomes request.user.
  * 5. request.user is autoinjected into any function with the JwtAuthGuard applied.
- * 6. So when /auth/me is called in auth.controller.ts, the user comes from that injected user
+ * 6. When /auth/me is called in auth.controller.ts, the user comes from that injected user
  */
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {}

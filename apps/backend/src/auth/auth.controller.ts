@@ -1,6 +1,7 @@
-import { Controller, Get, Req } from '@nestjs/common';
+import { Controller, Get, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import type { AuthenticatedIdentity } from './authenticated-identity';
+import { JwtAuthGuard } from './jwt-auth.guard';
 
 /**
  * Represents an authenticated request containing the user's identity.
@@ -34,6 +35,7 @@ export class AuthController {
    * @param request The authenticated request containing the user identity.
    * @returns The authenticated user's identity.
    */
+  @UseGuards(JwtAuthGuard)
   @Get('me')
   getIdentity(@Req() request: AuthenticatedRequest): AuthenticatedIdentity {
     return request.user;
