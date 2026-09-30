@@ -10,8 +10,13 @@ jest.mock('axios', () => ({
     create: mockAxiosCreate,
   },
 }));
+
 jest.mock('./apiBaseUrl', () => ({
   defaultBaseUrl: 'http://localhost:3000',
+}));
+
+jest.mock('../auth/cognito', () => ({
+  getIdToken: jest.fn(async () => null),
 }));
 
 const { ApiClient } = require('./apiClient') as typeof import('./apiClient');
@@ -61,7 +66,7 @@ describe('ApiClient', () => {
     };
 
     const score = { score_id: 2 };
-    
+
     const tags = [
       {tag_id: 1, category: 'food_service_type', label: 'Food Pantry' , slug: 'food-pantry' },
       {tag_id: 4, category: 'food_service_type', label: 'Soup Kitchen' , slug: 'soup-kitchen' },

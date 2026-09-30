@@ -12,8 +12,7 @@ export type AuthenticatedIdentity = {
   email: string;
 };
 
-const defaultBaseUrl =
-  import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000';
+import { defaultBaseUrl } from './apiBaseUrl';
 
 export class ApiClient {
   private axiosInstance: AxiosInstance;
