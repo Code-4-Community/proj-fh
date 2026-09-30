@@ -109,7 +109,7 @@ describe('ApiClient', () => {
     });
  
     // tests a successful method call at each step
-    describe('successful method call', () => {
+    describe('tests a successful method call', () => {
       it('calls Resource FindByIds with a single-ID list', async () => {
         mockBackend();
         await client.getAllResourceInfo(1);
@@ -188,8 +188,7 @@ describe('ApiClient', () => {
       });
     });
  
-    // tests method when resource call fails
-    describe('resource failure', () => {
+    describe('tests method when resource call fails', () => {
       it('fails immediately and skips the Score and Tag calls when the request fails', async () => {
         mockBackend({ resourceError: new Error('Network error') });
  
@@ -209,8 +208,7 @@ describe('ApiClient', () => {
       });
     });
  
-    // tests method when score call fails
-    describe('score failure', () => {
+    describe('tests method when score call fails', () => {
       it('returns the resource and tags, flagged as partial', async () => {
         mockBackend({ scoreError: new Error('Score service down') });
  
@@ -226,8 +224,7 @@ describe('ApiClient', () => {
       });
     });
  
-    // tests method when tag call fails
-    describe('tag failure', () => {
+    describe('tests method when tag call fails', () => {
       it('returns the resource and score, flagged as partial', async () => {
         mockBackend({ tagsError: new Error('tag service down') });
  
