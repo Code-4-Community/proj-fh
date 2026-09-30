@@ -49,14 +49,14 @@ export class ApiClient {
     * @param resourceId the given ID used to extract a resource
     * @returns a single merged object containing the resource, its score, and its tags
     */
-  public async getAllResourceInfo(resourceId: string): Promise<unknown> {
-    const resources = (await this.post('/api/resources/findByIds', [resourceId])) as Resource[];
+  public async getAllResourceInfo(resource_id: number): Promise<unknown> {
+    const resources = (await this.post('/api/resources/findByIds', [resource_id])) as Resource[];
     const resource = resources?.[0];
-    if (!resource) throw new Error(`Resource ${resourceId} could not be found`);
+    if (!resource) throw new Error(`Resource ${resource_id} could not be found`);
 
     const [scoreResult, tagResult] = await Promise.allSettled([
-      resource.score_id ? (this.get(`/api/scores/${resource.score_id}`) as Promise<Score>) : Promise.resolve(null),
-      resource.tag_ids ? (this.post('/api/tags/findByIds', resource.tag_ids) as Promise<Tag[]>) : Promise.resolve([])
+      this.get(`/api/scores/${resource.score_id}`) as Promise<Score>,
+      resource.tags?.length ? (this.post('/api/tags/findByIds', resource.tags) as Promise<Tag[]>) : Promise.resolve([])
     ]);
 
     const failed: Array<'score' | 'tags'> = [];
