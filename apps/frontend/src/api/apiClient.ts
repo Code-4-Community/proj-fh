@@ -50,30 +50,18 @@ export class ApiClient {
     * @returns a single merged object containing the resource, its score, and its tags
     */
   public async getAllResourceInfo(resourceId: string): Promise<unknown> {
-    const resources = await ResourceController.FindByIds([resourceId]);
+    const resources = (await this.post('/api/resources/findByIds', [resourceId])) as Resource[];
     const resource = resources?.[0];
     if (!resource) throw new Error(`Resource ${resourceId} could not be found`);
 
     const [scoreResult, tagResult] = await Promise.allSettled([
-      resource.score_id ? ScoreController.FindById(resource.score_id) : Promise.resolve(null),
-      resource.tag_ids ? TagController.FindByIds(resource.tag_ids) : Promise.resolve([])
+      resource.score_id ? (this.get(`/api/scores/${resource.score_id}`) as Promise<Score>) : Promise.resolve(null),
+      resource.tag_ids ? (this.post('/api/tags/findByIds', resource.tag_ids) as Promise<Tag[]>) : Promise.resolve([])
     ]);
 
     const failed: Array<'score' | 'tags'> = [];
-
-    let score: Score | null = null;
-    if (scoreResult.status === 'fulfilled') {
-      score = scoreResult.value;
-    }
-    else
-      failed.push('score');
-
-    let tags: Tag[] = [];
-    if (tagResult.status === 'fulfilled') {
-      tags = tagResult.value;
-    }
-    else
-      failed.push('tags');
+    const score = scoreResult.status === 'fulfilled' ? scoreResult.value : (failed.push('score'), null);
+    const tags = tagResult.status === 'fulfilled' ? tagResult.value : (failed.push('tags'), []);
 
     return {
       resource,
