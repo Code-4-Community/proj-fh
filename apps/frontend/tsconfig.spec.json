@@ -2,8 +2,6 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "../../dist/out-tsc",
-    "module": "node16",
-    "moduleResolution": "node16",
     "isolatedModules": true,
     "types": ["jest", "vite/client", "node"]
   },

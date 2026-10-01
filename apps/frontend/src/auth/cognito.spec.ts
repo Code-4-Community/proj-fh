@@ -1,28 +1,27 @@
 import { confirmSignIn, signIn } from 'aws-amplify/auth';
-import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   completeNewPasswordChallenge,
   signInWithEmailPassword,
 } from './cognito';
 
-vi.mock('aws-amplify/auth', () => ({
-  confirmSignIn: vi.fn(),
-  fetchAuthSession: vi.fn(),
-  fetchUserAttributes: vi.fn(),
-  getCurrentUser: vi.fn(),
-  signIn: vi.fn(),
-  signOut: vi.fn(),
+jest.mock('aws-amplify/auth', () => ({
+  confirmSignIn: jest.fn(),
+  fetchAuthSession: jest.fn(),
+  fetchUserAttributes: jest.fn(),
+  getCurrentUser: jest.fn(),
+  signIn: jest.fn(),
+  signOut: jest.fn(),
 }));
 
-vi.mock('./amplify', () => ({
+jest.mock('./amplify', () => ({
   isAmplifyConfigured: () => true,
 }));
 
 describe('Cognito password challenge', () => {
-  afterEach(() => vi.clearAllMocks());
+  afterEach(() => jest.clearAllMocks());
 
   it('returns the new-password-required challenge from sign-in', async () => {
-    vi.mocked(signIn).mockResolvedValue({
+    jest.mocked(signIn).mockResolvedValue({
       isSignedIn: false,
       nextStep: {
         signInStep: 'CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED',
@@ -35,7 +34,7 @@ describe('Cognito password challenge', () => {
   });
 
   it('confirms the challenge with the permanent password', async () => {
-    vi.mocked(confirmSignIn).mockResolvedValue({
+    jest.mocked(confirmSignIn).mockResolvedValue({
       isSignedIn: true,
       nextStep: { signInStep: 'DONE' },
     } as Awaited<ReturnType<typeof confirmSignIn>>);
