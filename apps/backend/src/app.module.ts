@@ -7,6 +7,7 @@ import AppDataSource from './data-source';
 import { UsersModule } from './users/users.module';
 import { TagsModule } from './tags/tags.module';
 import { ResourcesModule } from './resources/resources.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -21,7 +22,7 @@ import { ResourcesModule } from './resources/resources.module';
     UsersModule,
     ResourcesModule,
     TagsModule,
-    UsersModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService]

@@ -1,4 +1,16 @@
 import axios, { type AxiosInstance } from 'axios';
+import { getIdToken } from '../auth/cognito';
+
+/**
+ * Represents the authenticated identity of the current user.
+ * 
+ * sub: The unique identifier for the user.
+ * email: The email address of the user.
+ */
+export type AuthenticatedIdentity = {
+  sub: string;
+  email: string;
+};
 
 const defaultBaseUrl =
   import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000';
@@ -8,10 +20,26 @@ export class ApiClient {
 
   constructor() {
     this.axiosInstance = axios.create({ baseURL: defaultBaseUrl });
+    this.axiosInstance.interceptors.request.use(async (config) => {
+      const idToken = await getIdToken();
+      if (idToken) {
+        config.headers.Authorization = `Bearer ${idToken}`;
+      }
+      return config;
+    });
   }
 
   public async getHello(): Promise<string> {
     return this.get('/api') as Promise<string>;
+  }
+
+  /**
+   * Retrieves the authenticated identity of the current user.
+   * 
+   * @returns The authenticated identity (user object) of the current user.
+   */
+  public async getCurrentIdentity(): Promise<AuthenticatedIdentity> {
+    return this.get('/api/auth/me') as Promise<AuthenticatedIdentity>;
   }
 
   private async get(path: string): Promise<unknown> {
