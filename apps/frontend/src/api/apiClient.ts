@@ -12,8 +12,8 @@ export type AuthenticatedIdentity = {
   email: string;
 };
 
-const defaultBaseUrl =
-  import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000';
+import { defaultBaseUrl } from './apiBaseUrl';
+import { Resource, Score, Tag } from '../types';
 
 export class ApiClient {
   private axiosInstance: AxiosInstance;
@@ -40,6 +40,36 @@ export class ApiClient {
    */
   public async getCurrentIdentity(): Promise<AuthenticatedIdentity> {
     return this.get('/api/auth/me') as Promise<AuthenticatedIdentity>;
+  }
+
+   /**
+    * Given a resource ID, extract one resource from Resource list and calls Score controller's FindById 
+    * and Tag controller's findById methods to return a single merged object containing the resource, its score, and its tags.
+    * 
+    * @param resourceId the given ID used to extract a resource
+    * @returns a single merged object containing the resource, its score, and its tags
+    */
+  public async getAllResourceInfo(resource_id: number): Promise<unknown> {
+    const resources = (await this.post('/api/resources/findById', [resource_id])) as Resource[];
+    const resource = resources?.[0];
+    if (!resource) throw new Error(`Resource ${resource_id} could not be found`);
+
+    const [scoreResult, tagResult] = await Promise.allSettled([
+      this.get(`/api/scores/findOneById/${resource.score_id}`) as Promise<Score>,
+      resource.tags?.length ? (this.post('/api/tags/findById', resource.tags) as Promise<Tag[]>) : Promise.resolve([])
+    ]);
+
+    const failed: Array<'score' | 'tags'> = [];
+    const score = scoreResult.status === 'fulfilled' ? scoreResult.value : (failed.push('score'), null);
+    const tags = tagResult.status === 'fulfilled' ? tagResult.value : (failed.push('tags'), []);
+
+    return {
+      resource,
+      score,
+      tags,
+      partial: failed.length > 0,
+      failed
+    };
   }
 
   private async get(path: string): Promise<unknown> {
