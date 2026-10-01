@@ -13,6 +13,7 @@ export type AuthenticatedIdentity = {
 };
 
 import { defaultBaseUrl } from './apiBaseUrl';
+import { Resource, Score, Tag } from '../types';
 
 export class ApiClient {
   private axiosInstance: AxiosInstance;
@@ -70,7 +71,6 @@ export class ApiClient {
       failed
     };
   }
-
 
   private async get(path: string): Promise<unknown> {
     return this.axiosInstance.get(path).then((response) => response.data);
