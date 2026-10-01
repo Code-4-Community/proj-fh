@@ -43,19 +43,19 @@ export class ApiClient {
 
    /**
     * Given a resource ID, extract one resource from Resource list and calls Score controller's FindById 
-    * and Tag controller's FindByIds methods to return a single merged object containing the resource, its score, and its tags.
+    * and Tag controller's findById methods to return a single merged object containing the resource, its score, and its tags.
     * 
     * @param resourceId the given ID used to extract a resource
     * @returns a single merged object containing the resource, its score, and its tags
     */
   public async getAllResourceInfo(resource_id: number): Promise<unknown> {
-    const resources = (await this.post('/api/resources/findByIds', [resource_id])) as Resource[];
+    const resources = (await this.post('/api/resources/findById', [resource_id])) as Resource[];
     const resource = resources?.[0];
     if (!resource) throw new Error(`Resource ${resource_id} could not be found`);
 
     const [scoreResult, tagResult] = await Promise.allSettled([
-      this.get(`/api/scores/${resource.score_id}`) as Promise<Score>,
-      resource.tags?.length ? (this.post('/api/tags/findByIds', resource.tags) as Promise<Tag[]>) : Promise.resolve([])
+      this.get(`/api/scores/findOneById/${resource.score_id}`) as Promise<Score>,
+      resource.tags?.length ? (this.post('/api/tags/findById', resource.tags) as Promise<Tag[]>) : Promise.resolve([])
     ]);
 
     const failed: Array<'score' | 'tags'> = [];

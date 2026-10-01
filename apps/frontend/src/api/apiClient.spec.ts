@@ -20,9 +20,9 @@ jest.mock('../auth/cognito', () => ({
 }));
 
 const { ApiClient } = require('./apiClient') as typeof import('./apiClient');
-const RESOURCES_URL = '/api/resources/findByIds';
-const TAGS_URL = '/api/tags/findByIds';
-const scoreUrl = (id: number) => `/api/scores/${id}`;
+const RESOURCES_URL = '/api/resources/findById';
+const TAGS_URL = '/api/tags/findById';
+const scoreUrl = (id: number) => `/api/scores/findOneById/${id}`;
 
 describe('ApiClient', () => {
   beforeEach(() => {
@@ -110,13 +110,13 @@ describe('ApiClient', () => {
  
     // tests a successful method call at each step
     describe('tests a successful method call', () => {
-      it('calls Resource FindByIds with a single-ID list', async () => {
+      it('calls Resource findById with a single-ID list', async () => {
         mockBackend();
         await client.getAllResourceInfo(1);
         expect(mockPost).toHaveBeenCalledWith(RESOURCES_URL, [1]);
       });
  
-      it('calls Score FindById and Tag FindByIds using the resource IDs', async () => {
+      it('calls Score FindById and Tag findById using the resource IDs', async () => {
         mockBackend();
         await client.getAllResourceInfo(1);
         expect(mockGet).toHaveBeenCalledWith(scoreUrl(2));
