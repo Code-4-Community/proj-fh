@@ -3,6 +3,8 @@ import { ScoreService } from './score.service';
 import { Score } from './score.entity';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+// TODO: Make tests once the entity shape is actually finalized. 
+
 /**
  * Controller for managing scores. Provides endpoints for retrieving and managing scores in the system.
  */
@@ -15,7 +17,7 @@ export class ScoreController {
   /**
    * Retrieves a single score by its ID.
    */
-  @Get('/:scoreId')
+  @Get('/findOneById/:scoreId')
   async getScore(
     @Param('scoreId', ParseIntPipe) scoreId: number,
   ): Promise<Score | null> {
