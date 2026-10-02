@@ -19,7 +19,7 @@ export class ResourcesController {
    *
    * @returns The newly created Resource entity.
    */
-  @Post()
+  @Post('/:create')
   create(@Body() createResourceDto: CreateResourceDto): Promise<Resource> {
     return this.resourcesService.create(createResourceDto);
   }

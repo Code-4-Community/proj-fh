@@ -14,8 +14,10 @@ export class ResourcesService {
 
   /**
    * Creates a new resource from the validated request body.
-   * Server-managed fields are initialized here: the score starts at 0, the vetting status starts as 'pending review',
+   * 
+   * Some required fields are initialized as so: score starts at 0, the vetting status starts as 'pending review',
    * and the last verified date is set to the time of creation.
+   * 
    * @param createResourceDto The validated fields provided by the client.
    *
    * @returns A promise that resolves to the newly created Resource entity.

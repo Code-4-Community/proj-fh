@@ -14,9 +14,6 @@ import { Category, County } from '../types';
 
 /**
  * The request body for creating a new Resource.
- *
- * Server-managed fields (resource_id, score_id, tags, last_verified_date, vetting_status, reviewer_notes)
- * are intentionally excluded and set by the ResourcesService.
  */
 export class CreateResourceDto {
   /**
