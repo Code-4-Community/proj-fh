@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseIntPipe, Query } from '@nestjs/common';
 import { TagsService } from './tags.service';
 import { Tag } from './tag.entity';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
@@ -14,6 +14,21 @@ export class TagsController {
   constructor(private tagsService: TagsService) {}
 
   /**
+   * Retrieves tags by a list of ids
+   * @param ids an array of tag IDs to retreive
+   * 
+   * @returns an array of tags matching the provided IDs
+   */
+  @Get('/findById')
+  async getTagsByIds(
+    @Query('ids') ids?: string,
+  ): Promise<Tag[]> {
+    const tagIds = ids ? ids.split(',').map(Number) : [];
+
+    return this.tagsService.getTagsByIds(tagIds);
+  }
+
+  /**
    * Retrieves a single tag by its ID.
    * @param tagId the unique ID of a tag to get
    * 
@@ -26,18 +41,6 @@ export class TagsController {
     return this.tagsService.getTagById(tagId);
   }
 
-  /**
-   * Retrieves tags by a list of ids
-   * @param ids an array of tag IDs to retreive
-   * 
-   * @returns an array of tags matching the provided IDs
-   */
-  @Post('/findById')
-  async getTagsByIds(
-    @Body('ids') ids: number[],
-  ): Promise<Tag[]> {
-    return this.tagsService.getTagsByIds(ids);
-  }
 
   /**
    * Retrieves tags by their category
