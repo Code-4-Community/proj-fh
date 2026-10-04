@@ -55,8 +55,8 @@ export class ApiClient {
     if (!resource) throw new Error(`Resource ${resource_id} could not be found`);
 
     const [scoreResult, tagResult] = await Promise.allSettled([
-      this.get(`/api/scores/findOneById/${resource.score_id}`) as Promise<Score>,
-      resource.tags?.length ? (this.post('/api/tags/findById', resource.tags) as Promise<Tag[]>) : Promise.resolve([])
+      this.get(`/api/score/findOneById/${resource.score_id}`) as Promise<Score>,
+      resource.tags?.length ? (this.get(`/api/tags/findById?ids=${resource.tags.join(',')}`) as Promise<Tag[]>) : Promise.resolve([])
     ]);
 
     const failed: Array<'score' | 'tags'> = [];
