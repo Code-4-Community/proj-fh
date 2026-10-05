@@ -13,7 +13,7 @@ import { AuthModule } from './auth/auth.module';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    TypeOrmModule.forRoot(AppDataSource.options),
+    TypeOrmModule.forRoot({ ...AppDataSource.options, autoLoadEntities: true }),
     UsersModule,
     AuthModule,
     ResourcesModule,
