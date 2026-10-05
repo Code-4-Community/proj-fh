@@ -1,6 +1,10 @@
 import { DataSource } from 'typeorm';
 import { PluralNamingStrategy } from './strategies/plural-naming.strategy';
 import * as dotenv from 'dotenv';
+import { Tag } from './tags/tag.entity';
+import { Resource } from './resources/resources.entity';
+import { Score } from './score/score.entity';
+import { User } from './users/user.entity';
 
 dotenv.config();
 
@@ -21,10 +25,9 @@ const AppDataSource = new DataSource({
   username: process.env.NX_DB_USERNAME ?? process.env.POSTGRES_USER,
   password: process.env.NX_DB_PASSWORD ?? process.env.POSTGRES_PASSWORD,
   database: process.env.NX_DB_DATABASE ?? process.env.POSTGRES_DB,
-  entities: [
-    'apps/backend/src/tags/tags.entity.ts',
-    'apps/backend/src/resources/resources.entity.ts',
-  ],
+  // Entities are imported directly rather than globbed by path, since glob
+  // strings don't resolve once the app is bundled/copied for production.
+  entities: [Tag, Resource, Score, User],
   migrations: [
     'apps/backend/src/migrations/*.js',
     'apps/backend/src/migrations/*.ts',

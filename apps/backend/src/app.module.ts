@@ -5,6 +5,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import AppDataSource from './data-source';
 import { UsersModule } from './users/users.module';
+import { TagsModule } from './tags/tags.module';
 import { ResourcesModule } from './resources/resources.module';
 import { AuthModule } from './auth/auth.module';
 
@@ -12,13 +13,18 @@ import { AuthModule } from './auth/auth.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: '../../.env',
     }),
-    TypeOrmModule.forRoot({ ...AppDataSource.options, autoLoadEntities: true }),
+    TypeOrmModule.forRoot({
+      ...AppDataSource.options,
+      migrations: [], // Don't load migrations when server starts - only load them when running migration commands (i had to add this to get the server to run without errors)
+    }),
     UsersModule,
-    AuthModule,
     ResourcesModule,
+    TagsModule,
+    AuthModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService]
 })
 export class AppModule {}
