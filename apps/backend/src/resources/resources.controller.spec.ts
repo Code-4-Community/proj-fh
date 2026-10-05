@@ -32,13 +32,13 @@ describe('ResourcesController', () => {
   };
 
   describe('create', () => {
-    it('responds with a 200 status code', () => {
+    it('responds with a 201 status code', () => {
       expect(
         Reflect.getMetadata(
           HTTP_CODE_METADATA,
           ResourcesController.prototype.create,
         ),
-      ).toBe(HttpStatus.OK);
+      ).toBe(HttpStatus.CREATED);
     });
 
     it('returns the resource created by the service', async () => {

@@ -17,12 +17,12 @@ export class ResourcesController {
    * Creates a new resource.
    * @param createResourceDto The validated request body describing the resource.
    *
-   * @returns 200 with the newly created Resource entity.
+  * @returns 201 with the newly created Resource entity.
    * Returns 400 with a message naming the invalid field if the body fails validation,
    * or 500 with a descriptive message if the resource can't be saved to the database.
    */
   @Post()
-  @HttpCode(HttpStatus.OK)
+  @HttpCode(HttpStatus.CREATED)
   create(@Body() createResourceDto: CreateResourceDto): Promise<Resource> {
     return this.resourcesService.create(createResourceDto);
   }
