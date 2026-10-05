@@ -16,7 +16,6 @@ describe('ResourcesController', () => {
   let service: ResourcesService;
 
   beforeEach(() => {
-    // The repository is never reached because each test stubs service.create
     service = new ResourcesService({} as Repository<Resource>);
     controller = new ResourcesController(service);
   });
