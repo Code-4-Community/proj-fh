@@ -36,6 +36,7 @@ describe('ResourcesService', () => {
       repository as unknown as Repository<Resource>,
     );
 
+    
     jest.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
   });
 
@@ -43,6 +44,7 @@ describe('ResourcesService', () => {
     jest.restoreAllMocks();
   });
 
+  /** Tests for retrieving resources by a list of IDs. */
   describe('findByIds', () => {
     it('retrieves a single resource by ID', async () => {
       const found = [makeResource(1)];
@@ -83,6 +85,7 @@ describe('ResourcesService', () => {
     });
   });
 
+  /** Tests for retrieving resources by query filters. */
   describe('find', () => {
     it('retrieves resource matching a query and builds the correct filter', async () => {
       const found = [makeResource(1), makeResource(2)];

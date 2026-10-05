@@ -39,7 +39,10 @@ describe('ResourcesController', () => {
     jest.restoreAllMocks();
   });
 
+
+  /** Tests for POST /resources/findByIds. */
   describe('findByIds', () => {
+    // POST defaults to 201 Created, so this checks the @HttpCode(200) override is applied.
     it('responds with a 200 status code', () => {
       expect(
         Reflect.getMetadata(
@@ -100,7 +103,9 @@ describe('ResourcesController', () => {
     });
   });
 
+  /** Tests for POST /resources/find. */
   describe('find', () => {
+    // POST defaults to 201 Created, so this checks the @HttpCode(200) override is applied.
     it('responds with a 200 status code', () => {
       expect(
         Reflect.getMetadata(
