@@ -6,7 +6,6 @@
  * entities change.
  */
 
-
 /**
  * Represents the broad classification(s) a Resource can belong to.
  * A Resource can belong to more than one Category (e.g. an organization that offers both food and housing assistance).
@@ -37,7 +36,6 @@ export enum County {
   NANTUCKET = 'Nantucket',
   FRANKLIN = 'Franklin',
 }
-
 
 /**
  * Represents a Resource entity.

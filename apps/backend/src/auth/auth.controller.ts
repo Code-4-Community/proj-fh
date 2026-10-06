@@ -12,7 +12,7 @@ type AuthenticatedRequest = {
 
 /**
  * Auth controller to handle authentication-related endpoints.
- * 
+ *
  * The execution chain is:
  * 1. JwtAuthGuard calls Passport (package) with strategy name 'jwt'.
  * 2. Passport (package) finds the registered JwtStrategy (in jwt.strategy.ts)
@@ -25,10 +25,9 @@ type AuthenticatedRequest = {
 @ApiBearerAuth()
 @Controller('auth')
 export class AuthController {
-
   /**
    * Retrieves the authenticated user's identity.
-   * 
+   *
    * This endpoint is protected by the JwtAuthGuard, ensuring that only authenticated requests can access it.
    * The JwtStrategy autoinjects the validated user into request.user.
    *
