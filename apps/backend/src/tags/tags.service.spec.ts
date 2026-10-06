@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { BadRequestException } from '@nestjs/common';
 import { Tag } from './tag.entity';
 import { TagsService } from './tags.service';
 import { Category } from './types';
@@ -130,97 +130,106 @@ describe('TagsService', () => {
   });
 
   it('returns a tag when the tag id exists', async () => {
-  const tag = {
-    tag_id: 1,
-    category: Category.FOOD_SERVICE_TYPE,
-    label: 'Farmers Market',
-    slug: 'farmers-market',
-  };
+    const tag = {
+      tag_id: 1,
+      category: Category.FOOD_SERVICE_TYPE,
+      label: 'Farmers Market',
+      slug: 'farmers-market',
+    };
 
-  repository.findOneBy.mockResolvedValue(tag);
+    repository.findOneBy.mockResolvedValue(tag);
 
-  await expect(
-    service.getTagById(1),
-  ).resolves.toEqual(tag);
+    await expect(service.getTagById(1)).resolves.toEqual(tag);
 
-  expect(repository.findOneBy).toHaveBeenCalledWith({ tag_id: 1, });
+    expect(repository.findOneBy).toHaveBeenCalledWith({ tag_id: 1 });
   });
 
   it('rejects when a tag id cannot be found', async () => {
     repository.findOneBy.mockResolvedValue(null);
 
-    await expect(
-      service.getTagById(999),
-    ).rejects.toThrow('The tag id: 999 could not be found.');
-    });
+    await expect(service.getTagById(999)).rejects.toThrow(
+      'The tag id: 999 could not be found.',
+    );
+  });
 
   it('returns tags when the category exists', async () => {
-  const tags = [
-    {
-      tag_id: 1,
-      category: Category.FOOD_SERVICE_TYPE,
-      label: 'Farmers Market',
-      slug: 'farmers-market',
-    },
-    {
-      tag_id: 2,
-      category: Category.FOOD_SERVICE_TYPE,
-      label: 'Food Pantry',
-      slug: 'food-pantry',
-    },
-  ];
+    const tags = [
+      {
+        tag_id: 1,
+        category: Category.FOOD_SERVICE_TYPE,
+        label: 'Farmers Market',
+        slug: 'farmers-market',
+      },
+      {
+        tag_id: 2,
+        category: Category.FOOD_SERVICE_TYPE,
+        label: 'Food Pantry',
+        slug: 'food-pantry',
+      },
+    ];
 
-  repository.findBy.mockResolvedValue(tags);
-    await expect(service.getTagsByCategory(Category.FOOD_SERVICE_TYPE),
+    repository.findBy.mockResolvedValue(tags);
+    await expect(
+      service.getTagsByCategory(Category.FOOD_SERVICE_TYPE),
     ).resolves.toEqual(tags);
-    expect(repository.findBy).toHaveBeenCalledWith({ category: Category.FOOD_SERVICE_TYPE, })
-    })
+    expect(repository.findBy).toHaveBeenCalledWith({
+      category: Category.FOOD_SERVICE_TYPE,
+    });
+  });
 
-  it('returns an empty array when no tags match the category', async() => {
-  repository.findBy.mockResolvedValue([]);
+  it('returns an empty array when no tags match the category', async () => {
+    repository.findBy.mockResolvedValue([]);
 
-    await expect(service.getTagsByCategory(Category.NUTRITION_PROGRAM),
+    await expect(
+      service.getTagsByCategory(Category.NUTRITION_PROGRAM),
     ).resolves.toEqual([]);
-    expect(repository.findBy).toHaveBeenCalledWith({ category: Category.NUTRITION_PROGRAM, })
-    })
+    expect(repository.findBy).toHaveBeenCalledWith({
+      category: Category.NUTRITION_PROGRAM,
+    });
+  });
 
   it('rejects an invalid/nonexistent category', async () => {
-  await expect(
-    service.getTagsByCategory('fake_category' as Category),
-    ).rejects.toThrow(`fake_category is not a valid Category. Valid categories are: ${Object.values(Category).join(', ')}.`);
+    await expect(
+      service.getTagsByCategory('fake_category' as Category),
+    ).rejects.toThrow(
+      `fake_category is not a valid Category. Valid categories are: ${Object.values(Category).join(', ')}.`,
+    );
   });
 
   it('gets tags by ids', async () => {
-  const tags = [
-    {
-      tag_id: 1,
-      category: Category.FOOD_TYPE,
-      label: 'Food Pantry',
-      slug: 'food-pantry',
-    },
-    {
-      tag_id: 2,
-      category: Category.FOOD_TYPE,
-      label: 'Grocery Store',
-      slug: 'grocery-store',
-    },
-  ];
+    const tags = [
+      {
+        tag_id: 1,
+        category: Category.FOOD_TYPE,
+        label: 'Food Pantry',
+        slug: 'food-pantry',
+      },
+      {
+        tag_id: 2,
+        category: Category.FOOD_TYPE,
+        label: 'Grocery Store',
+        slug: 'grocery-store',
+      },
+    ];
 
-  repository.findBy.mockResolvedValue(tags);
+    repository.findBy.mockResolvedValue(tags);
 
-  await expect(
-    service.getTagsByIds([1, 2]),
-  ).resolves.toEqual(tags);
+    await expect(service.getTagsByIds([1, 2])).resolves.toEqual(tags);
   });
-  
+
   it('rejects an empty list of tag ids', async () => {
-  await expect(
-    service.getTagsByIds([]),
-  ).rejects.toThrow('At least one tag ID is required.');
+    await expect(service.getTagsByIds([])).rejects.toThrow(
+      'At least one tag ID is required.',
+    );
   });
 
   it('returns only the tags that exist when some ids are missing', async () => {
-    const tag = { tag_id: 1, category: 'food_service_type', label: 'Test', slug: 'test' };
+    const tag = {
+      tag_id: 1,
+      category: 'food_service_type',
+      label: 'Test',
+      slug: 'test',
+    };
     repository.findBy.mockResolvedValue([tag]);
 
     await expect(service.getTagsByIds([1, 999])).resolves.toEqual([tag]);
@@ -229,12 +238,20 @@ describe('TagsService', () => {
   it('throws NotFoundException when none of the ids exist', async () => {
     repository.findBy.mockResolvedValue([]);
 
-    await expect(service.getTagsByIds([998, 999])).rejects.toThrow(`No tags found for ids: 998, 999.`);
-  })
+    await expect(service.getTagsByIds([998, 999])).rejects.toThrow(
+      `No tags found for ids: 998, 999.`,
+    );
+  });
 
   it('rejects non-integer or non-positive tag ids', async () => {
-    await expect(service.getTagsByIds([1, NaN])).rejects.toThrow('Tag IDs must be positive integers.');
-    await expect(service.getTagsByIds([0])).rejects.toThrow('Tag IDs must be positive integers.');
-    await expect(service.getTagsByIds([1.5])).rejects.toThrow('Tag IDs must be positive integers.');
+    await expect(service.getTagsByIds([1, NaN])).rejects.toThrow(
+      'Tag IDs must be positive integers.',
+    );
+    await expect(service.getTagsByIds([0])).rejects.toThrow(
+      'Tag IDs must be positive integers.',
+    );
+    await expect(service.getTagsByIds([1.5])).rejects.toThrow(
+      'Tag IDs must be positive integers.',
+    );
   });
 });

@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 
@@ -72,7 +76,7 @@ export class TagsService {
    * @returns A tag with all its associated info.
    */
   async getTagById(tagId: number) {
-    const tag = await this.repo.findOneBy( { tag_id: tagId } );
+    const tag = await this.repo.findOneBy({ tag_id: tagId });
     if (!tag) {
       throw new NotFoundException(`The tag id: ${tagId} could not be found.`);
     }
@@ -99,12 +103,13 @@ export class TagsService {
     const tags = await this.repo.findBy({ tag_id: In(tagIds) });
 
     if (tags.length === 0) {
-      throw new NotFoundException(`No tags found for ids: ${tagIds.join(', ')}.`);
+      throw new NotFoundException(
+        `No tags found for ids: ${tagIds.join(', ')}.`,
+      );
     }
 
     return tags;
   }
-
 
   /**
    * Gets (multiple) tags by their category.
@@ -114,9 +119,11 @@ export class TagsService {
    */
   async getTagsByCategory(category: Category) {
     if (!Object.values(Category).includes(category)) {
-      throw new BadRequestException(`${category} is not a valid Category. Valid categories are: ${Object.values(Category).join(', ')}.`);
+      throw new BadRequestException(
+        `${category} is not a valid Category. Valid categories are: ${Object.values(Category).join(', ')}.`,
+      );
     }
 
-    return this.repo.findBy( { category });
+    return this.repo.findBy({ category });
   }
 }

@@ -3,7 +3,7 @@ import { ScoreService } from './score.service';
 import { Score } from './score.entity';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
-// TODO: Make tests once the entity shape is actually finalized. 
+// TODO: Make tests once the entity shape is actually finalized.
 
 /**
  * Controller for managing scores. Provides endpoints for retrieving and managing scores in the system.
