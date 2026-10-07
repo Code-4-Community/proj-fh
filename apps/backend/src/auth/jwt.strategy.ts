@@ -6,7 +6,7 @@ import type { AuthenticatedIdentity } from './authenticated-identity';
 
 /**
  * Represents the payload of a Cognito ID token (Contains the JWT).
- * 
+ *
  * sub: The unique identifier for the user.
  * email: The email address of the user.
  * token_use: Indicates the type of token (should be 'id' for ID tokens).
@@ -19,10 +19,10 @@ type CognitoIdTokenPayload = {
 
 /**
  * JWT strategy for validating Cognito ID tokens (Which contain JWTs).
- * 
+ *
  * This strategy extracts the JWT from the Authorization header, verifies it using the JWKS endpoint,
  * and validates the payload to ensure it contains the required claims (sub and email).
- * 
+ *
  * The execution chain is:
  * 1. JwtAuthGuard calls Passport (package) with strategy name 'jwt'.
  * 2. Passport (package) finds the registered JwtStrategy (in jwt.strategy.ts)
@@ -54,7 +54,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     const jwksUri = `${issuer}/.well-known/jwks.json`;
 
     /**
-     * Configures the Passport JWT strategy with the necessary options for 
+     * Configures the Passport JWT strategy with the necessary options for
      * Cognito ID token validation (which contains the JWT)
      */
     super({
@@ -82,7 +82,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
    * Ensures that the token is an ID token and contains the required claims (sub and email).
    * Does not validate the JWT
    * the JWT is validated separately by the Passport (parent) JWT strategy BEFORE this method is called.
-   * 
+   *
    * @param payload The decoded Cognito ID token payload.
    * @returns The authenticated identity containing the sub and email claims.
    */

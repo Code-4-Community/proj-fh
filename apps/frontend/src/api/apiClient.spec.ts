@@ -2,7 +2,11 @@ import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 
 const mockGet = jest.fn();
 const mockPost = jest.fn();
-const mockAxiosCreate = jest.fn(() => ({ get: mockGet, post: mockPost, interceptors: { request: { use: jest.fn() } }, }));
+const mockAxiosCreate = jest.fn(() => ({
+  get: mockGet,
+  post: mockPost,
+  interceptors: { request: { use: jest.fn() } },
+}));
 
 jest.mock('axios', () => ({
   __esModule: true,
@@ -55,7 +59,8 @@ describe('ApiClient', () => {
       score_id: 2,
       name: 'Greater Boston Food Bank',
       category: ['FOOD_ACCESS'],
-      description: 'Provides free groceries and hot meals to families in the Greater Boston area.',
+      description:
+        'Provides free groceries and hot meals to families in the Greater Boston area.',
       address: '123 Main St, Boston, MA 02115',
       county: 'SUFFOLK',
       zip_code: '02115',
@@ -68,26 +73,38 @@ describe('ApiClient', () => {
     const score = { score_id: 2 };
 
     const tags = [
-      {tag_id: 1, category: 'food_service_type', label: 'Food Pantry' , slug: 'food-pantry' },
-      {tag_id: 4, category: 'food_service_type', label: 'Soup Kitchen' , slug: 'soup-kitchen' },
+      {
+        tag_id: 1,
+        category: 'food_service_type',
+        label: 'Food Pantry',
+        slug: 'food-pantry',
+      },
+      {
+        tag_id: 4,
+        category: 'food_service_type',
+        label: 'Soup Kitchen',
+        slug: 'soup-kitchen',
+      },
     ];
 
     type BackendOptions = {
-        resources?: unknown;
-        resourceError?: Error;
-        scoreError?: Error;
-        tagsError?: Error;
+      resources?: unknown;
+      resourceError?: Error;
+      scoreError?: Error;
+      tagsError?: Error;
     };
- 
+
     function mockBackend(options: BackendOptions = {}) {
       mockPost.mockImplementation(async (url: unknown) => {
         if (url === RESOURCES_URL) {
           if (options.resourceError) throw options.resourceError;
-          return { data: 'resources' in options ? options.resources : [resource] };
+          return {
+            data: 'resources' in options ? options.resources : [resource],
+          };
         }
         throw new Error(`Unexpected POST ${String(url)}`);
       });
- 
+
       mockGet.mockImplementation(async (url: unknown) => {
         if (url === tagsUrl([1, 4])) {
           if (options.tagsError) throw options.tagsError;
@@ -100,14 +117,15 @@ describe('ApiClient', () => {
         throw new Error(`Unexpected GET ${String(url)}`);
       });
     }
- 
-    const flushPromises = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+    const flushPromises = () =>
+      new Promise((resolve) => setTimeout(resolve, 0));
     let client: InstanceType<typeof ApiClient>;
- 
+
     beforeEach(() => {
       client = new ApiClient();
     });
- 
+
     // tests a successful method call at each step
     describe('tests a successful method call', () => {
       it('calls Resource findById with a single-ID list', async () => {
@@ -115,14 +133,14 @@ describe('ApiClient', () => {
         await client.getAllResourceInfo(1);
         expect(mockPost).toHaveBeenCalledWith(RESOURCES_URL, [1]);
       });
- 
+
       it('calls Score FindById and Tag findById using the resource IDs', async () => {
         mockBackend();
         await client.getAllResourceInfo(1);
         expect(mockGet).toHaveBeenCalledWith(scoreUrl(2));
         expect(mockGet).toHaveBeenCalledWith(tagsUrl([1, 4]));
       });
- 
+
       it('returns one merged object with no failures', async () => {
         mockBackend();
         const result = await client.getAllResourceInfo(1);
@@ -134,11 +152,13 @@ describe('ApiClient', () => {
           failed: [],
         });
       });
- 
+
       it('makes the Score and Tag calls in parallel', async () => {
         let resolveScore!: (value: unknown) => void;
         let resolveTags!: (value: unknown) => void;
-        mockPost.mockImplementation(() => Promise.resolve({ data: [resource] }));
+        mockPost.mockImplementation(() =>
+          Promise.resolve({ data: [resource] }),
+        );
         mockGet.mockImplementation(
           (url: unknown) =>
             new Promise((resolve) => {
@@ -146,16 +166,16 @@ describe('ApiClient', () => {
               else resolveScore = resolve;
             }),
         );
- 
+
         const pending = client.getAllResourceInfo(1);
         await flushPromises();
         // both requests are started before either is resolved.
         expect(mockGet).toHaveBeenCalledWith(scoreUrl(2));
         expect(mockGet).toHaveBeenCalledWith(tagsUrl([1, 4]));
- 
+
         resolveScore({ data: score });
         resolveTags({ data: tags });
- 
+
         await expect(pending).resolves.toEqual({
           resource,
           score,
@@ -164,15 +184,17 @@ describe('ApiClient', () => {
           failed: [],
         });
       });
- 
+
       it('skips the Tag call when the resource has no tags', async () => {
         const untagged = { ...resource, tags: [] };
         mockBackend({ resources: [untagged] });
 
         const result = await client.getAllResourceInfo(1);
- 
+
         expect(mockPost).toHaveBeenCalledTimes(1);
-        expect(mockGet).not.toHaveBeenCalledWith(expect.stringContaining('/api/tags/'));
+        expect(mockGet).not.toHaveBeenCalledWith(
+          expect.stringContaining('/api/tags/'),
+        );
         expect(result).toEqual({
           resource: untagged,
           score,
@@ -182,19 +204,21 @@ describe('ApiClient', () => {
         });
       });
     });
- 
+
     describe('tests method when resource call fails', () => {
       it('fails immediately and skips the Score and Tag calls when the request fails', async () => {
         mockBackend({ resourceError: new Error('Network error') });
- 
-        await expect(client.getAllResourceInfo(1)).rejects.toThrow('Network error');
+
+        await expect(client.getAllResourceInfo(1)).rejects.toThrow(
+          'Network error',
+        );
         expect(mockGet).not.toHaveBeenCalled();
         expect(mockPost).toHaveBeenCalledTimes(1);
       });
- 
+
       it('fails when the backend returns no matching resource', async () => {
         mockBackend({ resources: [] });
- 
+
         await expect(client.getAllResourceInfo(999)).rejects.toThrow(
           'Resource 999 could not be found',
         );
@@ -202,13 +226,13 @@ describe('ApiClient', () => {
         expect(mockPost).toHaveBeenCalledTimes(1);
       });
     });
- 
+
     describe('tests method when score call fails', () => {
       it('returns the resource and tags, flagged as partial', async () => {
         mockBackend({ scoreError: new Error('Score service down') });
- 
+
         const result = await client.getAllResourceInfo(1);
- 
+
         expect(result).toEqual({
           resource,
           score: null,
@@ -218,13 +242,13 @@ describe('ApiClient', () => {
         });
       });
     });
- 
+
     describe('tests method when tag call fails', () => {
       it('returns the resource and score, flagged as partial', async () => {
         mockBackend({ tagsError: new Error('tag service down') });
- 
+
         const result = await client.getAllResourceInfo(1);
- 
+
         expect(result).toEqual({
           resource,
           score,
@@ -233,15 +257,15 @@ describe('ApiClient', () => {
           failed: ['tags'],
         });
       });
- 
+
       it('reports both failures when Score and Tag calls both fail', async () => {
         mockBackend({
           scoreError: new Error('Score service down'),
           tagsError: new Error('Tag service down'),
         });
- 
+
         const result = await client.getAllResourceInfo(1);
- 
+
         expect(result).toEqual({
           resource,
           score: null,
@@ -250,9 +274,6 @@ describe('ApiClient', () => {
           failed: ['score', 'tags'],
         });
       });
-
     });
-
   });
-
 });

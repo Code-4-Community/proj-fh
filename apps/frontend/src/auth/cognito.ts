@@ -28,7 +28,7 @@ export type SignInResult =
 
 /**
  * Signs in a user with the provided email and password with AWS Cognito.
- * 
+ *
  * @param email The user's email address.
  * @param password The user's password.
  * @returns A promise that resolves to a SignInResult indicating the outcome of the sign-in attempt.
@@ -58,7 +58,7 @@ export const signInWithEmailPassword = async (
 
 /**
  * Completes the new password challenge during the sign-in process with AWS Cognito.
- * 
+ *
  * @param newPassword The new password to set for the user.
  * @returns A promise that resolves when the new password challenge is successfully completed.
  * @throws An error if Amplify is not configured or if another sign-in step is required.
@@ -78,8 +78,8 @@ export const completeNewPasswordChallenge = async (
 
 /**
  * Retrieves the ID token (Contains the JWT) of the currently signed-in user from AWS Cognito.
- * 
- * @returns A promise that resolves to the ID token (Contains the JWT) as a string, 
+ *
+ * @returns A promise that resolves to the ID token (Contains the JWT) as a string,
  * or undefined if Amplify is not configured or if the user is not signed in.
  */
 export const getIdToken = async (): Promise<string | undefined> => {
@@ -95,7 +95,7 @@ export const getIdToken = async (): Promise<string | undefined> => {
 
 /**
  * Retrieves the email address of the currently signed-in user from AWS Cognito.
- * 
+ *
  * @returns A promise that resolves to the email address as a string, or undefined if Amplify is not configured or if the user is not signed in.
  */
 export const getSignedInEmail = async (): Promise<string | undefined> => {
@@ -112,7 +112,7 @@ export const getSignedInEmail = async (): Promise<string | undefined> => {
 
 /**
  * Signs out the currently signed-in user from AWS Cognito.
- * 
+ *
  * @returns A promise that resolves when the user is successfully signed out.
  * @throws An error if Amplify is not configured.
  */

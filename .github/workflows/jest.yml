@@ -8,17 +8,14 @@ on:
 
 jobs:
   build:
-    
     runs-on: ubuntu-latest
+    container: node:24-alpine
 
     steps:
     - uses: actions/checkout@v4
 
-    - name: Use NodeJS 24.x
-      uses: actions/setup-node@v4
-      with:
-        node-version: 24.x
-        cache: 'yarn'
+    - name: Enable Corepack (helps to pin yarn version)
+      run: corepack enable
 
     - name: Create .env file
       run: |

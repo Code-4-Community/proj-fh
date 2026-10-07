@@ -9,7 +9,7 @@ import {
 
 /**
  * Temporary login form component without any fancy styling.
- * 
+ *
  * @returns A React component representing the login form.
  */
 const LoginForm: React.FC = () => {
