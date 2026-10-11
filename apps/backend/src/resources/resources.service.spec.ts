@@ -6,10 +6,11 @@ import {
 } from '@nestjs/common';
 import { ResourcesService } from './resources.service';
 import { Resource } from './resources.entity';
-import { ArrayOverlap, In, Repository } from 'typeorm';
+import { ArrayContains, In, Repository } from 'typeorm';
 import { Category, County } from './types';
 import { CreateResourceDto } from './dto/create-resource.dto';
 import { UpdateResourceDto } from './dto/update-resource.dto';
+import { FindResourceQueryDto } from './dto/find-resource-by-query.dto';
 
 /** Builds a resource with the given ID for use as a test fixture. */
 const makeResource = (id: number): Resource =>
@@ -31,6 +32,7 @@ describe('ResourcesService', () => {
     create: jest.Mock;
     save: jest.Mock;
     findOneBy: jest.Mock;
+    find: jest.Mock;
   };
 
   const now = new Date('2026-10-01T12:00:00Z');
@@ -44,18 +46,14 @@ describe('ResourcesService', () => {
         Promise.resolve({ resource_id: 1, tags: [], ...resource }),
       ),
       findOneBy: jest.fn(),
+      find: jest.fn(),
     };
 
     service = new ResourcesService(
       repository as unknown as Repository<Resource>,
     );
 
-    
     jest.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
-  });
-
-  afterEach(() => {
-    jest.restoreAllMocks();
   });
 
   afterEach(() => {
@@ -92,7 +90,7 @@ describe('ResourcesService', () => {
     'Category must be a non-empty list of: food_access, housing, other.';
   const COUNTY_MESSAGE = 'County must be a valid Massachusetts county.';
   const ZIP_CODE_MESSAGE = 'Zip code must be a 5-digit or ZIP+4 code.';
-    const NO_FIELDS_MESSAGE =
+  const NO_FIELDS_MESSAGE =
     'At least one of the following fields must be provided: name, category, county, zip_code, description, address, phone, email, website, eligibility, vetting_status, reviewer_notes, last_verified_date, score_id, tags.';
 
   describe('create', () => {
@@ -149,7 +147,7 @@ describe('ResourcesService', () => {
     });
   });
 
-    /** Tests for retrieving resources by a list of IDs. */
+  /** Tests for retrieving resources by a list of IDs. */
   describe('findByIds', () => {
     it('retrieves a single resource by ID', async () => {
       const found = [makeResource(1)];
@@ -184,14 +182,18 @@ describe('ResourcesService', () => {
 
       await expect(service.findByIds([1])).rejects.toThrow(
         new InternalServerErrorException(
-          'Failed to retrieve resources with IDs [1]: connection lost.'),
+          'Failed to retrieve resources from the database. Please try again later.',
+        ),
       );
     });
   });
 
-  /** Tests for retrieving resources by query filters. */
+  /** Tests for retrieving resources whose fields match the given fields. */
   describe('find', () => {
-    it('retrieves resource matching a query and builds the correct filter', async () => {
+    const FIND_DB_MESSAGE =
+      'Failed to retrieve resources from the database. Please try again later.';
+
+    it('retrieves resources matching the given fields and builds the correct query', async () => {
       const found = [makeResource(1), makeResource(2)];
       repository.find.mockResolvedValue(found);
 
@@ -205,14 +207,14 @@ describe('ResourcesService', () => {
 
       expect(repository.find).toHaveBeenCalledWith({
         where: {
-          category: ArrayOverlap([Category.FOOD_ACCESS]),
+          category: ArrayContains([Category.FOOD_ACCESS]),
           county: County.SUFFOLK,
           zip_code: '02115',
         },
       });
     });
 
-    it('only filters on the fields provided', async () => {
+    it('only matches on the fields provided', async () => {
       repository.find.mockResolvedValue([makeResource(1)]);
 
       await service.find({ county: County.SUFFOLK });
@@ -222,33 +224,92 @@ describe('ResourcesService', () => {
       });
     });
 
-    it('throws NotFoundException when no resources match the query', async () => {
+    it('matches on any searchable field, not just a fixed set', async () => {
+      repository.find.mockResolvedValue([makeResource(1)]);
+
+      await service.find({
+        name: 'Resource 1',
+        vetting_status: 'verified',
+        tags: [1, 4],
+      });
+
+      expect(repository.find).toHaveBeenCalledWith({
+        where: {
+          name: 'Resource 1',
+          vetting_status: 'verified',
+          tags: ArrayContains([1, 4]),
+        },
+      });
+    });
+
+    it('throws NotFoundException when no resources match the given fields', async () => {
       repository.find.mockResolvedValue([]);
 
       await expect(service.find({ zip_code: '00000' })).rejects.toThrow(
-        new NotFoundException('No resources found matching the given filters'),
+        new NotFoundException('No resources found matching the given fields.'),
       );
     });
 
-    it('throws a BadRequestException for an invalid category without querying database', async () => {
-      await expect(
-        service.find({
-          category: ['NOT_A_CATEGORY' as Category],
-        }),
-      ).rejects.toThrow(
-        new BadRequestException('Unknown category: [NOT_A_CATEGORY]'),
-      );
+    // Sent fields go through the same validators as create and update.
+    it.each<[string, Record<string, unknown>, string]>([
+      [
+        'category (unknown value)',
+        { category: ['NOT_A_CATEGORY'] },
+        CATEGORY_MESSAGE,
+      ],
+      ['category (empty)', { category: [] }, CATEGORY_MESSAGE],
+      ['county', { county: 'Atlantis' }, COUNTY_MESSAGE],
+      ['zip_code', { zip_code: '2118' }, ZIP_CODE_MESSAGE],
+      [
+        'tags (not a list)',
+        { tags: 'abc' },
+        'Tags must be a list of integer tag IDs.',
+      ],
+    ])(
+      'rejects an invalid %s without querying the database',
+      async (_, body, message) => {
+        await expect(
+          service.find(body as FindResourceQueryDto),
+        ).rejects.toThrow(new BadRequestException(message));
+        expect(repository.find).not.toHaveBeenCalled();
+      },
+    );
 
+    it.each<[string, Record<string, unknown>]>([
+      ['an unknown field', { not_a_field: 'x' }],
+      ['resource_id, which findByIds handles', { resource_id: 1 }],
+    ])('rejects %s without querying the database', async (_, body) => {
+      await expect(service.find(body as FindResourceQueryDto)).rejects.toThrow(
+        /^Unknown field\(s\)/,
+      );
       expect(repository.find).not.toHaveBeenCalled();
     });
 
-    it('throws InternalServerErrorException when database fails', async () => {
+    it('rejects a field sent as null', async () => {
+      await expect(
+        service.find({ county: null } as unknown as FindResourceQueryDto),
+      ).rejects.toThrow(
+        new BadRequestException("Fields can't be null when searching: county."),
+      );
+      expect(repository.find).not.toHaveBeenCalled();
+    });
+
+    it('rejects a body that is not an object', async () => {
+      await expect(
+        service.find([1] as unknown as FindResourceQueryDto),
+      ).rejects.toThrow(
+        new BadRequestException(
+          'The request body must be an object of resource fields.',
+        ),
+      );
+      expect(repository.find).not.toHaveBeenCalled();
+    });
+
+    it('throws InternalServerErrorException when the database fails', async () => {
       repository.find.mockRejectedValue(new Error('connection lost'));
 
       await expect(service.find({ county: County.SUFFOLK })).rejects.toThrow(
-        new InternalServerErrorException(
-          'Failed to retrieve resources: connection lost.',
-        ),
+        new InternalServerErrorException(FIND_DB_MESSAGE),
       );
     });
   });
@@ -520,5 +581,4 @@ describe('ResourcesService', () => {
       ).resolves.toBeDefined();
     });
   });
-  
 });

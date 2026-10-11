@@ -12,7 +12,7 @@ import {
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { ResourcesService } from './resources.service';
 import { Resource } from './resources.entity';
-import { FindResourceQueryDTO } from './dto/find-resource-by-query.dto';
+import { FindResourceQueryDto } from './dto/find-resource-by-query.dto';
 import { CreateResourceDto } from './dto/create-resource.dto';
 import { UpdateResourceDto } from './dto/update-resource.dto';
 
@@ -87,8 +87,7 @@ export class ResourcesController {
    */
   @Post('find')
   @HttpCode(HttpStatus.OK)
-  async find(@Body() query: FindResourceQueryDTO): Promise<Resource[]> {
+  async find(@Body() query: FindResourceQueryDto): Promise<Resource[]> {
     return await this.resourcesService.find(query);
   }
-
 }

@@ -1,34 +1,13 @@
-import { Category, County } from '../types';
-import {
-  IsArray,
-  IsEnum,
-  IsOptional,
-  IsString,
-  MaxLength,
-} from 'class-validator';
+import { UpdateResourceDto } from './update-resource.dto';
 
 /**
- * Filters for retrieving resources by query.
+ * The request body for finding resources by their field values.
  *
- * All fields are optional. Only the fields provided are applied, and a resource
- * must match all of them to be returned.
+ * Built from UpdateResourceDto, so it covers every field that can be set on a resource
+ * (the CreateResourceDto fields plus vetting_status, reviewer_notes, last_verified_date,
+ * score_id and tags) and stays in sync when those DTOs change. Every field is optional,
+ * and null is not accepted.
  */
-export class FindResourceQueryDTO {
-  /** Matches resources that belong to at least one of these categories.
-   * E.g. [Category.FOOD_ACCESS], [Category.HOUSING, Category.OTHER] */
-  @IsOptional()
-  @IsArray()
-  @IsEnum(Category, { each: true })
-  category?: Category[];
-
-  /** E.g. County.SUFFOLK, County.MIDDLESEX */
-  @IsOptional()
-  @IsEnum(County)
-  county?: County;
-
-  /** E.g. '02115', '01960' */
-  @IsOptional()
-  @IsString()
-  @MaxLength(10)
-  zip_code?: string;
-}
+export type FindResourceQueryDto = {
+  [K in keyof UpdateResourceDto]?: NonNullable<UpdateResourceDto[K]>;
+};

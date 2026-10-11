@@ -7,8 +7,8 @@ import {
 } from '@nestjs/common';
 import { Resource } from './resources.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ArrayOverlap, FindOptionsWhere, In, Repository } from 'typeorm';
-import { FindResourceQueryDTO } from './dto/find-resource-by-query.dto';
+import { ArrayContains, FindOptionsWhere, In, Repository } from 'typeorm';
+import { FindResourceQueryDto } from './dto/find-resource-by-query.dto';
 import { isEmail, isISO8601, isURL } from 'class-validator';
 import { CreateResourceDto } from './dto/create-resource.dto';
 import { Category, County } from './types';
@@ -265,7 +265,7 @@ export class ResourcesService {
     } catch (error) {
       this.logger.error(`Failed to look up resource ${id}`, error);
       throw new InternalServerErrorException(
-       `Failed to look up resource ${id}`,
+        `Failed to look up resource ${id}`,
       );
     }
 
@@ -275,16 +275,17 @@ export class ResourcesService {
     }
 
     try {
-      return await this.repo.save({ ...resource, ...changes } as unknown as Resource);
+      return await this.repo.save({
+        ...resource,
+        ...changes,
+      } as unknown as Resource);
     } catch (error) {
       this.logger.error(`Failed to update resource ${id}`, error);
-      throw new InternalServerErrorException(
-        `Failed to update resource ${id}`,
-      );
+      throw new InternalServerErrorException(`Failed to update resource ${id}`);
     }
   }
 
-  /** 
+  /**
    * Retrieves resources by their IDs.
    *
    * @param ids the IDs of the resources to retrieve (pass a single-item array for one resource)
@@ -300,7 +301,7 @@ export class ResourcesService {
     } catch (error) {
       this.logger.error('Failed to retrieve resources', error);
       throw new InternalServerErrorException(
-        `Failed to retrieve resources with IDs [${ids.join(', ')}]: ${(error as Error).message}.`,
+        'Failed to retrieve resources from the database. Please try again later.',
       );
     }
 
@@ -313,30 +314,59 @@ export class ResourcesService {
   }
 
   /**
-   * Retrieves resources whose fields exactly match the fields given.
-   * A resource is only returned if it matches every field provided. If multiple resources
-   * match, all of them are returned.
+   * Retrieves resources whose fields match the fields given.
    *
-   * @param query the resource fields to match
-   * @returns every resource matching all of the given fields
-   * @throws BadRequestException if a category is not a valid Category value
-   * @throws NotFoundException if no resources match the given fields
-   * @throws InternalServerErrorException if the database query fails
+   * A resource is only returned if it matches every field provided, and if multiple resources match, all of them are returned.
+   * Single-value fields must match exactly. Array fields (category, tags) match resources that contain every value given, in any order.
+   * Sent fields are validated with the same rules as create and update, so a value that could never be stored is rejected instead of searched for.
+   *
+   * @param query The resource fields to match. Any field in EDITABLE_FIELDS can be used.
+   *
+   * @returns A promise that resolves to every Resource matching all of the given fields.
+   *
+   * @throws BadRequestException (400) if the body isn't an object, a field isn't searchable or is null, or a field fails validation,
+   * e.g. an unknown county or a malformed zip code. The message names the invalid field.
+   * @throws NotFoundException (404) if no resources match the given fields.
+   * @throws InternalServerErrorException (500) if the database query fails.
+   * The original database error is logged rather than returned to the client.
    */
-  async find(query: FindResourceQueryDTO): Promise<Resource[]> {
-    const validCategories = Object.values(Category);
-    const invalid =
-      query.category?.filter((c) => !validCategories.includes(c)) ?? [];
-    if (invalid.length > 0) {
+  async find(query: FindResourceQueryDto): Promise<Resource[]> {
+    if (typeof query !== 'object' || query === null || Array.isArray(query)) {
       throw new BadRequestException(
-        `Unknown category: [${invalid.join(', ')}]`,
+        'The request body must be an object of resource fields.',
       );
     }
 
-    const where: FindOptionsWhere<Resource> = {};
-    if (query.category?.length) where.category = ArrayOverlap(query.category);
-    if (query.county) where.county = query.county;
-    if (query.zip_code) where.zip_code = query.zip_code;
+    const fields = Object.keys(query) as (keyof FindResourceQueryDto)[];
+
+    const unknownFields = fields.filter(
+      (field) => !EDITABLE_FIELDS.includes(field),
+    );
+    if (unknownFields.length > 0) {
+      throw new BadRequestException(
+        `Unknown field(s): ${unknownFields.join(', ')}. Searchable fields are: ${EDITABLE_FIELDS.join(', ')}.`,
+      );
+    }
+
+    const nullFields = fields.filter((field) => query[field] === null);
+    if (nullFields.length > 0) {
+      throw new BadRequestException(
+        `Fields can't be null when searching: ${nullFields.join(', ')}.`,
+      );
+    }
+
+    this.validateResourceFields(query, true);
+    this.validateUpdateOnlyFields(query);
+
+    // Array fields match resources that contain every given value; everything else must match exactly.
+    const where = Object.fromEntries(
+      fields
+        .filter((field) => query[field] !== undefined)
+        .map((field) => {
+          const value = query[field];
+          return [field, Array.isArray(value) ? ArrayContains(value) : value];
+        }),
+    ) as FindOptionsWhere<Resource>;
 
     let resources: Resource[];
     try {
@@ -344,14 +374,16 @@ export class ResourcesService {
     } catch (error) {
       this.logger.error('Failed to retrieve resources', error);
       throw new InternalServerErrorException(
-        `Failed to retrieve resources: ${(error as Error).message}.`,
+        'Failed to retrieve resources from the database. Please try again later.',
       );
     }
 
-    if (resources.length === 0)
+    // Thrown outside the try block so the catch doesn't turn a 404 into a 500.
+    if (resources.length === 0) {
       throw new NotFoundException(
-        `No resources found matching the given filters`,
+        'No resources found matching the given fields.',
       );
+    }
 
     return resources;
   }
