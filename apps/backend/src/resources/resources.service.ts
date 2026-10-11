@@ -205,7 +205,7 @@ export class ResourcesService {
     } catch (error) {
       this.logger.error(`Failed to look up resource ${id}`, error);
       throw new InternalServerErrorException(
-        'Failed to update the resource in the database. Please try again later.',
+       `Failed to look up resource ${id}`,
       );
     }
 
@@ -219,7 +219,7 @@ export class ResourcesService {
     } catch (error) {
       this.logger.error(`Failed to update resource ${id}`, error);
       throw new InternalServerErrorException(
-        'Failed to update the resource in the database. Please try again later.',
+        `Failed to update resource ${id}`,
       );
     }
   }

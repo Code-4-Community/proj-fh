@@ -328,7 +328,7 @@ describe('ResourcesService', () => {
       expect(repository.save).not.toHaveBeenCalled();
     });
 
-    it('does not require required fields that are not sent', async () => {
+    it('does not require including all fields as update input that would be required during creation', async () => {
       await expect(
         service.update(1, { description: 'Now open on Saturdays.' }),
       ).resolves.toBeDefined();
