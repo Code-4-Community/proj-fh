@@ -21,6 +21,9 @@ jobs:
         node-version: 24.x
         cache: 'yarn'
 
+    - name: Enable Corepack (helps to pin yarn version)
+      run: corepack enable
+
     - name: Install Dependencies
       run: yarn install
 
