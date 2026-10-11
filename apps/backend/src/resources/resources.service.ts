@@ -8,15 +8,15 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Resource } from './resources.entity';
 import { Repository } from 'typeorm';
-import { isEmail, isURL } from 'class-validator';
+import { isEmail, isISO8601, isURL } from 'class-validator';
 import { CreateResourceDto } from './dto/create-resource.dto';
 import { Category, County } from './types';
 import { UpdateResourceDto } from './dto/update-resource.dto';
 
 const ZIP_CODE_PATTERN = /^\d{5}(-\d{4})?$/;
 
-/** The fields a client is allowed to change on an existing resource. Server-managed fields are excluded. */
-const EDITABLE_FIELDS: (keyof CreateResourceDto)[] = [
+/** The fields a client is allowed to change on an existing resource. Only resource id is excluded. */
+const EDITABLE_FIELDS: (keyof UpdateResourceDto)[] = [
   'name',
   'category',
   'county',
@@ -27,6 +27,11 @@ const EDITABLE_FIELDS: (keyof CreateResourceDto)[] = [
   'email',
   'website',
   'eligibility',
+  'vetting_status',
+  'reviewer_notes',
+  'last_verified_date',
+  'score_id',
+  'tags',
 ];
 
 /**
@@ -104,6 +109,59 @@ export class ResourcesService {
   }
 
   /**
+   * Validates the fields that get default values on creation and can only be changed through an update,
+   * e.g. a reviewer setting the vetting status. Fields that aren't sent are skipped.
+   * @param dto The fields provided for the update.
+   *
+   * @throws BadRequestException with a message naming the first field that fails its check.
+   */
+  private validateUpdateOnlyFields(dto: UpdateResourceDto) {
+    if (
+      dto.vetting_status !== undefined &&
+      (typeof dto.vetting_status !== 'string' ||
+        !dto.vetting_status.trim() ||
+        dto.vetting_status.length > 255)
+    ) {
+      throw new BadRequestException(
+        'Vetting status must be a non-empty string of at most 255 characters.',
+      );
+    }
+
+    if (
+      dto.reviewer_notes !== undefined &&
+      dto.reviewer_notes !== null &&
+      typeof dto.reviewer_notes !== 'string'
+    ) {
+      throw new BadRequestException('Reviewer notes must be a string.');
+    }
+
+    if (
+      dto.last_verified_date !== undefined &&
+      (typeof dto.last_verified_date !== 'string' ||
+        !isISO8601(dto.last_verified_date, { strict: true }))
+    ) {
+      throw new BadRequestException(
+        'Last verified date must be a valid date, e.g. 2026-10-05.',
+      );
+    }
+
+    if (
+      dto.score_id !== undefined &&
+      (!Number.isInteger(dto.score_id) || (dto.score_id as number) < 0)
+    ) {
+      throw new BadRequestException('Score ID must be a non-negative integer.');
+    }
+
+    if (
+      dto.tags !== undefined &&
+      (!Array.isArray(dto.tags) ||
+        !dto.tags.every((tag) => Number.isInteger(tag)))
+    ) {
+      throw new BadRequestException('Tags must be a list of integer tag IDs.');
+    }
+  }
+
+  /**
    * Creates a new resource after validating its fields.
    *
    * Only the fields in CreateResourceDto are saved; anything else in the request body is ignored.
@@ -165,9 +223,9 @@ export class ResourcesService {
    * Updates an existing resource after validating the fields being changed.
    *
    * This is a partial update: only the fields in UpdateResourceDto that are sent are changed, and every other field keeps its stored value.
-   * Optional fields (description, address, phone, email, website, eligibility) can be cleared by sending null.
-   * Server-managed fields (resource_id, score_id, tags, last_verified_date, vetting_status, reviewer_notes) can't be changed here
-   * and are ignored if sent.
+   * Nullable fields (description, address, phone, email, website, eligibility, reviewer_notes) can be cleared by sending null.
+   * Fields that get defaults on creation (vetting_status, reviewer_notes, last_verified_date, score_id, tags) can be changed here,
+   * e.g. by a reviewer. resource_id can't be changed, and unknown fields are ignored.
    *
    * @param id The resource_id of the resource to update.
    * @param updateResourceDto The fields to change.
@@ -185,6 +243,7 @@ export class ResourcesService {
     updateResourceDto: UpdateResourceDto,
   ): Promise<Resource> {
     this.validateResourceFields(updateResourceDto, true);
+    this.validateUpdateOnlyFields(updateResourceDto);
 
     // Keep only editable fields that were actually sent, so unsent fields aren't overwritten with undefined.
     const changes = Object.fromEntries(
@@ -215,7 +274,7 @@ export class ResourcesService {
     }
 
     try {
-      return await this.repo.save({ ...resource, ...changes } as Resource);
+      return await this.repo.save({ ...resource, ...changes } as unknown as Resource);
     } catch (error) {
       this.logger.error(`Failed to update resource ${id}`, error);
       throw new InternalServerErrorException(

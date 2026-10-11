@@ -71,6 +71,8 @@ describe('ResourcesService', () => {
     'Category must be a non-empty list of: food_access, housing, other.';
   const COUNTY_MESSAGE = 'County must be a valid Massachusetts county.';
   const ZIP_CODE_MESSAGE = 'Zip code must be a 5-digit or ZIP+4 code.';
+    const NO_FIELDS_MESSAGE =
+    'At least one of the following fields must be provided: name, category, county, zip_code, description, address, phone, email, website, eligibility, vetting_status, reviewer_notes, last_verified_date, score_id, tags.';
 
   describe('create', () => {
     it('creates a resource without any optional fields', async () => {
@@ -223,15 +225,24 @@ describe('ResourcesService', () => {
       });
     });
 
-    it('ignores server-managed and unknown fields', async () => {
+    it('updates fields that are set to defaults on creation', async () => {
+      const changes: UpdateResourceDto = {
+        vetting_status: 'verified',
+        reviewer_notes: 'Called and confirmed hours.',
+        last_verified_date: '2026-10-05',
+        score_id: 2,
+        tags: [1, 4],
+      };
+
+      await service.update(1, changes);
+
+      expect(repository.save).toHaveBeenCalledWith({ ...existing, ...changes });
+    });
+
+    it('ignores resource_id and unknown fields', async () => {
       const body = {
         name: 'GBFB',
         resource_id: 99,
-        score_id: 5,
-        tags: [],
-        vetting_status: 'pending review',
-        reviewer_notes: 'changed',
-        last_verified_date: now,
         not_a_field: 'x',
       } as UpdateResourceDto;
 
@@ -245,11 +256,11 @@ describe('ResourcesService', () => {
 
     it.each<[string, Record<string, unknown>]>([
       ['an empty body', {}],
-      ['only server-managed fields', { vetting_status: 'verified' }],
+      ['only fields that cannot be edited', { resource_id: 5 }],
     ])('rejects %s', async (_, body) => {
       await expect(
         service.update(1, body as UpdateResourceDto),
-      ).rejects.toThrow(BadRequestException);
+      ).rejects.toThrow(new BadRequestException(NO_FIELDS_MESSAGE));
       expect(repository.findOneBy).not.toHaveBeenCalled();
       expect(repository.save).not.toHaveBeenCalled();
     });
@@ -268,7 +279,7 @@ describe('ResourcesService', () => {
       repository.findOneBy.mockRejectedValue(new Error('connection refused'));
 
       await expect(service.update(1, { name: 'GBFB' })).rejects.toThrow(
-        new InternalServerErrorException(DB_MESSAGE),
+        new InternalServerErrorException('Failed to look up resource 1'),
       );
     });
 
@@ -277,7 +288,7 @@ describe('ResourcesService', () => {
       repository.save.mockRejectedValue(new Error('connection refused'));
 
       await expect(service.update(1, { name: 'GBFB' })).rejects.toThrow(
-        new InternalServerErrorException(DB_MESSAGE),
+        new InternalServerErrorException('Failed to update resource 1'),
       );
     });
   });
@@ -321,6 +332,56 @@ describe('ResourcesService', () => {
         'Email must be a valid email address.',
       ],
       ['website', { website: 'not a url' }, 'Website must be a valid URL.'],
+      [
+        'vetting_status (null)',
+        { vetting_status: null },
+        'Vetting status must be a non-empty string of at most 255 characters.',
+      ],
+      [
+        'vetting_status (blank)',
+        { vetting_status: '   ' },
+        'Vetting status must be a non-empty string of at most 255 characters.',
+      ],
+      [
+        'vetting_status (too long)',
+        { vetting_status: 'a'.repeat(256) },
+        'Vetting status must be a non-empty string of at most 255 characters.',
+      ],
+      [
+        'reviewer_notes',
+        { reviewer_notes: 123 },
+        'Reviewer notes must be a string.',
+      ],
+      [
+        'last_verified_date',
+        { last_verified_date: 'not a date' },
+        'Last verified date must be a valid date, e.g. 2026-10-05.',
+      ],
+      [
+        'last_verified_date (null)',
+        { last_verified_date: null },
+        'Last verified date must be a valid date, e.g. 2026-10-05.',
+      ],
+      [
+        'score_id (not an integer)',
+        { score_id: 1.5 },
+        'Score ID must be a non-negative integer.',
+      ],
+      [
+        'score_id (negative)',
+        { score_id: -1 },
+        'Score ID must be a non-negative integer.',
+      ],
+      [
+        'tags (not a list)',
+        { tags: 'abc' },
+        'Tags must be a list of integer tag IDs.',
+      ],
+      [
+        'tags (non-integer ID)',
+        { tags: ['a'] },
+        'Tags must be a list of integer tag IDs.',
+      ],
     ])('rejects an invalid %s', async (_, body, message) => {
       await expect(
         service.update(1, body as UpdateResourceDto),
