@@ -50,13 +50,14 @@ export class ResourcesService {
   }
 
   /**
-   * Retrieves resources matching the given filters.
-   * Only filters that are provided are applied, and a resource must match all of them.
+   * Retrieves resources whose fields exactly match the fields given.
+   * A resource is only returned if it matches every field provided. If multiple resources
+   * match, all of them are returned.
    *
-   * @param query the filters to apply (category, county, zip code)
-   * @returns the resources matching the filters
+   * @param query the resource fields to match
+   * @returns every resource matching all of the given fields
    * @throws BadRequestException if a category is not a valid Category value
-   * @throws NotFoundException if no resources match the filters
+   * @throws NotFoundException if no resources match the given fields
    * @throws InternalServerErrorException if the database query fails
    */
   async find(query: FindResourceQueryDTO): Promise<Resource[]> {

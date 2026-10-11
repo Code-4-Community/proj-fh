@@ -39,13 +39,15 @@ export class ResourcesController {
   }
 
   /**
-   * Retrieves resources matching the given filters.
+   * Retrieves resources whose fields exactly match the fields given in the request body.
+   * A resource is only returned if it matches every field provided. If multiple resources
+   * match, all of them are returned.
    *
-   * @param query the filters to apply
-   * @returns 200 with resources matching query.
-   * Returns 400 if a category is invalid or a filter has the wrong type,
-   * 404 if no resources match the filters,
-   * or 500 if database query fails.
+   * @param query the resource fields to match
+   * @returns 200 with every resource matching all of the given fields,
+   * 400 if a field has an invalid value or type,
+   * 404 if no resources match,
+   * or 500 if the database query fails.
    */
   @Post('find')
   @HttpCode(HttpStatus.OK)
