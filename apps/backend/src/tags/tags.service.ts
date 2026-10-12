@@ -84,28 +84,26 @@ export class TagsService {
   }
 
   /**
-   * Gets multiple tags by their ids. IDs that don't exist are skipped.
-   * @param tagIds An array of tag ids to query by.
+   * Retrieves tags by their IDs. IDs that don't exist are skipped.
    *
-   * @returns An array of the tags that exist among the provided ids.
-   * @throws BadRequestException if no ids are provided or any id is not a positive integer.
-   * @throws NotFoundException if none of the provided ids exist.
+   * @param ids the IDs of the tags to retrieve (pass a single-item array for one tag)
+   * @returns the tags matching the given IDs
+   * @throws BadRequestException if no IDs are provided or any ID is not a positive integer
+   * @throws NotFoundException if none of the IDs match a tag
    */
-  async getTagsByIds(tagIds: number[]): Promise<Tag[]> {
-    if (!tagIds || tagIds.length === 0) {
+  async findByIds(ids: number[]): Promise<Tag[]> {
+    if (!ids || ids.length === 0) {
       throw new BadRequestException('At least one tag ID is required.');
     }
 
-    if (tagIds.some((id) => !Number.isInteger(id) || id <= 0)) {
+    if (ids.some((id) => !Number.isInteger(id) || id <= 0)) {
       throw new BadRequestException('Tag IDs must be positive integers.');
     }
 
-    const tags = await this.repo.findBy({ tag_id: In(tagIds) });
+    const tags = await this.repo.findBy({ tag_id: In(ids) });
 
     if (tags.length === 0) {
-      throw new NotFoundException(
-        `No tags found for ids: ${tagIds.join(', ')}.`,
-      );
+      throw new NotFoundException(`No tags found with IDs [${ids.join(', ')}]`);
     }
 
     return tags;

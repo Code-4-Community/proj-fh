@@ -1,4 +1,14 @@
-import { Controller, Get, Param, ParseIntPipe, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseArrayPipe,
+  ParseIntPipe,
+  Post,
+} from '@nestjs/common';
 import { TagsService } from './tags.service';
 import { Tag } from './tag.entity';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
@@ -14,15 +24,19 @@ export class TagsController {
   constructor(private tagsService: TagsService) {}
 
   /**
-   * Retrieves tags by a list of ids
-   * @param ids an array of tag IDs to retreive
-   * @returns an array of tags matching the provided IDs
+   * Retrieves tags by their IDs.
+   *
+   * @param ids the IDs of the tags to retrieve (a single-item array for one tag)
+   * @returns 200 with the tags matching the given IDs.
+   * Returns 400 if the body is not an array of positive integers,
+   * or 404 if none of the IDs match a tag.
    */
-  @Get('/findById')
-  async getTagsByIds(@Query('ids') ids?: string): Promise<Tag[]> {
-    const tagIds = ids ? ids.split(',').map(Number) : [];
-
-    return this.tagsService.getTagsByIds(tagIds);
+  @Post('findByIds')
+  @HttpCode(HttpStatus.OK)
+  async findByIds(
+    @Body(new ParseArrayPipe({ items: Number })) ids: number[],
+  ): Promise<Tag[]> {
+    return await this.tagsService.findByIds(ids);
   }
 
   /**
