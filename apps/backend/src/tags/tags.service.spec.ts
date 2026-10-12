@@ -214,11 +214,11 @@ describe('TagsService', () => {
 
     repository.findBy.mockResolvedValue(tags);
 
-    await expect(service.getTagsByIds([1, 2])).resolves.toEqual(tags);
+    await expect(service.findByIds([1, 2])).resolves.toEqual(tags);
   });
 
   it('rejects an empty list of tag ids', async () => {
-    await expect(service.getTagsByIds([])).rejects.toThrow(
+    await expect(service.findByIds([])).rejects.toThrow(
       'At least one tag ID is required.',
     );
   });
@@ -232,25 +232,25 @@ describe('TagsService', () => {
     };
     repository.findBy.mockResolvedValue([tag]);
 
-    await expect(service.getTagsByIds([1, 999])).resolves.toEqual([tag]);
+    await expect(service.findByIds([1, 999])).resolves.toEqual([tag]);
   });
 
   it('throws NotFoundException when none of the ids exist', async () => {
     repository.findBy.mockResolvedValue([]);
 
-    await expect(service.getTagsByIds([998, 999])).rejects.toThrow(
-      `No tags found for ids: 998, 999.`,
+    await expect(service.findByIds([998, 999])).rejects.toThrow(
+      'No tags found with IDs [998, 999]',
     );
   });
 
   it('rejects non-integer or non-positive tag ids', async () => {
-    await expect(service.getTagsByIds([1, NaN])).rejects.toThrow(
+    await expect(service.findByIds([1, NaN])).rejects.toThrow(
       'Tag IDs must be positive integers.',
     );
-    await expect(service.getTagsByIds([0])).rejects.toThrow(
+    await expect(service.findByIds([0])).rejects.toThrow(
       'Tag IDs must be positive integers.',
     );
-    await expect(service.getTagsByIds([1.5])).rejects.toThrow(
+    await expect(service.findByIds([1.5])).rejects.toThrow(
       'Tag IDs must be positive integers.',
     );
   });

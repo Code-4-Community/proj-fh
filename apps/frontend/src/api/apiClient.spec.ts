@@ -24,8 +24,8 @@ jest.mock('../auth/cognito', () => ({
 }));
 
 const { ApiClient } = require('./apiClient') as typeof import('./apiClient');
-const RESOURCES_URL = '/api/resources/findById';
-const tagsUrl = (ids: number[]) => `/api/tags/findById?ids=${ids.join(',')}`;
+const RESOURCES_URL = '/api/resources/findByIds';
+const TAGS_URL = '/api/tags/findByIds';
 const scoreUrl = (id: number) => `/api/score/findOneById/${id}`;
 
 describe('ApiClient', () => {
@@ -102,14 +102,14 @@ describe('ApiClient', () => {
             data: 'resources' in options ? options.resources : [resource],
           };
         }
+        if (url === TAGS_URL) {
+          if (options.tagsError) throw options.tagsError;
+          return { data: tags };
+        }
         throw new Error(`Unexpected POST ${String(url)}`);
       });
 
       mockGet.mockImplementation(async (url: unknown) => {
-        if (url === tagsUrl([1, 4])) {
-          if (options.tagsError) throw options.tagsError;
-          return { data: tags };
-        }
         if (url === scoreUrl(2)) {
           if (options.scoreError) throw options.scoreError;
           return { data: score };
@@ -128,17 +128,17 @@ describe('ApiClient', () => {
 
     // tests a successful method call at each step
     describe('tests a successful method call', () => {
-      it('calls Resource findById with a single-ID list', async () => {
+      it('calls Resource findByIds with a single-ID list', async () => {
         mockBackend();
         await client.getAllResourceInfo(1);
         expect(mockPost).toHaveBeenCalledWith(RESOURCES_URL, [1]);
       });
 
-      it('calls Score FindById and Tag findById using the resource IDs', async () => {
+      it('calls Score FindById and Tag findByIds using the resource IDs', async () => {
         mockBackend();
         await client.getAllResourceInfo(1);
         expect(mockGet).toHaveBeenCalledWith(scoreUrl(2));
-        expect(mockGet).toHaveBeenCalledWith(tagsUrl([1, 4]));
+        expect(mockPost).toHaveBeenCalledWith(TAGS_URL, [1, 4]);
       });
 
       it('returns one merged object with no failures', async () => {
@@ -156,14 +156,17 @@ describe('ApiClient', () => {
       it('makes the Score and Tag calls in parallel', async () => {
         let resolveScore!: (value: unknown) => void;
         let resolveTags!: (value: unknown) => void;
-        mockPost.mockImplementation(() =>
-          Promise.resolve({ data: [resource] }),
+        mockPost.mockImplementation((url: unknown) =>
+          url === TAGS_URL
+            ? new Promise((resolve) => {
+                resolveTags = resolve;
+              })
+            : Promise.resolve({ data: [resource] }),
         );
         mockGet.mockImplementation(
-          (url: unknown) =>
+          () =>
             new Promise((resolve) => {
-              if (url === tagsUrl([1, 4])) resolveTags = resolve;
-              else resolveScore = resolve;
+              resolveScore = resolve;
             }),
         );
 
@@ -171,7 +174,7 @@ describe('ApiClient', () => {
         await flushPromises();
         // both requests are started before either is resolved.
         expect(mockGet).toHaveBeenCalledWith(scoreUrl(2));
-        expect(mockGet).toHaveBeenCalledWith(tagsUrl([1, 4]));
+        expect(mockPost).toHaveBeenCalledWith(TAGS_URL, [1, 4]);
 
         resolveScore({ data: score });
         resolveTags({ data: tags });
@@ -192,8 +195,9 @@ describe('ApiClient', () => {
         const result = await client.getAllResourceInfo(1);
 
         expect(mockPost).toHaveBeenCalledTimes(1);
-        expect(mockGet).not.toHaveBeenCalledWith(
-          expect.stringContaining('/api/tags/'),
+        expect(mockPost).not.toHaveBeenCalledWith(
+          TAGS_URL,
+          expect.anything(),
         );
         expect(result).toEqual({
           resource: untagged,
