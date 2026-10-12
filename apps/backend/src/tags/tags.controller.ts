@@ -16,7 +16,6 @@ export class TagsController {
   /**
    * Retrieves tags by a list of ids
    * @param ids an array of tag IDs to retreive
-   *
    * @returns an array of tags matching the provided IDs
    */
   @Get('/findById')
@@ -29,7 +28,6 @@ export class TagsController {
   /**
    * Retrieves a single tag by its ID.
    * @param tagId the unique ID of a tag to get
-   *
    * @returns The tag matching the provided ID
    */
   @Get('/:tagId')
@@ -40,7 +38,6 @@ export class TagsController {
   /**
    * Retrieves tags by their category
    * @param category the category used to get tags
-   *
    * @returns an array of tags matching the provided category
    */
   @Get('/category/:category')

@@ -274,6 +274,9 @@ describe('ApiClient', () => {
           failed: ['score', 'tags'],
         });
       });
+      
     });
+
   });
+
 });
