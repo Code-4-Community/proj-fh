@@ -2,18 +2,7 @@ import axios, { type AxiosInstance } from 'axios';
 import { getIdToken } from '../auth/cognito';
 
 import { defaultBaseUrl } from './apiBaseUrl';
-import { Resource, Score, Tag } from '../types';
-
-/**
- * Represents the authenticated identity of the current user.
- *
- * sub: The unique identifier for the user.
- * email: The email address of the user.
- */
-export type AuthenticatedIdentity = {
-  sub: string;
-  email: string;
-};
+import { Resource, Score, Tag, User } from '../types';
 
 export class ApiClient {
   private axiosInstance: AxiosInstance;
@@ -34,12 +23,12 @@ export class ApiClient {
   }
 
   /**
-   * Retrieves the authenticated identity of the current user.
+   * Retrieves the authenticated user's database record.
    *
-   * @returns The authenticated identity (user object) of the current user.
+   * @returns The user record of the current user.
    */
-  public async getCurrentIdentity(): Promise<AuthenticatedIdentity> {
-    return this.get('/api/auth/me') as Promise<AuthenticatedIdentity>;
+  public async getCurrentIdentity(): Promise<User> {
+    return this.get('/api/auth/me') as Promise<User>;
   }
 
   /**
@@ -60,10 +49,7 @@ export class ApiClient {
     const [scoreResult, tagResult] = await Promise.allSettled([
       this.get(`/api/score/findOneById/${resource.score_id}`) as Promise<Score>,
       resource.tags?.length
-        ? (this.post(
-            '/api/tags/findByIds',
-            resource.tags,
-          ) as Promise<Tag[]>)
+        ? (this.post('/api/tags/findByIds', resource.tags) as Promise<Tag[]>)
         : Promise.resolve([]),
     ]);
 
