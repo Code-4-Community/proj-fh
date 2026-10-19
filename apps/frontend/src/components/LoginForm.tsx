@@ -12,7 +12,7 @@ import {
  *
  * @returns A React component representing the login form.
  */
-const LoginForm: React.FC = () => {
+const LoginForm = () => {
   // navigate function from react-router-dom to programmatically navigate between routes
   const navigate = useNavigate();
   // The email of the user
