@@ -17,18 +17,26 @@ import { Status } from '../users/types';
 /** Test-only routes covering each way @Roles can be applied. */
 class TestController {
   @Roles(Status.ADMIN)
-  adminOnly() {}
+  adminOnly() {
+    return true;
+  }
 
   @Roles(Status.ADMIN, Status.STANDARD)
-  anyRole() {}
+  anyRole() {
+    return true;
+  }
 
-  unrestricted() {}
+  unrestricted() {
+    return true;
+  }
 }
 
 /** A controller restricted at the class level, with no @Roles on its method. */
 @Roles(Status.ADMIN)
 class AdminController {
-  route() {}
+  route() {
+    return true;
+  }
 }
 
 /** Builds the minimal ExecutionContext the guard reads from. */
