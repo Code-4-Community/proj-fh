@@ -4,7 +4,7 @@ import LoginForm from '@components/LoginForm';
 import apiClient from '../api/apiClient';
 import { getSignedInEmail } from '../auth/cognito';
 
-const Root: React.FC = () => {
+const Root = () => {
   const navigate = useNavigate();
 
   /**

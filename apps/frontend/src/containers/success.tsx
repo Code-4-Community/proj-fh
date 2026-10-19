@@ -8,7 +8,7 @@ type SuccessLocationState = {
 /**
  * Temporary Success page to signify successful login
  */
-const Success: React.FC = () => {
+const Success = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const email = (location.state as SuccessLocationState | null)?.email;
