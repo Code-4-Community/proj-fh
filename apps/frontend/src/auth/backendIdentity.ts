@@ -2,6 +2,12 @@ import axios from 'axios';
 import apiClient from '../api/apiClient';
 import { signOutUser } from './cognito';
 
+/**
+ * Given the user is already signed in in Cognito, this function attempts to fetch the corresponding backend identity.
+ * Fetches the current identity of the signed-in user from the backend. 
+ * If the backend returns a 403 error, the user is automatically signed out from Cognito.
+ * @returns The current identity of the signed-in user.
+ */
 export const getIdentityAfterSignIn = async () => {
   try {
     return await apiClient.getCurrentIdentity();
