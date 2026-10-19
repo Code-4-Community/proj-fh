@@ -104,7 +104,7 @@ The base image is local-only. It is not pushed anywehre, so every dev has to bui
 Rebuild the base image (re-run the same command) when:
 
 - `yarn.lock` changes on `main`, for example after you pull new changes.
-- your builds start failing because of missing dependdncies. 
+- your builds start failing because of missing dependencies. 
 
 
 **If you see "pull access denied" or "not found" for `fh-base`:** you haven't built the base image yet. Because `fh-base` only exists on your machine, Docker doesn't find it locally and tries to pull it from Docker Hub, where it doesn't exist, so the build fails with an error like:
