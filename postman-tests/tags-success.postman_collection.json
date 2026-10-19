@@ -1,0 +1,53 @@
+{
+  "info": {
+    "name": "Tags Success",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "FindByIds",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "[{{tagId}}]",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/tags/findByIds",
+          "host": ["{{baseUrl}}"],
+          "path": ["tags", "findByIds"]
+        }
+      }
+    },
+    {
+      "name": "GetTagById",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/tags/{{tagId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["tags", "{{tagId}}"]
+        }
+      }
+    },
+    {
+      "name": "GetTagsByCategory",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/tags/category/food_service_type",
+          "host": ["{{baseUrl}}"],
+          "path": ["tags", "category", "food_service_type"]
+        }
+      }
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000/api" },
+    { "key": "tagId", "value": "1" }
+  ]
+}
