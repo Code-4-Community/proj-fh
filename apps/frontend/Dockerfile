@@ -1,10 +1,13 @@
-FROM node:24-alpine AS build
+FROM fh-base:latest AS build
 WORKDIR /app
 
-COPY . .
+COPY package.json yarn.lock .yarnrc ./
+COPY .yarn ./.yarn
 
-RUN npm pkg set type=module
+
 RUN yarn install --immutable
+COPY . .
+RUN npm pkg set type=module
 RUN npx nx build frontend
 
 FROM nginx:1.27-alpine
