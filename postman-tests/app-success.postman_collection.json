@@ -1,0 +1,33 @@
+{
+  "info": {
+    "_postman_id": "5ca5fc05-10c4-4d12-a10c-114e30fe35a5",
+    "name": "App Success",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "54085980"
+  },
+  "item": [
+    {
+      "name": "GetData",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            ""
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api"
+    }
+  ]
+}
