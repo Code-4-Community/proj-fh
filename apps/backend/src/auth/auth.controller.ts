@@ -10,9 +10,6 @@ import type { AuthenticatedIdentity } from './authenticated-identity';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { User } from '../users/user.entity';
 import { UsersService } from '../users/users.service';
-import { RolesGuard } from './roles.guard';
-import { Roles } from './roles.decorator';
-import { Status } from '../users/types';
 
 /**
  * Represents an authenticated request containing the user's identity.
@@ -61,19 +58,5 @@ export class AuthController {
     }
 
     return user;
-  }
-
-  // TODO: Delete before merging
-  /**
-   * Dummy route for manually testing RolesGuard. Only ADMIN users can access it.
-   *
-   * @returns 200 with a confirmation message for admins,
-   * or 403 if the user isn't in the database or isn't an admin.
-   */
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Status.ADMIN)
-  @Get('admin-only')
-  adminOnly(): { message: string } {
-    return { message: 'Access granted: you are an admin.' };
   }
 }
