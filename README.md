@@ -93,8 +93,34 @@ docker run --name proj-fh-db \
   -p 5432:5432 \
   -d postgres:18-alpine
 ```
+### 2) Build the shared base image
+The backend and the frontend imaged both start from the same base image that holds the projects baseline dependencies. Build it once from the repo root, before building either the frontend or the backend:
 
-### 2) Build and run the backend container
+```bash
+docker build -f Dockerfile.base -t fh-base:latest .
+```
+The base image is local-only. It is not pushed anywehre, so every dev has to build it on their own machine.
+
+Rebuild the base image (re-run the same command) when:
+
+- `yarn.lock` changes on `main`, for example after you pull new changes.
+- your builds start failing because of missing dependdncies. 
+
+
+**If you see "pull access denied" or "not found" for `fh-base`:** you haven't built the base image yet. Because `fh-base` only exists on your machine, Docker doesn't find it locally and tries to pull it from Docker Hub, where it doesn't exist, so the build fails with an error like:
+
+```
+pull access denied, repository does not exist or may require authorization
+```
+
+The fix is to build the base image first, then re-run the frontend/backend build:
+
+```bash
+docker build -f Dockerfile.base -t fh-base:latest .
+```
+
+
+### 3) Build and run the backend container
 
 ```bash
 docker build -f apps/backend/Dockerfile -t proj-fh-backend .
@@ -107,7 +133,7 @@ docker run --rm -it \
 
 > `.env` should use `POSTGRES_HOST=host.docker.internal` when running the backend inside Docker on Windows/macOS. That lets the container reach the Postgres instance published on port 5432.
 
-### 3) Build and run the frontend container
+### 4) Build and run the frontend container
 
 ```bash
 docker build -f apps/frontend/Dockerfile -t proj-fh-frontend .
