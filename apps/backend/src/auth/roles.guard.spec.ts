@@ -70,7 +70,9 @@ describe('RolesGuard', () => {
 
     await expect(
       guard.canActivate(
-        contextFor(TestController, 'adminOnly', { email: 'person@example.com' }),
+        contextFor(TestController, 'adminOnly', {
+          email: 'person@example.com',
+        }),
       ),
     ).resolves.toBe(true);
     expect(usersService.findByEmail).toHaveBeenCalledWith('person@example.com');
@@ -101,7 +103,9 @@ describe('RolesGuard', () => {
 
     await expect(
       guard.canActivate(
-        contextFor(TestController, 'adminOnly', { email: 'person@example.com' }),
+        contextFor(TestController, 'adminOnly', {
+          email: 'person@example.com',
+        }),
       ),
     ).rejects.toThrow(
       new ForbiddenException(
@@ -115,7 +119,9 @@ describe('RolesGuard', () => {
 
     await expect(
       guard.canActivate(
-        contextFor(TestController, 'adminOnly', { email: 'missing@example.com' }),
+        contextFor(TestController, 'adminOnly', {
+          email: 'missing@example.com',
+        }),
       ),
     ).rejects.toThrow(
       new ForbiddenException('No user record exists for missing@example.com.'),

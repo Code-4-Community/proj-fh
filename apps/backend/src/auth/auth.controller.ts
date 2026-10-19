@@ -1,4 +1,10 @@
-import { Controller, ForbiddenException, Get, Req, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  ForbiddenException,
+  Get,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import type { AuthenticatedIdentity } from './authenticated-identity';
 import { JwtAuthGuard } from './jwt-auth.guard';
@@ -55,7 +61,6 @@ export class AuthController {
     }
 
     return user;
-
   }
 
   // TODO: Delete before merging
