@@ -1,7 +1,15 @@
-import { Controller, Get, Req, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  ForbiddenException,
+  Get,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import type { AuthenticatedIdentity } from './authenticated-identity';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { User } from '../users/user.entity';
+import { UsersService } from '../users/users.service';
 
 /**
  * Represents an authenticated request containing the user's identity.
@@ -25,6 +33,7 @@ type AuthenticatedRequest = {
 @ApiBearerAuth()
 @Controller('auth')
 export class AuthController {
+  constructor(private readonly usersService: UsersService) {}
   /**
    * Retrieves the authenticated user's identity.
    *
@@ -32,11 +41,22 @@ export class AuthController {
    * The JwtStrategy autoinjects the validated user into request.user.
    *
    * @param request The authenticated request containing the user identity.
-   * @returns The authenticated user's identity.
+   * @returns 200 with the authenticated user's database record.
+   * or 403 if token has no email or no user exists with that email
    */
   @UseGuards(JwtAuthGuard)
   @Get('me')
-  getIdentity(@Req() request: AuthenticatedRequest): AuthenticatedIdentity {
-    return request.user;
+  async getIdentity(@Req() request: AuthenticatedRequest): Promise<User> {
+    const { email } = request.user;
+    if (!email) {
+      throw new ForbiddenException(`Missing authenticated user email.`);
+    }
+
+    const user = await this.usersService.findByEmail(email);
+    if (!user) {
+      throw new ForbiddenException(`No user record exists for ${email}.`);
+    }
+
+    return user;
   }
 }
