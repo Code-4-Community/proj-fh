@@ -52,7 +52,7 @@ export class RolesGuard implements CanActivate {
     const requestUser = request.user;
 
     if (!requestUser?.email) {
-      throw new ForbiddenException('Missing authenticated user email.');
+      throw new ForbiddenException(`Missing authenticated user email.`);
     }
 
     const databaseUser = await this.usersService.findByEmail(requestUser.email);
