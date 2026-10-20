@@ -9,7 +9,7 @@ const validEnv: Record<string, string> = {
 /**
  * In tests, mock the .env module:
  * `jest.mock('<relative path>/utils/env', () => ({ envUtility: { ... } }))`.
-*/
+ */
 
 /**
  * Loads a fresh copy of ./env against the given mock bundler env.

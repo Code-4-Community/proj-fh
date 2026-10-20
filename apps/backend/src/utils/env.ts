@@ -41,7 +41,6 @@ const backendEnvSchema = z.object({
   POSTGRES_USER: requiredString,
   POSTGRES_PASSWORD: requiredString,
   POSTGRES_DB: requiredString,
-  PORT: port,
   SWAGGER_ENABLED: booleanFlag,
   REGION: requiredString,
   AUTH_COGNITO_APP_CLIENT_ID: requiredString,

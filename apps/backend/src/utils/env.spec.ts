@@ -11,7 +11,6 @@ const validEnv: Record<string, string> = {
   POSTGRES_USER: 'test_user',
   POSTGRES_PASSWORD: 'test_password',
   POSTGRES_DB: 'test_db',
-  PORT: '3000',
   SWAGGER_ENABLED: 'false',
   REGION: 'us-east-2',
   AUTH_COGNITO_APP_CLIENT_ID: 'test-client-id',
@@ -51,7 +50,6 @@ describe('backend envUtility', () => {
     expect(envUtility).toEqual({
       ...validEnv,
       POSTGRES_PORT: 5432,
-      PORT: 3000,
       SWAGGER_ENABLED: false,
     });
   });
@@ -92,11 +90,11 @@ describe('backend envUtility', () => {
       ...validEnv,
       POSTGRES_HOST: undefined,
       REGION: '',
-      PORT: 'not-a-port',
+      POSTGRES_PORT: 'not-a-port',
     });
 
     expect(error.message).toBe(
-      'Environment validation failed. Missing: POSTGRES_HOST, REGION. Invalid: PORT. See example.env for the expected variables.',
+      'Environment validation failed. Missing: POSTGRES_HOST, REGION. Invalid: POSTGRES_PORT. See example.env for the expected variables.',
     );
   });
 

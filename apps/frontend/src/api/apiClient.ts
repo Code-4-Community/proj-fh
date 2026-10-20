@@ -60,10 +60,7 @@ export class ApiClient {
     const [scoreResult, tagResult] = await Promise.allSettled([
       this.get(`/api/score/findOneById/${resource.score_id}`) as Promise<Score>,
       resource.tags?.length
-        ? (this.post(
-            '/api/tags/findByIds',
-            resource.tags,
-          ) as Promise<Tag[]>)
+        ? (this.post('/api/tags/findByIds', resource.tags) as Promise<Tag[]>)
         : Promise.resolve([]),
     ]);
 

@@ -22,6 +22,8 @@ async function bootstrap() {
     }),
   );
 
+  const port = 3000;
+
   if (envUtility.SWAGGER_ENABLED) {
     const config = new DocumentBuilder()
       .setTitle('[YOUR_APP_NAME] API Docs')
@@ -37,11 +39,10 @@ async function bootstrap() {
     const document = SwaggerModule.createDocument(app, config); // Create the Swagger document
     SwaggerModule.setup('api', app, document); // Setup the Swagger module
     Logger.log(
-      `😎 Swagger is enabled and will be available at: http://localhost:${envUtility.PORT}/api`,
+      `😎 Swagger is enabled and will be available at: http://localhost:${port}/api`,
     );
   }
 
-  const port = envUtility.PORT;
   await app.listen(port);
 
   Logger.log(

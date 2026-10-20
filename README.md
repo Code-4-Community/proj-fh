@@ -37,6 +37,8 @@ Determine your postgres password. It is best to use numbers, letters, and the fo
 
 Since it is just for local development, you can fill in whatever password you want. Please fill it in the env.
 
+**Every variable in `.env` must be filled in.** Env vars are validated at startup, so the backend, `yarn migration:run`, and the frontend Docker build fail with an error naming any variable that is missing or blank.
+
 This project uses PostgreSQL. You'll need a running Postgres instance before starting the backend.
 
 On Docker Desktop for Windows/macOS, use `host.docker.internal` in `.env` so the backend container can reach the Postgres container on the host machine.
@@ -109,8 +111,29 @@ docker run --rm -it \
 
 ### 3) Build and run the frontend container
 
+Vite bakes the `VITE_` variables into the frontend at build time, and `.env` is not copied into the image, so pass them as build args. The build fails if any are missing.
+
+**macOS** (reads the values from `.env`):
+
 ```bash
-docker build -f apps/frontend/Dockerfile -t proj-fh-frontend .
+(set -a; . ./.env; set +a; docker build -f apps/frontend/Dockerfile -t proj-fh-frontend \
+  --build-arg VITE_API_BASE_URL \
+  --build-arg VITE_COGNITO_USER_POOL_ID \
+  --build-arg VITE_COGNITO_APP_CLIENT_ID .)
+```
+
+**Windows** - copy the values from your `.env`:
+
+```powershell
+docker build -f apps/frontend/Dockerfile -t proj-fh-frontend `
+  --build-arg VITE_API_BASE_URL=http://localhost:3000 `
+  --build-arg VITE_COGNITO_USER_POOL_ID=<value from .env> `
+  --build-arg VITE_COGNITO_APP_CLIENT_ID=<value from .env> .
+```
+
+Then run it:
+
+```bash
 docker run --rm -it \
   -p 4200:80 \
   --name proj-fh-frontend \
