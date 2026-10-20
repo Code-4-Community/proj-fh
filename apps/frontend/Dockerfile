@@ -1,9 +1,10 @@
-FROM node:24-alpine AS build
+FROM fh-base:latest AS build
 WORKDIR /app
 
-COPY . .
+COPY package.json yarn.lock .yarnrc ./
+COPY .yarn ./.yarn
 
-RUN npm pkg set type=module
+
 RUN yarn install --immutable
 
 ARG VITE_API_BASE_URL
@@ -20,6 +21,8 @@ RUN missing=""; \
     done; \
     [ -z "$missing" ] || { echo "Missing frontend build args:$missing" >&2; exit 1; }
 
+COPY . .
+RUN npm pkg set type=module
 RUN npx nx build frontend
 
 FROM nginx:1.27-alpine

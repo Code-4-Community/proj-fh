@@ -1,9 +1,13 @@
-FROM node:24-alpine AS build
+FROM fh-base:latest AS build
+#now rebuilds from a preloaded image
 WORKDIR /app
 
-COPY . .
+COPY package.json yarn.lock .yarnrc ./
+COPY .yarn ./.yarn
 
-RUN yarn install --immutable    
+RUN yarn install --immutable
+
+COPY . .    
 RUN npx nx build backend
 
 FROM node:24-alpine AS runtime

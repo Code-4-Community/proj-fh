@@ -1,6 +1,6 @@
 // import { Button } from '@shared/src/components/button';
 
-const Test: React.FC = () => {
+const Test = () => {
   return (
     <>
       <div>I am test page</div>

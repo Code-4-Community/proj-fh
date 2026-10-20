@@ -13,7 +13,7 @@ As a ...
 **Motivation:**
 This ticket ...
 
-**Acceptance Crtieria:**
+**Acceptance Criteria:**
 - [ ] 
 
 

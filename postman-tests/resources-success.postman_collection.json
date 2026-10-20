@@ -1,0 +1,161 @@
+{
+  "info": {
+    "_postman_id": "c434cfbc-994d-4338-87c5-474207f476dd",
+    "name": "Resources Success",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "54085980"
+  },
+  "item": [
+    {
+      "name": "Create",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Saves the new resource's ID so Update and FindByIds target it",
+              "if (pm.response.code === 201) {",
+              "  pm.collectionVariables.set('resourceId', pm.response.json().resource_id);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Greater Boston Food Bank\",\n  \"category\": [\"food_access\"],\n  \"county\": \"Suffolk\",\n  \"zip_code\": \"02115\",\n  \"description\": \"Provides free groceries and hot meals to families in the Greater Boston area.\",\n  \"address\": \"123 Main St, Boston, MA 02115\",\n  \"phone\": \"(617) 555-0100\",\n  \"email\": \"contact@example.org\",\n  \"website\": \"https://www.example.org\",\n  \"eligibility\": \"Open to all Massachusetts residents; no ID required.\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/resources",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "resources"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"vetting_status\": \"verified\",\n  \"reviewer_notes\": \"Called and confirmed hours.\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/resources/{{resourceId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "resources",
+            "{{resourceId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "FindByIds",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "[{{resourceId}}]",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/resources/findByIds",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "resources",
+            "findByIds"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Find",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Greater Boston Food Bank\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/resources/find",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "resources",
+            "find"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api"
+    },
+    {
+      "key": "resourceId",
+      "value": "1"
+    }
+  ]
+}
