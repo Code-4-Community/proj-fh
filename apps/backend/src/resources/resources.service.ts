@@ -364,7 +364,10 @@ export class ResourcesService {
         .filter((field) => query[field] !== undefined)
         .map((field) => {
           const value = query[field];
-          return [field, Array.isArray(value) ? ArrayContains(value as unknown[]) : value];
+          return [
+            field,
+            Array.isArray(value) ? ArrayContains(value as unknown[]) : value,
+          ];
         }),
     ) as FindOptionsWhere<Resource>;
 

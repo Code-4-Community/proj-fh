@@ -3,6 +3,17 @@ import { Passport } from 'passport';
 import jwt from 'jsonwebtoken';
 import { JwtStrategy } from './jwt.strategy';
 
+jest.mock('../utils/env', () => ({
+  envUtility: {
+    REGION: 'us-east-2',
+    AUTH_COGNITO_USER_POOL_ID: 'us-east-2_example',
+    AUTH_COGNITO_APP_CLIENT_ID: 'example-client-id',
+  },
+}));
+
+// Public key served by the mocked JWKS endpoint; set in beforeAll.
+let mockPublicKey: string | undefined;
+
 jest.mock('jwks-rsa', () => ({
   passportJwtSecret:
     () =>
@@ -11,8 +22,10 @@ jest.mock('jwks-rsa', () => ({
       _rawToken: string,
       done: (error: Error | null, key?: string) => void,
     ) => {
-      const key = process.env.TEST_COGNITO_PUBLIC_KEY;
-      done(key ? null : new Error('Test JWKS key is not configured.'), key);
+      done(
+        mockPublicKey ? null : new Error('Test JWKS key is not configured.'),
+        mockPublicKey,
+      );
     },
 }));
 
@@ -31,10 +44,7 @@ describe('JwtStrategy', () => {
       privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
     });
 
-    process.env.REGION = 'us-east-2';
-    process.env.AUTH_COGNITO_USER_POOL_ID = 'us-east-2_example';
-    process.env.AUTH_COGNITO_APP_CLIENT_ID = audience;
-    process.env.TEST_COGNITO_PUBLIC_KEY = keyPair.publicKey;
+    mockPublicKey = keyPair.publicKey;
     privateKey = keyPair.privateKey;
     strategy = new JwtStrategy();
     passport = new Passport();

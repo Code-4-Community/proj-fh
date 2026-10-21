@@ -195,10 +195,7 @@ describe('ApiClient', () => {
         const result = await client.getAllResourceInfo(1);
 
         expect(mockPost).toHaveBeenCalledTimes(1);
-        expect(mockPost).not.toHaveBeenCalledWith(
-          TAGS_URL,
-          expect.anything(),
-        );
+        expect(mockPost).not.toHaveBeenCalledWith(TAGS_URL, expect.anything());
         expect(result).toEqual({
           resource: untagged,
           score,
@@ -278,9 +275,6 @@ describe('ApiClient', () => {
           failed: ['score', 'tags'],
         });
       });
-      
     });
-
   });
-
 });

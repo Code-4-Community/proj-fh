@@ -8,6 +8,7 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { NestFactory } from '@nestjs/core';
 
 import { AppModule } from './app.module';
+import { envUtility } from './utils/env';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -21,9 +22,9 @@ async function bootstrap() {
     }),
   );
 
-  const swaggerEnabled = process.env.SWAGGER_ENABLED?.toLowerCase() === 'true';
+  const port = 3000;
 
-  if (swaggerEnabled) {
+  if (envUtility.SWAGGER_ENABLED) {
     const config = new DocumentBuilder()
       .setTitle('[YOUR_APP_NAME] API Docs')
       .setDescription('Documentation for [YOUR_APP_NAME] API routes')
@@ -38,13 +39,10 @@ async function bootstrap() {
     const document = SwaggerModule.createDocument(app, config); // Create the Swagger document
     SwaggerModule.setup('api', app, document); // Setup the Swagger module
     Logger.log(
-      `😎 Swagger is enabled and will be available at: http://localhost:${
-        process.env.PORT || 3000
-      }/api`,
+      `😎 Swagger is enabled and will be available at: http://localhost:${port}/api`,
     );
   }
 
-  const port = process.env.PORT || 3000;
   await app.listen(port);
 
   Logger.log(

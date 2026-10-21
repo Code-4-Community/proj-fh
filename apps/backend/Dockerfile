@@ -17,7 +17,6 @@ COPY --from=build /app/package*.json ./
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/dist/apps/backend ./dist/apps/backend
 
-ENV PORT=3000
 EXPOSE 3000
 
 CMD ["node", "dist/apps/backend/main.js"]

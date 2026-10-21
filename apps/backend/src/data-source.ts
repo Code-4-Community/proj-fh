@@ -1,30 +1,25 @@
 import { DataSource } from 'typeorm';
 import { PluralNamingStrategy } from './strategies/plural-naming.strategy';
-import * as dotenv from 'dotenv';
 import { Tag } from './tags/tag.entity';
 import { Resource } from './resources/resources.entity';
 import { Score } from './score/score.entity';
 import { User } from './users/user.entity';
-
-dotenv.config();
+import { envUtility } from './utils/env';
 
 /**
  * The AppDataSource is a TypeORM DataSource instance configured for connecting to a PostgreSQL database.
- * It uses environment variables to determine the database connection parameters, including host, port, username, password, and database name.
+ * It uses the validated env utility (utils/env.ts) to determine the database connection parameters, including host, port, username, password, and database name.
  * The DataSource is set up with a custom naming strategy (PluralNamingStrategy) and specifies the entities and migrations to be used.
  *
  * Note: The synchronize option is set to false to prevent automatic schema synchronization in production environments.
  */
 const AppDataSource = new DataSource({
   type: 'postgres',
-  host: process.env.NX_DB_HOST ?? process.env.POSTGRES_HOST ?? 'localhost',
-  port: parseInt(
-    process.env.NX_DB_PORT ?? process.env.POSTGRES_PORT ?? '5432',
-    10,
-  ),
-  username: process.env.NX_DB_USERNAME ?? process.env.POSTGRES_USER,
-  password: process.env.NX_DB_PASSWORD ?? process.env.POSTGRES_PASSWORD,
-  database: process.env.NX_DB_DATABASE ?? process.env.POSTGRES_DB,
+  host: envUtility.POSTGRES_HOST,
+  port: envUtility.POSTGRES_PORT,
+  username: envUtility.POSTGRES_USER,
+  password: envUtility.POSTGRES_PASSWORD,
+  database: envUtility.POSTGRES_DB,
   // Entities are imported directly rather than globbed by path, since glob
   // strings don't resolve once the app is bundled/copied for production.
   entities: [Tag, Resource, Score, User],

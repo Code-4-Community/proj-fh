@@ -223,7 +223,9 @@ describe('ResourcesController', () => {
       jest
         .spyOn(service, 'find')
         .mockRejectedValue(
-          new NotFoundException('No resources found matching the given fields.'),
+          new NotFoundException(
+            'No resources found matching the given fields.',
+          ),
         );
 
       await expect(controller.find({ zip_code: '00000' })).rejects.toThrow(

@@ -1,2 +1,3 @@
-export const defaultBaseUrl =
-  import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000';
+import { envUtility } from '../utils/env';
+
+export const defaultBaseUrl = envUtility.VITE_API_BASE_URL;
