@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z as zod } from 'zod';
 
 // Keep the real repo .env out of these tests; each test sets process.env itself.
 jest.mock('dotenv', () => ({ config: jest.fn() }));
@@ -137,7 +137,7 @@ describe('backend envUtility', () => {
 
   it('rejects VITE_ variables in a backend schema', () => {
     const { parseEnv, requiredString } = loadEnv(validEnv);
-    const schema = z.object({ VITE_API_BASE_URL: requiredString });
+    const schema = zod.object({ VITE_API_BASE_URL: requiredString });
 
     expect(() =>
       parseEnv(schema, { VITE_API_BASE_URL: 'http://localhost' }),

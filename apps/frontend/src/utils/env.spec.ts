@@ -108,8 +108,8 @@ describe('frontend envUtility', () => {
 
   it('rejects variables without the VITE_ prefix', () => {
     const { parseEnv, requiredString } = loadEnv(validEnv);
-    const { z } = jest.requireActual<typeof import('zod')>('zod');
-    const schema = z.object({ POSTGRES_PASSWORD: requiredString });
+    const { z: zod } = jest.requireActual<typeof import('zod')>('zod');
+    const schema = zod.object({ POSTGRES_PASSWORD: requiredString });
 
     expect(() =>
       // @ts-expect-error -- the VITE_ prefix is also enforced by the type
