@@ -38,6 +38,25 @@ export enum County {
 }
 
 /**
+ * Represents a user's role in the system.
+ */
+export enum Status {
+  ADMIN = 'ADMIN',
+  STANDARD = 'STANDARD',
+}
+
+/**
+ * Represents a user entity returned by the API.
+ */
+export class User {
+  id!: number;
+  status!: Status;
+  firstName!: string;
+  lastName!: string;
+  email!: string;
+}
+
+/**
  * Represents a Resource entity.
  *
  * This entity is used to store data sources like food pantries or housing programs.

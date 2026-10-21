@@ -1,0 +1,89 @@
+{
+  "info": {
+    "_postman_id": "f67b1f1b-0217-4df6-83ea-cc8b3471125d",
+    "name": "Tags Success",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "54085980"
+  },
+  "item": [
+    {
+      "name": "FindByIds",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "[{{tagId}}]",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/tags/findByIds",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "tags",
+            "findByIds"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GetTagById",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/tags/{{tagId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "tags",
+            "{{tagId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GetTagsByCategory",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/tags/category/food_service_type",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "tags",
+            "category",
+            "food_service_type"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api"
+    },
+    {
+      "key": "tagId",
+      "value": "1"
+    }
+  ]
+}

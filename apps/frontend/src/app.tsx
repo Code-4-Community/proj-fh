@@ -35,7 +35,7 @@ const router = createBrowserRouter([
  *
  * @returns The main application component that provides the router to the React application.
  */
-export const App: React.FC = () => {
+export const App = () => {
   return <RouterProvider router={router} />;
 };
 

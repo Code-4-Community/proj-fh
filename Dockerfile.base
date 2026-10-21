@@ -1,0 +1,10 @@
+FROM node:24-alpine
+WORKDIR /app
+
+RUN corepack enable
+COPY package.json yarn.lock .yarnrc ./ 
+
+COPY .yarn ./.yarn 
+RUN yarn install 
+
+        

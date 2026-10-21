@@ -1,10 +1,10 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import LoginForm from '@components/LoginForm';
-import apiClient from '../api/apiClient';
 import { getSignedInEmail } from '../auth/cognito';
+import { getIdentityAfterSignIn } from '../auth/backendIdentity';
 
-const Root: React.FC = () => {
+const Root = () => {
   const navigate = useNavigate();
 
   /**
@@ -15,7 +15,7 @@ const Root: React.FC = () => {
     getSignedInEmail()
       .then(async (currentEmail) => {
         if (!currentEmail) return;
-        const identity = await apiClient.getCurrentIdentity();
+        const identity = await getIdentityAfterSignIn();
         navigate('/success', {
           replace: true,
           state: { email: identity.email },

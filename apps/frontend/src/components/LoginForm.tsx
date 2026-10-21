@@ -1,18 +1,18 @@
 import { FormEvent, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import apiClient from '../api/apiClient';
 import { isAmplifyConfigured } from '../auth/amplify';
 import {
   completeNewPasswordChallenge,
   signInWithEmailPassword,
 } from '../auth/cognito';
+import { getIdentityAfterSignIn } from '../auth/backendIdentity';
 
 /**
  * Temporary login form component without any fancy styling.
  *
  * @returns A React component representing the login form.
  */
-const LoginForm: React.FC = () => {
+const LoginForm = () => {
   // navigate function from react-router-dom to programmatically navigate between routes
   const navigate = useNavigate();
   // The email of the user
@@ -34,7 +34,7 @@ const LoginForm: React.FC = () => {
    * Completes the sign-in process by fetching the current identity and navigating to the success page.
    */
   const finishSignIn = async () => {
-    const identity = await apiClient.getCurrentIdentity();
+    const identity = await getIdentityAfterSignIn();
     navigate('/success', {
       replace: true,
       state: { email: identity.email },
