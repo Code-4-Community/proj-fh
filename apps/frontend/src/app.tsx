@@ -4,6 +4,11 @@ import Root from '@containers/root';
 import NotFound from '@containers/404';
 import Test from '@containers/test';
 import Success from '@containers/success';
+import ReviewQueue from '@containers/reviewQueue';
+import Resources from '@containers/resources';
+import ManageStaff from '@containers/manageStaff';
+import Profile from '@containers/profile';
+import AppLayout from './components/AppLayout';
 
 /**
  * The main application component that sets up the router and provides it to the React application.
@@ -24,8 +29,15 @@ const router = createBrowserRouter([
     element: <Test />,
   },
   {
-    path: '/success',
-    element: <Success />,
+    element: <AppLayout />,
+    children: [
+      { path: '/success', element: <Success /> },
+      { path: '/review-queue', element: <ReviewQueue /> },
+      { path: '/resources', element: <Resources /> },
+      { path: '/manage-staff', element: <ManageStaff /> },
+      { path: '/profile', element: <Profile /> },
+    ],
+    errorElement: <NotFound />
   },
 ]);
 
