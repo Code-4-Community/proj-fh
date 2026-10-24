@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
-import Navbar from './navbar/Navbar';
-import { NavbarItem } from './navbar/types';
+import Navbar from '@components/navbar/Navbar';
+import { NavbarItem } from '@components/navbar/types';
 import { getIdentityAfterSignIn } from '../auth/backendIdentity';
 import './page.css';
 

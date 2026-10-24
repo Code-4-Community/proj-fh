@@ -1,14 +1,14 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
-import Root from '@containers/root';
-import NotFound from '@containers/404';
-import Test from '@containers/test';
-import Success from '@containers/success';
-import ReviewQueue from '@containers/reviewQueue';
-import Resources from '@containers/resources';
-import ManageStaff from '@containers/manageStaff';
-import Profile from '@containers/profile';
-import AppLayout from './components/AppLayout';
+import Root from '@containers/Root';
+import NotFound from '@containers/NotFound';
+import Test from '@containers/Test';
+import Success from '@containers/Success';
+import ReviewQueue from '@containers/ReviewQueue';
+import ManageResources from '@containers/ManageResources';
+import ManageStaff from '@containers/ManageStaff';
+import Profile from '@containers/Profile';
+import AppLayout from '@containers/AppLayout';
 
 /**
  * The main application component that sets up the router and provides it to the React application.
@@ -33,7 +33,7 @@ const router = createBrowserRouter([
     children: [
       { path: '/success', element: <Success /> },
       { path: '/review-queue', element: <ReviewQueue /> },
-      { path: '/resources', element: <Resources /> },
+      { path: '/resources', element: <ManageResources /> },
       { path: '/manage-staff', element: <ManageStaff /> },
       { path: '/profile', element: <Profile /> },
     ],
