@@ -168,6 +168,21 @@ docker run --rm -it \
 
 Open your browser and navigate to http://localhost:4200/.
 
+### Faster frontend development (frontend on your machine, backend/database in containers)
+
+Rebuilding the frontend image on every change is slow. While working on the frontend, run only the backend and database in Docker (steps 1-3 above) and serve the frontend locally with Vite's dev server, which hot-reloads on save.
+
+1. Complete steps 1-3 above so the database and backend container are running (backend on http://localhost:3000).
+2. Make sure `.env` in the repo root contains the `VITE_` variables, e.g. `VITE_API_BASE_URL=http://localhost:3000`. The dev server reads them from `.env` at startup, so no build args are needed. Restart the dev server after changing them.
+3. Do **not** run the frontend container (step 4); it would conflict on port 4200.
+4. From the repo root, start the dev server:
+
+```bash
+npx nx serve frontend
+```
+
+Open http://localhost:4200/. Frontend edits appear in the browser immediately without a rebuild. You only need to rebuild the backend image when you change backend code.
+
 ## Running tasks
 
 Use the Docker containers above for normal development. If you need to run a task locally for debugging, use the repo's existing `nx` commands only temporarily.
