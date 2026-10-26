@@ -9,6 +9,8 @@ import { UsersModule } from './users/users.module';
 import { TagsModule } from './tags/tags.module';
 import { ResourcesModule } from './resources/resources.module';
 import { AuthModule } from './auth/auth.module';
+import { APP_FILTER } from '@nestjs/core';
+import { LoggingExceptionFilter } from './logging/logging-exception.filter';
 
 @Module({
   imports: [
@@ -43,6 +45,9 @@ import { AuthModule } from './auth/auth.module';
     AuthModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+  AppService,
+  { provide: APP_FILTER, useClass: LoggingExceptionFilter },
+],
 })
 export class AppModule {}
