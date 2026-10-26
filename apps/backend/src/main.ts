@@ -32,7 +32,7 @@ async function bootstrap() {
     const document = SwaggerModule.createDocument(app, config); // Create the Swagger document
     SwaggerModule.setup('api', app, document); // Setup the Swagger module
     Logger.log(
-      `😎 Swagger is enabled and will be available at: http://localhost:${
+      `Swagger is enabled and will be available at: http://localhost:${
         process.env.PORT || 3000
       }/api`,
     );
