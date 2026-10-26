@@ -1,5 +1,4 @@
 import {INestApplication, ValidationPipe} from '@nestjs/common';
-import { GLOBAL_MODULE_METADATA } from '@nestjs/common/constants';
 
 export const GLOBAL_PREFIX = 'api';
 
