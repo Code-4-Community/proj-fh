@@ -1,5 +1,5 @@
-/* Navbar layout. Sizes use clamp() so spacing scales across desktop widths;
-   below --page-min-width the bar stops shrinking rather than wrapping. */
+/* Design values only. Layout (flex, alignment, shrinking) and truncation come from
+   the Chakra components in the navbar; below --page-min-width the bar stops shrinking. */
 .navbar {
   --navbar-height: 80px;
   --navbar-gap: clamp(16px, 3vw, 56px);
@@ -17,8 +17,6 @@
   position: sticky;
   top: 0;
   z-index: 10;
-  display: flex;
-  align-items: center;
   gap: var(--navbar-gap);
   width: 100%;
   min-width: var(--page-min-width);
@@ -27,20 +25,12 @@
   background: var(--color-surface-muted);
 }
 
-.navbar-logo {
-  display: flex;
-  flex-shrink: 0;
-}
-
 .navbar-logo-img {
   height: var(--navbar-logo-height);
   width: auto;
 }
 
-/* Links never shrink; the user section truncates instead. */
 .navbar-links {
-  display: flex;
-  align-items: center;
   gap: var(--navbar-link-gap);
   flex: 1 0 auto;
 }
@@ -55,11 +45,6 @@
   letter-spacing: var(--letter-spacing-none);
   color: var(--color-text);
   text-decoration: none;
-  white-space: nowrap;
-}
-
-.navbar-link {
-  flex-shrink: 0;
 }
 
 /* Inactive links look regular weight, matching the design reference */
@@ -79,26 +64,21 @@
   border-radius: var(--navbar-focus-radius);
 }
 
-.navbar-user {
+.navbar-user,
+.navbar-user:hover {
   text-decoration: none;
-  display: flex;
-  align-items: center;
+}
+
+.navbar-user {
   gap: var(--navbar-link-gap);
-  min-width: 0;
   max-width: var(--navbar-user-max-width);
 }
 
 .navbar-user-name {
   font-weight: var(--font-weight-regular);
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .navbar-avatar {
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
   width: var(--navbar-avatar-size);
   height: var(--navbar-avatar-size);
   border-radius: var(--radius-round);

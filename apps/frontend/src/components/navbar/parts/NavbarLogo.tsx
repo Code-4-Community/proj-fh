@@ -1,3 +1,4 @@
+import { Flex, Image } from '@chakra-ui/react';
 import logo from '../../../assets/logo.png';
 
 /**
@@ -6,9 +7,9 @@ import logo from '../../../assets/logo.png';
  * @returns The logo image.
  */
 const NavbarLogo = () => (
-  <div className="navbar-logo">
-    <img src={logo} alt="Fenway Health" className="navbar-logo-img" />
-  </div>
+  <Flex flexShrink={0} className="navbar-logo">
+    <Image src={logo} alt="Fenway Health" className="navbar-logo-img" />
+  </Flex>
 );
 
 export default NavbarLogo;
