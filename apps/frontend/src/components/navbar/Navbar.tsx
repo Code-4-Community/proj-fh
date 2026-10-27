@@ -1,3 +1,4 @@
+import { Flex } from '@chakra-ui/react';
 import NavbarLogo from './parts/NavbarLogo';
 import NavbarLink from './parts/NavbarLink';
 import NavbarUser from './parts/NavbarUser';
@@ -23,15 +24,15 @@ interface NavbarProps {
  * @returns The rendered navbar.
  */
 const Navbar = ({ items, firstName, lastName, profilePath }: NavbarProps) => (
-  <nav className="navbar" aria-label="Main">
+  <Flex as="nav" align="center" className="navbar" aria-label="Main">
     <NavbarLogo />
-    <div className="navbar-links">
+    <Flex align="center" className="navbar-links">
       {items.map((item) => (
         <NavbarLink key={item.path} {...item} />
       ))}
-    </div>
+    </Flex>
     <NavbarUser firstName={firstName} lastName={lastName} to={profilePath} />
-  </nav>
+  </Flex>
 );
 
 export default Navbar;

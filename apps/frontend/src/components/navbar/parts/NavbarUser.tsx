@@ -1,4 +1,5 @@
-import { Link } from 'react-router-dom';
+import { Avatar, Link, Text } from '@chakra-ui/react';
+import { Link as RouterLink } from 'react-router-dom';
 
 interface NavbarUserProps {
   /** The user's first name. */
@@ -22,14 +23,29 @@ const NavbarUser = ({ firstName, lastName, to }: NavbarUserProps) => {
 
   return (
     <Link
-      to={to}
+      asChild
+      unstyled
+      display="flex"
+      alignItems="center"
+      minWidth={0}
       className="navbar-user"
-      aria-label={`Your profile, ${fullName}`}
     >
-      <span className="navbar-avatar" aria-hidden="true">
-        {initials}
-      </span>
-      <span className="navbar-user-name">{fullName}</span>
+      <RouterLink to={to} aria-label={`Your profile, ${fullName}`}>
+        <Avatar.Root
+          unstyled
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+          flexShrink={0}
+          className="navbar-avatar"
+          aria-hidden="true"
+        >
+          <Avatar.Fallback>{initials}</Avatar.Fallback>
+        </Avatar.Root>
+        <Text as="span" truncate className="navbar-user-name">
+          {fullName}
+        </Text>
+      </RouterLink>
     </Link>
   );
 };
