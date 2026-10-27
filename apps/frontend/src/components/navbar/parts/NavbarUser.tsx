@@ -28,6 +28,9 @@ const NavbarUser = ({ firstName, lastName, to }: NavbarUserProps) => {
       display="flex"
       alignItems="center"
       minWidth={0}
+      textDecoration="none"
+      _hover={{ textDecoration: 'none' }}
+      _focusVisible={{ textDecoration: 'none' }}
       className="navbar-user"
     >
       <RouterLink to={to} aria-label={`Your profile, ${fullName}`}>
@@ -42,7 +45,12 @@ const NavbarUser = ({ firstName, lastName, to }: NavbarUserProps) => {
         >
           <Avatar.Fallback>{initials}</Avatar.Fallback>
         </Avatar.Root>
-        <Text as="span" truncate className="navbar-user-name">
+        <Text
+          as="span"
+          truncate
+          textDecoration="none"
+          className="navbar-user-name"
+        >
           {fullName}
         </Text>
       </RouterLink>
