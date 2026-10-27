@@ -67,6 +67,7 @@ The Food and Housing vetting forms (`FoodForm.txt`, `HousinForm.txt`) are identi
 | 5 Concerns | `red_flag_concerns` |
 | 6 Referral | `can_refer_directly`, `has_referral_contact`, `referral_contact`, `provides_followup`, `referral_realistic` (yes/no/maybe), `referral_notes` |
 | 7 Assessment | `recommendation` (enum), `strengths`, `followup_needed`, `overall_rating` (1-5) |
+| Review | `needs_changes_notes` (optional), `submission_rejection_notes` (optional) |
 | Housekeeping | `created_at`, `updated_at` |
 
 - The food form's Section 2 "Notes" becomes a nullable `program_notes`.
@@ -117,15 +118,39 @@ These cover the accessibility, cultural competency and food observation tables.
 - `GET /tags` returns all groups with their tags.
 - Internal fields are returned as-is for now. `public_fields` masking will be handled with access control.
 
-## 7. Order of work
+## 7. Postman tests
+
+The collections live in `postman-tests/`. Two are in scope and two are not.
+
+**In scope:**
+
+- `resources-success.postman_collection.json`:
+  - **Create:** the body sends `"category": ["food_access"]`. Change it to a single `category` value and add the new required fields (`program_name`, the outreach, intake, referral and assessment fields, `tag_ids` and `checklist`).
+  - **Update:** the body sends `reviewer_notes`, which is removed. Use the new notes fields instead (for example `needs_changes_notes`).
+  - **Find:** update the query to filter on the single `category` value, and on `tag_ids` if it is supported.
+  - **FindByIds:** check that its assertions still match the new response shape (grouped tags, checklist answers).
+- `tags-success.postman_collection.json`:
+  - **GetTagsByCategory** calls `/tags/category/food_service_type`, which relies on the old tag-level category. Replace it with a request for tag groups (`GET /tags`, or by group key), and update its assertions.
+  - **FindByIds** and **GetTagById:** update the assertions for the new tag shape (`group_id` instead of `category`, no hand-numbered IDs).
+- Add failure-path cases, using the project's `*-success` / `*-failure` collection naming if it has one. For example: an unknown tag ID, two tags in a single-select group, and an invalid checklist answer.
+
+**Out of scope (no changes expected):**
+
+- `users-success.postman_collection.json`
+- `app-success.postman_collection.json`
+
+These don't touch resources or tags. They are only re-run to confirm nothing regressed.
+
+## 8. Order of work
 
 1. Replace the existing tag and resource migrations with a new one, since there is no data. If those migrations have already run on a shared environment, write a forward migration instead.
 2. Rewrite the entities and seed data.
 3. Write the DTOs and validation.
 4. Update the services and controllers, plus anything in the `Score` module that references `Resource`.
 5. Rewrite the specs: `resources.service.spec.ts`, `tags.service.spec.ts` and `resources.controller.spec.ts`.
-6. Find and update frontend and shared-type usages of `Category`.
-7. Run the build and tests.
+6. Update the Postman collections listed in section 7.
+7. Find and update frontend and shared-type usages of `Category`.
+8. Run the build, the unit tests and the Postman collections.
 
 ## Assumptions to confirm
 
