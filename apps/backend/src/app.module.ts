@@ -11,6 +11,9 @@ import { ResourcesModule } from './resources/resources.module';
 import { AuthModule } from './auth/auth.module';
 import { APP_FILTER } from '@nestjs/core';
 import { LoggingExceptionFilter } from './logging/logging-exception.filter';
+import { stdSerializers } from 'pino';
+import { redactUrl, redactValue } from './logging/redaction';
+
 
 @Module({
   imports: [
@@ -33,6 +36,19 @@ import { LoggingExceptionFilter } from './logging/logging-exception.filter';
           process.env.NODE_ENV !== 'production'
             ? { target: 'pino-pretty' }
             : undefined,
+        serializers: {
+        req: (req: any) => {
+            const serialized = stdSerializers.req(req) as Record<string, any>;
+            serialized.url = redactUrl(serialized.url);
+            if (serialized.query) serialized.query = redactValue(serialized.query);
+            return serialized;
+          },
+        },
+        customProps: (req: any) => {
+          const body = req.body;
+          const hasBody = body && typeof body === 'object' && Object.keys(body).length > 0;
+          return hasBody ? { body: redactValue(body) } : {};
+        },
       },
     }),
     TypeOrmModule.forRoot({
