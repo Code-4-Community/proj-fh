@@ -135,6 +135,24 @@ docker run --rm -it \
 
 > `.env` should use `POSTGRES_HOST=host.docker.internal` when running the backend inside Docker on Windows/macOS. That lets the container reach the Postgres instance published on port 5432.
 
+#### AWS credentials (Cognito admin features)
+
+Features that create or delete staff accounts call the Cognito admin APIs, so the backend needs your personal AWS access key. `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` are required backend env vars like the others.
+
+1. Your IAM user already has permission to call the Cognito admin APIs on the project's user pool, so you do not need any extra access.
+2. In the AWS console, go to IAM > Users > your user > Security credentials > Create access key (choose the CLI use case). Use your own key and never share it.
+3. Add the key to your local `.env` (it is gitignored; never commit keys):
+
+   ```
+   AWS_ACCESS_KEY_ID=<your access key id>
+   AWS_SECRET_ACCESS_KEY=<your secret access key>
+   ```
+
+   `--env-file .env` passes them into the container, and the AWS SDK picks them up automatically. The backend reads the region from `REGION` and the pool from `AUTH_COGNITO_USER_POOL_ID`.
+4. Restart the backend container.
+
+To check that your key works, run `aws cognito-idp admin-get-user --user-pool-id <pool id> --username <email>` with your credentials. Because the pool is shared, test with throwaway addresses.
+
 ### 4) Build and run the frontend container
 
 Vite bakes the `VITE_` variables into the frontend at build time, and `.env` is not copied into the image, so pass them as build args. The build fails if any are missing.
