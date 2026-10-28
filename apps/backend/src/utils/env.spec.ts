@@ -15,6 +15,8 @@ const validEnv: Record<string, string> = {
   REGION: 'us-east-2',
   AUTH_COGNITO_APP_CLIENT_ID: 'test-client-id',
   AUTH_COGNITO_USER_POOL_ID: 'us-east-2_test',
+  AWS_ACCESS_KEY_ID: 'test-access-key-id',
+  AWS_SECRET_ACCESS_KEY: 'test-secret-access-key',
 };
 
 /** Loads a fresh copy of ./env against the given mock process.env. */
