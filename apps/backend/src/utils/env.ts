@@ -67,6 +67,8 @@ const backendEnvSchema = zod.object({
   REGION: requiredString,
   AUTH_COGNITO_APP_CLIENT_ID: requiredString,
   AUTH_COGNITO_USER_POOL_ID: requiredString,
+  AWS_ACCESS_KEY_ID: requiredString,
+  AWS_SECRET_ACCESS_KEY: requiredString,
 });
 
 /**
