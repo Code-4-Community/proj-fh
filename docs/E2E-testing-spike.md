@@ -228,7 +228,7 @@ If you add something like this, put it in `configureGlobalApp()` in `apps/backen
 ## What happens during a run
 
 1. `global-setup.ts` starts a `postgres:18-alpine` container on a random free port.
-2. 2. It points every `POSTGRES_*` variable at the container. `data-source.ts` reads them through `envUtility`.
+2. It points every `POSTGRES_*` variable at the container. `data-source.ts` reads them through `envUtility`.
 3. It runs the app's migrations with the same command `yarn migration:run` uses.
 4. It confirms the migrations were recorded in the container, then creates a sentinel table (`__e2e_sentinel`) that exists only there.
 5. Each test file calls `startE2eApp()`, which boots `AppModule` on a random local port with the same `/api` prefix and `ValidationPipe` as `main.ts`, since both come from `configureGlobalApp()`. It refuses to continue if the app can't see the sentinel table.
