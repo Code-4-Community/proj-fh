@@ -52,14 +52,9 @@ function pointEnvAtContainer(container: StartedPostgreSqlContainer): void {
   const password = container.getPassword();
   const database = container.getDatabase();
 
-  // data-source.ts reads NX_DB_* first and falls back to POSTGRES_*, so set
-  // both. dotenv never overwrites a variable that is already set, so values
-  // in your .env can't point the tests back at the dev database.
-  process.env.NX_DB_HOST = host;
-  process.env.NX_DB_PORT = port;
-  process.env.NX_DB_USERNAME = user;
-  process.env.NX_DB_PASSWORD = password;
-  process.env.NX_DB_DATABASE = database;
+  // data-source.ts reads these through envUtility. dotenv never overwrites a
+  // variable that is already set, so values in your .env can't point the tests
+  // back at the dev database.
   process.env.POSTGRES_HOST = host;
   process.env.POSTGRES_PORT = port;
   process.env.POSTGRES_USER = user;
@@ -173,7 +168,7 @@ function migrationsMissing(detail: string): Error {
   return new Error(
     [
       `E2E setup failed: migrations reported success but are not recorded in the ephemeral database (${detail}).`,
-      'They probably ran against a different database. global-setup sets both NX_DB_* and POSTGRES_*,',
+      'They probably ran against a different database. global-setup sets every POSTGRES_* variable,',
       'so look for code that overwrites them (for example dotenv with `override: true`).',
     ].join('\n'),
   );

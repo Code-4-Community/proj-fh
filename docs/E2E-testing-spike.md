@@ -34,7 +34,7 @@
 ---
 
 
-# Using E2E tests
+## Using E2E tests
 
 ### What you can test
 
@@ -211,6 +211,7 @@ These stop the run before any test starts.
 | `DataTypeNotSupportedError: Data type "Object"` | An entity column relies on TypeScript type info that Jest's fast compile mode drops. Give that `@Column` an explicit `type`. |
 | Test times out around 27 s on startup | TypeORM is retrying a bad connection (9 attempts, 3 s apart). Check the container started. |
 | Hangs or Ryuk errors on startup | Set `TESTCONTAINERS_RYUK_DISABLED=true`. Teardown still removes the container on normal runs. |
+| An error listing missing or invalid environment variables | The backend's env validation (`utils/env.ts`) requires a variable the tests don't set. Add a placeholder for it in `pointEnvAtContainer` in `global-setup.ts`. |
 
 ---
 
@@ -227,7 +228,7 @@ If you add something like this, put it in `configureGlobalApp()` in `apps/backen
 ## What happens during a run
 
 1. `global-setup.ts` starts a `postgres:18-alpine` container on a random free port.
-2. It points both sets of DB variables (`NX_DB_*` and `POSTGRES_*`) at the container. `data-source.ts` reads `NX_DB_*` first, so both have to be set.
+2. 2. It points every `POSTGRES_*` variable at the container. `data-source.ts` reads them through `envUtility`.
 3. It runs the app's migrations with the same command `yarn migration:run` uses.
 4. It confirms the migrations were recorded in the container, then creates a sentinel table (`__e2e_sentinel`) that exists only there.
 5. Each test file calls `startE2eApp()`, which boots `AppModule` on a random local port with the same `/api` prefix and `ValidationPipe` as `main.ts`, since both come from `configureGlobalApp()`. It refuses to continue if the app can't see the sentinel table.
@@ -244,7 +245,7 @@ If setup fails partway, its own `catch` stops the container before rethrowing. I
 
 There are three independent checks:
 
-1. **Env overrides.** Global setup sets all ten DB variables before the app is imported, and dotenv never overwrites a variable that is already set, so the `.env` can't win.
+1. **Env overrides.** Global setup sets all five `POSTGRES_*` variables before the app is imported, and dotenv never overwrites a variable that is already set, so the `.env` can't win.
 2. **Ready flag.** `startE2eApp()` refuses to boot unless global setup finished, so running a spec with the wrong Jest config fails before any connection is made.
 3. **Sentinel check.** Before the first request and before every reset, the harness checks that the connected database is named `proj_fh_e2e` and contains the sentinel table. The dev database has neither.
 
@@ -282,7 +283,6 @@ Measured with the `postgres:18-alpine` image already pulled, so these don't incl
 - **`TagsService.create` assigns `tag_id = count() + 1`.** That collides after any delete: with tags 1–49, deleting tag 10 makes the next id 49, which already exists. The entity's comment also says the database generates the id, which it doesn't.
 - **`User` entity type errors.** Its properties lack the `!` that `Tag` uses (`tag_id!: number`), which causes 5 "has no initializer" errors in the editor. They don't affect builds or tests.
 - **The Docker backend ignores Ctrl+C.** Node runs as process 1 inside the container, so Ctrl+C doesn't stop it; `docker stop proj-fh-backend` does. Adding `app.enableShutdownHooks()` or running the container with `--init` would fix it.
-- **Env setup differs from the README.** The README says env vars are validated at startup through `backendEnvSchema`, but `utils/env.ts` has no schema and nothing imports it. `ConfigModule`'s `envFilePath: '../../.env'` resolves outside the repo when run from the root, so only the `dotenv.config()` in `data-source.ts` actually loads `.env`. `dotenv` is imported directly but is only an indirect dependency.
 
 ---
 

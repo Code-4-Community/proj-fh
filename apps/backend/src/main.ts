@@ -11,7 +11,6 @@ import { AppModule } from './app.module';
 import { configureGlobalApp, GLOBAL_PREFIX } from './configure-app';
 import { envUtility } from './utils/env';
 
-
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   configureGlobalApp(app);
