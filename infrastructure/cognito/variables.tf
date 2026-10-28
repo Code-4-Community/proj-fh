@@ -16,6 +16,18 @@ variable "frontend_client_name" {
   default     = "proj-fh-frontend-no-secret"
 }
 
+variable "backend_developers_group_name" {
+  description = "IAM group whose members may run the backend against the Cognito user pool."
+  type        = string
+  default     = "proj-fh-backend-developers"
+}
+
+variable "backend_developer_iam_usernames" {
+  description = "Existing IAM usernames to add to the backend developers group."
+  type        = list(string)
+  default     = []
+}
+
 variable "frontend_refresh_token_validity_days" {
   description = "Frontend refresh-token lifetime in days."
   type        = number
