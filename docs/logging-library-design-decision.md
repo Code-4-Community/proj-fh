@@ -1,6 +1,6 @@
 # Logging Library: Evaluation and Decision
 
-**Ticket:** #[number] · **Branch:** `structured-logging` · **Status:** Draft for review
+**Ticket:** #[47] · **Branch:** `structured-logging` · **Status:** Draft for review
 
 ## Summary
 
@@ -85,3 +85,5 @@ The consequence of Option A is that the log stream has two formats until a later
 - Pino's `redact` supports wildcards only for whole path segments, so patterns like "any key containing `token`" are not possible.
 - Some exception messages include an email address (e.g. `No user record exists for ${email}`). Email is not a credential, so it is not redacted, but the team should confirm that is acceptable.
 - Open question for the TL: is Option A the intended coexistence approach, or should existing logs also move to JSON?
+- Database errors that ResourcesService wraps in InternalServerErrorException are labeled service; the original error is logged by the existing logger.
+- Database errors that `ResourcesService` wraps in `InternalServerErrorException` are labeled `service`; the original error is logged by the existing logger.
