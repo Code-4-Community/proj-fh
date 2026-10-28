@@ -21,7 +21,7 @@ class TestController {
     return true;
   }
 
-  @Roles(Status.ADMIN, Status.STANDARD)
+  @Roles(Status.ADMIN, Status.COMMUNITY_STAFF)
   anyRole() {
     return true;
   }
@@ -87,7 +87,7 @@ describe('RolesGuard', () => {
   });
 
   it('allows a user whose role is one of several allowed roles', async () => {
-    usersService.findByEmail.mockResolvedValue(makeUser(Status.STANDARD));
+    usersService.findByEmail.mockResolvedValue(makeUser(Status.COMMUNITY_STAFF));
 
     await expect(
       guard.canActivate(
@@ -97,7 +97,7 @@ describe('RolesGuard', () => {
   });
 
   it('applies @Roles set on the controller class', async () => {
-    usersService.findByEmail.mockResolvedValue(makeUser(Status.STANDARD));
+    usersService.findByEmail.mockResolvedValue(makeUser(Status.COMMUNITY_STAFF));
 
     await expect(
       guard.canActivate(
@@ -107,7 +107,7 @@ describe('RolesGuard', () => {
   });
 
   it('rejects a user who lacks the required role with a 403', async () => {
-    usersService.findByEmail.mockResolvedValue(makeUser(Status.STANDARD));
+    usersService.findByEmail.mockResolvedValue(makeUser(Status.COMMUNITY_STAFF));
 
     await expect(
       guard.canActivate(
@@ -117,7 +117,7 @@ describe('RolesGuard', () => {
       ),
     ).rejects.toThrow(
       new ForbiddenException(
-        `This route requires one of the following roles: ${Status.ADMIN}. Your role is ${Status.STANDARD}.`,
+        `This route requires one of the following roles: ${Status.ADMIN}. Your role is ${Status.COMMUNITY_STAFF}.`,
       ),
     );
   });

@@ -37,6 +37,8 @@ Determine your postgres password. It is best to use numbers, letters, and the fo
 
 Since it is just for local development, you can fill in whatever password you want. Please fill it in the env.
 
+**Every variable in `.env` must be filled in.** Env vars are validated at startup, so the backend, `yarn migration:run`, and the frontend Docker build fail with an error naming any variable that is missing or blank.
+
 This project uses PostgreSQL. You'll need a running Postgres instance before starting the backend.
 
 On Docker Desktop for Windows/macOS, use `host.docker.internal` in `.env` so the backend container can reach the Postgres container on the host machine.
@@ -135,8 +137,29 @@ docker run --rm -it \
 
 ### 4) Build and run the frontend container
 
+Vite bakes the `VITE_` variables into the frontend at build time, and `.env` is not copied into the image, so pass them as build args. The build fails if any are missing.
+
+**macOS** (reads the values from `.env`):
+
 ```bash
-docker build -f apps/frontend/Dockerfile -t proj-fh-frontend .
+(set -a; . ./.env; set +a; docker build -f apps/frontend/Dockerfile -t proj-fh-frontend \
+  --build-arg VITE_API_BASE_URL \
+  --build-arg VITE_COGNITO_USER_POOL_ID \
+  --build-arg VITE_COGNITO_APP_CLIENT_ID .)
+```
+
+**Windows** - copy the values from your `.env`:
+
+```powershell
+docker build -f apps/frontend/Dockerfile -t proj-fh-frontend `
+  --build-arg VITE_API_BASE_URL=http://localhost:3000 `
+  --build-arg VITE_COGNITO_USER_POOL_ID=<value from .env> `
+  --build-arg VITE_COGNITO_APP_CLIENT_ID=<value from .env> .
+```
+
+Then run it:
+
+```bash
 docker run --rm -it \
   -p 4200:80 \
   --name proj-fh-frontend \
@@ -145,6 +168,67 @@ docker run --rm -it \
 
 Open your browser and navigate to http://localhost:4200/.
 
+### Faster frontend development (frontend on your machine, backend/database in containers)
+
+Rebuilding the frontend image on every change is slow. While working on the frontend, run only the backend and database in Docker (steps 1-3 above) and serve the frontend locally with Vite's dev server, which hot-reloads on save.
+
+1. Complete steps 1-3 above so the database and backend container are running (backend on http://localhost:3000).
+2. Make sure `.env` in the repo root contains the `VITE_` variables, e.g. `VITE_API_BASE_URL=http://localhost:3000`. The dev server reads them from `.env` at startup, so no build args are needed. Restart the dev server after changing them.
+3. Do **not** run the frontend container (step 4); it would conflict on port 4200.
+4. From the repo root, start the dev server:
+
+```bash
+npx nx serve frontend
+```
+
+Open http://localhost:4200/. Frontend edits appear in the browser immediately without a rebuild. You only need to rebuild the backend image when you change backend code.
+
 ## Running tasks
 
 Use the Docker containers above for normal development. If you need to run a task locally for debugging, use the repo's existing `nx` commands only temporarily.
+
+## Environment variables
+
+All env vars are read through one utility per app, never through `process.env` or `import.meta.env` directly:
+
+| App | Utility | Which vars | Example |
+| --- | --- | --- | --- |
+| Backend | `apps/backend/src/utils/env.ts` | Everything **without** the `VITE_` prefix | `envUtility.POSTGRES_PORT` |
+| Frontend | `apps/frontend/src/utils/env.ts` | Everything **with** the `VITE_` prefix | `envUtility.VITE_API_BASE_URL` |
+
+Each utility validates its variables as soon as it is imported. If any are missing, blank, or the wrong format, the app stops with one error that lists every bad variable by name (never by value).
+
+> **Never put secrets in a `VITE_` variable.** Vite copies every `VITE_` value into the JavaScript sent to the browser, where anyone can read it.
+
+### Adding a new variable
+
+1. **Front or Backend?** If the browser needs it (and it is safe to be public), prefix it with `VITE_` and use the frontend utility. Otherwise, no prefix, backend utility.
+2. **Add it to `example.env`** with a short comment and also your own local .env
+3. **Add it to the schema** (`backendEnvSchema` or `frontendEnvSchema`) with one of the validators defined right above it. The validator decides both what counts as valid and the TypeScript type you get back:
+
+   | Validator | App | Accepts | Type |
+   | --- | --- | --- | --- |
+   | `requiredString` | both | any non-empty text (trimmed) | `string` |
+   | `port` | backend | whole number 1-65535 | `number` |
+   | `booleanFlag` | backend | `true/false`, `1/0`, `yes/no`, `on/off` | `boolean` |
+   | `url` | frontend | `http://` or `https://` URL | `string` |
+
+  The following is an example of adding the env var `REDIS_PORT`:
+
+   ```ts
+   const backendEnvSchema = zod.object({
+     // ...existing vars
+     REDIS_PORT: port,
+   });
+   ```
+
+   If none fits, add a new validator next to the others, built on `requiredString` so it stays required. For example:
+   
+  ```ts
+  export const logLevel = requiredString.pipe(zod.enum(['debug', 'info', 'warn', 'error']));
+  ```
+
+4. **Use it** as `envUtility.REDIS_PORT`.
+5. **Update the tests.** Add it to `validEnv` in that either the back or frontend's `utils/env.spec.ts`. In any other spec that mocks the utility (`jest.mock('.../utils/env', ...)`) and uses the new variable, add it to the mock object.
+6. **Frontend only: add it to the Docker build.** In `apps/frontend/Dockerfile`, add an `ARG`, an `ENV` line, and the name to the missing-args check. Then add a `--build-arg` for it to both frontend build commands above.
+7. **Tell the team** in your PR to add the new variable to their own `.env`. Until they do, their app will fail at startup naming it.
