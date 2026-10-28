@@ -13,6 +13,16 @@ output "cognito_region" {
   value       = var.aws_region
 }
 
+output "backend_cognito_admin_policy_arn" {
+  description = "IAM policy allowing the backend to manage users in the pool."
+  value       = aws_iam_policy.backend_cognito_admin.arn
+}
+
+output "backend_developers_group_name" {
+  description = "IAM group that grants the backend Cognito admin permissions."
+  value       = aws_iam_group.backend_developers.name
+}
+
 output "cognito_issuer" {
   description = "JWT issuer URL for this Cognito user pool."
   value       = "https://cognito-idp.${var.aws_region}.amazonaws.com/${aws_cognito_user_pool.app.id}"
