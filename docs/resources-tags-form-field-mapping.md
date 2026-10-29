@@ -149,18 +149,18 @@ The eligibility question appears in Section 2 on the food form and after Accessi
 | What are red flags of this organization? | yes | multi-select | `tags` table, group `red_flag` |
 | Describe concerns | yes | short text | `resources.red_flag_concerns` |
 
-**Observation rows** (each row is a Yes tag and an "(unsure)" tag in `cultural_competency`, so 12 tags):
+**Observation rows** (each row is a Yes tag, an "(unsure)" tag and an "(inapplicable)" tag in `cultural_competency`, so 18 tags):
 
-| Row | Yes tag | Unsure tag |
-|---|---|---|
-| LGBTQ+ affirming environment | `lgbtq-affirming-environment` | `lgbtq-affirming-environment-unsure` |
-| Trauma-informed practices evident | `trauma-informed-practices-evident` | `trauma-informed-practices-evident-unsure` |
-| Staff culturally responsive | `staff-culturally-responsive` | `staff-culturally-responsive-unsure` |
-| Multilingual materials available | `multilingual-materials-available` | `multilingual-materials-available-unsure` |
-| Inclusive/nonjudgmental environments | `inclusive-nonjudgmental-environments` | `inclusive-nonjudgmental-environments-unsure` |
-| Gender-inclusive forms/policies | `gender-inclusive-forms-policies` | `gender-inclusive-forms-policies-unsure` |
+| Row | Yes tag | Unsure tag | Inapplicable tag |
+|---|---|---|---|
+| LGBTQ+ affirming environment | `lgbtq-affirming-environment` | `lgbtq-affirming-environment-unsure` | `lgbtq-affirming-environment-inapplicable` |
+| Trauma-informed practices evident | `trauma-informed-practices-evident` | `trauma-informed-practices-evident-unsure` | `trauma-informed-practices-evident-inapplicable` |
+| Staff culturally responsive | `staff-culturally-responsive` | `staff-culturally-responsive-unsure` | `staff-culturally-responsive-inapplicable` |
+| Multilingual materials available | `multilingual-materials-available` | `multilingual-materials-available-unsure` | `multilingual-materials-available-inapplicable` |
+| Inclusive/nonjudgmental environments | `inclusive-nonjudgmental-environments` | `inclusive-nonjudgmental-environments-unsure` | `inclusive-nonjudgmental-environments-inapplicable` |
+| Gender-inclusive forms/policies | `gender-inclusive-forms-policies` | `gender-inclusive-forms-policies-unsure` | `gender-inclusive-forms-policies-inapplicable` |
 
-**Inapplicable is not stored yet.** It currently behaves like "No" (neither tag). This is the open question about whether it needs its own tag.
+**Inapplicable has its own tag** (slug suffix `-inapplicable`, label suffix "(inapplicable)"). At most one of the Yes, Unsure and Inapplicable tags can be on a resource for a given row. "No" is still the absence of all three.
 
 **Red flag options** (`red_flag`): Long waitlist, Difficult intake process (listed twice on the forms, stored once), Limited resources, Inconsistent hours, Poor communication, Restrictive eligibility requirements, Unsafe or unclean environment, Lack of language access, Outdated information online, Transportation barriers, Staff appeared dismissive/unhelpful, Other + text.
 

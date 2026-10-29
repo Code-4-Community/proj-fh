@@ -126,13 +126,14 @@ The form's overall rating is scoring information, so it lives on the `scores` ta
 These cover the accessibility, cultural competency and food observation tables. They are ordinary tags, with no extra tables.
 
 - **Groups (all multi-select):** `accessibility`, `cultural_competency`, `program_observation`.
-- **Two tags per table row:**
+- **Two tags per table row, three for the cultural table:**
   - a "Yes" tag, labelled with the row text (for example "ADA accessible", slug `ada-accessible`);
-  - an "Unsure" tag (for example "ADA accessible (unsure)", slug `ada-accessible-unsure`).
-- **"No" is the absence of both tags.** Nothing is stored for it.
-- **Seeded rows:** 6 accessibility, 6 cultural, 5 food observation, so 34 tags.
-- **Validation:** a resource can't have both the Yes and Unsure tag for the same row. The service pairs them by the `-unsure` slug suffix.
-- **Limitation:** "No" can't be told apart from "not answered", and the cultural table's "Inapplicable" answer is likewise not stored. Both are treated like "No".
+  - an "Unsure" tag (for example "ADA accessible (unsure)", slug `ada-accessible-unsure`);
+  - cultural competency rows only: an "Inapplicable" tag (slug suffix `-inapplicable`).
+- **"No" is the absence of all of them.** Nothing is stored for it.
+- **Seeded rows:** 6 accessibility, 6 cultural, 5 food observation. That is 12 + 18 + 10 = 40 tags.
+- **Validation:** a resource can have at most one tag per row (Yes, Unsure or Inapplicable). The service pairs them by the `-unsure` and `-inapplicable` slug suffixes.
+- **Limitation:** "No" can't be told apart from "not answered". Both are treated as no tag.
 
 ## 5. Validation
 
