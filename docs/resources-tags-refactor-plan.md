@@ -62,7 +62,7 @@ The Food and Housing vetting forms (`FoodForm.txt`, `HousinForm.txt`) are identi
 
 | Form section | Fields |
 |---|---|
-| 1 Basic info | `program_name`, `completed_by`, `outreach_date`, `staff_contact_name`, `staff_contact_role`, `public_fields` (`public_field[]`, enum of website, phone, email, address) |
+| 1 Basic info | `program_name`, `outreach_date`, `staff_contact_name`, `staff_contact_role`, `public_fields` (`public_field[]`, enum of website, phone, email, address) |
 | 3 Outreach | `responsiveness` (1-5), `response_time` (enum), `interaction_notes` |
 | 4 Intake | `accessibility_notes` (estimated wait time is now a single-select tag group, see section 3) |
 | 5 Concerns | `red_flag_concerns` |

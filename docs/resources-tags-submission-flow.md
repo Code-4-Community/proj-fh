@@ -91,7 +91,6 @@ Two consequences of a hardcoded form:
   "zip_code": "02115",
   "county": "suffolk",
   "public_fields": ["website", "phone"],
-  "completed_by": "Alex Intern",
   "outreach_date": "2026-10-20",
   "last_verified_date": "2026-10-22",
   "staff_contact_name": "Sam Lee",
@@ -120,7 +119,7 @@ Two consequences of a hardcoded form:
 }
 ```
 
-`review_status`, `score_id`, `created_at` and `updated_at` are not sent. The backend sets them. `needs_changes_notes` and `submission_rejection_notes` are optional and left out.
+`review_status`, `score_id`, `submitted_by_user_id` (taken from the logged-in user), `created_at` and `updated_at` are not sent. The backend sets them. `needs_changes_notes` and `submission_rejection_notes` are optional and left out.
 
 ## Step 2: what the backend does
 
