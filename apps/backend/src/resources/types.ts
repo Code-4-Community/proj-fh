@@ -13,6 +13,7 @@ export enum Category {
  * The Resource contact fields whose visibility on the public website can be chosen.
  * A field that is not listed in Resource.public_fields is non-public.
  */
+// TODO REVIEW THIS AFTER CLIENT MEETING 10.30
 export enum PublicField {
   WEBSITE = 'website',
   PHONE = 'phone',
