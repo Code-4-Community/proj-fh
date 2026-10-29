@@ -73,7 +73,7 @@ Seeded tags only change through a migration, so the map is cached and reused ins
 
 Two consequences of a hardcoded form:
 - **Drift.** If a slug in the frontend is missing from the map (seed changed, tag deactivated), the frontend should fail loudly instead of silently dropping the answer, and refetch once before failing. The backend's existence and `is_active` checks are the safety net.
-- **Adding or changing an option** needs both a seed migration and a frontend change. The "adding a new category" guide in the plan should say so.
+- **Adding or changing an option** needs both a seed migration and a frontend change (see [adding-a-resource-category.md](./adding-a-resource-category.md)).
 
 ## Step 1: the request
 

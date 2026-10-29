@@ -5,7 +5,7 @@ Plan only. No code has been changed.
 ## Decisions
 
 - Each resource has **one category**, stored as a single enum value (not an array). The name `category` stays.
-- Categories should be **able to be extended**, and the design shouldn't lock them in. But building generic extensibility machinery is **not part of this refactor** and doesn't block it. Instead, the refactor delivers documentation on how to add a new category (section 8). Today that means one new enum value, a migration, and seed rows.
+- Categories should be **able to be extended**, and the design shouldn't lock them in. Extensibility machinery and the how-to guide are **not part of this refactor** and don't block it. The steps live separately in [adding-a-resource-category.md](./adding-a-resource-category.md).
 - Tag scoping is dropped. Tags are plain groups with no per-category scoping.
 - **Kept:** `eligibility`, `score_id`, `last_verified_date`, and the existing contact and location fields.
 - **Renamed:** `vetting_status` is now `review_status`, an enum (`pending_review`, `approved_published`, `rejected`, `archived`, plus both `sent_back_for_review` and `needs_changes` for now).
@@ -174,19 +174,9 @@ The collections live in `postman-tests/`. Two are in scope and two are not.
 
 These don't touch resources or tags. They are only re-run to confirm nothing regressed.
 
-## 8. Documentation: adding a new category
+## 8. Adding new categories
 
-Deliverable: a short guide at `docs/adding-a-resource-category.md`, written once the refactor lands so it matches the real code. It doesn't block the refactor. It covers the steps below.
-
-1. **Add the enum value** to `Category` in `resources/types.ts`.
-2. **Write a migration** that adds the value to the Postgres `category` enum. `ALTER TYPE ... ADD VALUE` needs care inside a transaction, so the guide explains how to do it with TypeORM.
-3. **Seed the category's tags** with that category, or `common` when shared. Reuse the shared groups; add new tag groups and tags only for what is specific to the category. The migration must also extend the `tag_category` enum.
-4. **Reuse the shared `Resource` columns.** The vetting-form fields are shared, so most new categories need no new columns. The guide says when a category needs one, and that a new nullable column on `resources` is the default approach for one or two fields.
-5. **Update DTO validation** if the new category has any category-specific rules.
-6. **Update the frontend form** so it shows the new category's tag groups.
-7. **Add tests** for the category in the service spec and the Postman collections.
-
-Open item: if several future categories need their own structured fields, revisit per-category detail tables then. This refactor doesn't decide that.
+Not part of this refactor. The steps live in their own document, [adding-a-resource-category.md](./adding-a-resource-category.md).
 
 ## 9. Order of work
 
@@ -198,7 +188,6 @@ Open item: if several future categories need their own structured fields, revisi
 6. Update the Postman collections listed in section 7.
 7. Find and update frontend and shared-type usages of `Category`.
 8. Run the build, the unit tests and the Postman collections.
-9. Write the "adding a new category" guide from section 8.
 
 ## Assumptions to confirm
 
