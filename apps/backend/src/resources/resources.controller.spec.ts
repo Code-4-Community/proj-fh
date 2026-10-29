@@ -1,268 +1,126 @@
-import {
-  BadRequestException,
-  HttpStatus,
-  InternalServerErrorException,
-  NotFoundException,
-} from '@nestjs/common';
-import { HTTP_CODE_METADATA } from '@nestjs/common/constants';
+﻿import { BadRequestException, ForbiddenException, HttpStatus, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { GUARDS_METADATA, HTTP_CODE_METADATA } from '@nestjs/common/constants';
 import { ResourcesController } from './resources.controller';
 import { ResourcesService } from './resources.service';
 import { Resource } from './resources.entity';
-import { Repository } from 'typeorm';
-import { Category, County } from './types';
-import { FindResourceQueryDTO } from './dto/find-resource-by-query.dto';
+import { UsersService } from '../users/users.service';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { Category, County, Recommendation, ResponseTime, YesNoMaybe } from './types';
 import { CreateResourceDto } from './dto/create-resource.dto';
 import { UpdateResourceDto } from './dto/update-resource.dto';
+import { FindResourceQueryDto } from './dto/find-resource-by-query.dto';
 
-/** Builds a resource with the given ID for use as a test fixture. */
-const makeResource = (id: number): Resource =>
-  ({
-    resource_id: id,
-    score_id: 1,
-    name: `Resource ${id}`,
-    category: [Category.FOOD_ACCESS],
-    county: County.SUFFOLK,
-    zip_code: '02115',
-    last_verified_date: new Date('2026-01-15'),
-    vetting_status: 'verified',
-    tags: [],
-  }) as Resource;
+const dto: CreateResourceDto = {
+  organization_name: 'Pine Street Inn', program_name: 'Housing Support', category: Category.HOUSING,
+  county: County.SUFFOLK, zip_code: '02118', last_verified_date: '2026-10-05', outreach_date: '2026-10-01',
+  staff_contact_name: 'Alex Kim', staff_contact_role: 'Coordinator', responsiveness: 4,
+  response_time: ResponseTime.SAME_DAY, interaction_notes: 'Prompt response.', accessibility_notes: 'Accessible.',
+  red_flag_concerns: 'None.', can_refer_directly: true, has_referral_contact: true, provides_followup: false,
+  referral_realistic: YesNoMaybe.YES, referral_notes: 'Call first.', recommendation: Recommendation.STRONGLY_RECOMMEND,
+  strengths: 'Helpful staff.', followup_needed: 'Confirm hours.', overall_rating: 5, tags: [],
+};
+
+const makeResource = (id: number): Resource => ({
+  resource_id: id, score_id: 1, organization_name: `Organization ${id}`, program_name: `Program ${id}`,
+  category: Category.HOUSING, county: County.SUFFOLK, zip_code: '02118', tags: [],
+} as Resource);
 
 describe('ResourcesController', () => {
   let controller: ResourcesController;
-  let service: ResourcesService;
+  let service: { create: jest.Mock; update: jest.Mock; findByIds: jest.Mock; find: jest.Mock };
+  let usersService: { findByEmail: jest.Mock };
+  const request = { user: { email: 'reviewer@example.org' } };
 
   beforeEach(() => {
-    service = new ResourcesService({} as Repository<Resource>);
-    controller = new ResourcesController(service);
+    service = { create: jest.fn(), update: jest.fn(), findByIds: jest.fn(), find: jest.fn() };
+    usersService = { findByEmail: jest.fn() };
+    controller = new ResourcesController(service as unknown as ResourcesService, usersService as unknown as UsersService);
   });
-
-  afterEach(() => {
-    jest.restoreAllMocks();
-  });
-
-  const dto: CreateResourceDto = {
-    name: 'Pine Street Inn',
-    category: [Category.HOUSING],
-    county: County.SUFFOLK,
-    zip_code: '02118',
-  };
 
   describe('create', () => {
-    it('responds with a 201 status code', () => {
-      expect(
-        Reflect.getMetadata(
-          HTTP_CODE_METADATA,
-          ResourcesController.prototype.create,
-        ),
-      ).toBe(HttpStatus.CREATED);
+    it('requires JwtAuthGuard and responds with 201', () => {
+      expect(Reflect.getMetadata(GUARDS_METADATA, ResourcesController.prototype.create)).toContain(JwtAuthGuard);
+      expect(Reflect.getMetadata(HTTP_CODE_METADATA, ResourcesController.prototype.create)).toBe(HttpStatus.CREATED);
     });
 
-    it('returns the resource created by the service', async () => {
+    it('looks up the authenticated user and sends their ID to the service', async () => {
       const saved = { resource_id: 1, ...dto } as Resource;
-      const create = jest.spyOn(service, 'create').mockResolvedValue(saved);
-
-      await expect(controller.create(dto)).resolves.toEqual(saved);
-      expect(create).toHaveBeenCalledWith(dto);
+      usersService.findByEmail.mockResolvedValue({ id: 21, email: request.user.email });
+      service.create.mockResolvedValue(saved);
+      await expect(controller.create(dto, request)).resolves.toEqual(saved);
+      expect(usersService.findByEmail).toHaveBeenCalledWith('reviewer@example.org');
+      expect(service.create).toHaveBeenCalledWith(dto, 21);
     });
 
-    it('forwards validation errors from the service', async () => {
-      const error = new BadRequestException(
-        'Zip code must be a 5-digit or ZIP+4 code.',
+    it('returns 403 if no user record matches the token email', async () => {
+      usersService.findByEmail.mockResolvedValue(null);
+      await expect(controller.create(dto, request)).rejects.toThrow(
+        new ForbiddenException('No user record exists for reviewer@example.org.'),
       );
-      jest.spyOn(service, 'create').mockRejectedValue(error);
-
-      await expect(controller.create(dto)).rejects.toThrow(error);
+      expect(service.create).not.toHaveBeenCalled();
     });
 
-    it('forwards database errors from the service', async () => {
-      const error = new InternalServerErrorException(
-        'Failed to save the resource to the database. Please try again later.',
-      );
-      jest.spyOn(service, 'create').mockRejectedValue(error);
+    it('returns 403 when the token has no email', async () => {
+      usersService.findByEmail.mockResolvedValue(null);
+      await expect(controller.create(dto, { user: {} })).rejects.toThrow(ForbiddenException);
+      expect(usersService.findByEmail).not.toHaveBeenCalled();
+    });
 
-      await expect(controller.create(dto)).rejects.toThrow(error);
+    it.each([
+      ['validation', new BadRequestException('Program name is required.')],
+      ['database', new InternalServerErrorException('Failed to save resource.')],
+    ])('forwards %s errors from the resource service', async (_label, error) => {
+      usersService.findByEmail.mockResolvedValue({ id: 21 });
+      service.create.mockRejectedValue(error);
+      await expect(controller.create(dto, request)).rejects.toThrow(error);
     });
   });
 
   describe('update', () => {
-    const changes: UpdateResourceDto = { phone: '(617) 555-0100' };
-
-    // POST defaults to 201 Created, so this checks the @HttpCode(200) override is applied.
-    it('responds with a 200 status code', () => {
-      expect(
-        Reflect.getMetadata(
-          HTTP_CODE_METADATA,
-          ResourcesController.prototype.update,
-        ),
-      ).toBe(HttpStatus.OK);
-    });
-
-    it('returns the full updated resource from the service', async () => {
-      const updated = {
-        resource_id: 1,
-        ...dto,
-        phone: '(617) 555-0100',
-        score_id: 0,
-        vetting_status: 'pending review',
-        last_verified_date: new Date('2026-10-01'),
-        tags: [],
-      } as Resource;
-      const update = jest.spyOn(service, 'update').mockResolvedValue(updated);
-
+    const changes: UpdateResourceDto = { program_name: 'Updated program' };
+    it('returns the updated resource and forwards its arguments', async () => {
+      const updated = { ...makeResource(1), ...changes };
+      service.update.mockResolvedValue(updated);
       await expect(controller.update(1, changes)).resolves.toEqual(updated);
-      expect(update).toHaveBeenCalledWith(1, changes);
+      expect(service.update).toHaveBeenCalledWith(1, changes);
+      expect(Reflect.getMetadata(HTTP_CODE_METADATA, ResourcesController.prototype.update)).toBe(HttpStatus.OK);
     });
 
     it.each([
-      [
-        'validation',
-        new BadRequestException('Zip code must be a 5-digit or ZIP+4 code.'),
-      ],
-      ['not found', new NotFoundException('Resource with id 1 was not found.')],
-      [
-        'database',
-        new InternalServerErrorException(
-          'Failed to update the resource in the database. Please try again later.',
-        ),
-      ],
-    ])('forwards %s errors from the service', async (_, error) => {
-      jest.spyOn(service, 'update').mockRejectedValue(error);
-
+      new BadRequestException('Invalid field.'),
+      new NotFoundException('Missing resource.'),
+      new InternalServerErrorException('Database failure.'),
+    ])('forwards update errors', async (error) => {
+      service.update.mockRejectedValue(error);
       await expect(controller.update(1, changes)).rejects.toThrow(error);
     });
   });
 
-  /** Tests for POST /resources/findByIds. */
-  describe('findByIds', () => {
-    // POST defaults to 201 Created, so this checks the @HttpCode(200) override is applied.
-    it('responds with a 200 status code', () => {
-      expect(
-        Reflect.getMetadata(
-          HTTP_CODE_METADATA,
-          ResourcesController.prototype.findByIds,
-        ),
-      ).toBe(HttpStatus.OK);
+  describe('findByIds and find', () => {
+    it('delegates findByIds and preserves the 200 status', async () => {
+      service.findByIds.mockResolvedValue([makeResource(1)]);
+      await expect(controller.findByIds([1])).resolves.toEqual([expect.objectContaining({ resource_id: 1 })]);
+      expect(service.findByIds).toHaveBeenCalledWith([1]);
+      expect(Reflect.getMetadata(HTTP_CODE_METADATA, ResourcesController.prototype.findByIds)).toBe(HttpStatus.OK);
     });
 
-    it('retrieves single resource by ID', async () => {
-      const ids = [1];
-      const found = [makeResource(1)];
-      const findByIds = jest
-        .spyOn(service, 'findByIds')
-        .mockResolvedValue(found);
-
-      await expect(controller.findByIds(ids)).resolves.toEqual(found);
-      expect(findByIds).toHaveBeenCalledWith(ids);
+    it('delegates find with the new single-category query shape', async () => {
+      const query: FindResourceQueryDto = { category: Category.HOUSING, county: County.SUFFOLK };
+      service.find.mockResolvedValue([makeResource(2)]);
+      await expect(controller.find(query)).resolves.toEqual([expect.objectContaining({ resource_id: 2 })]);
+      expect(service.find).toHaveBeenCalledWith(query);
+      expect(Reflect.getMetadata(HTTP_CODE_METADATA, ResourcesController.prototype.find)).toBe(HttpStatus.OK);
     });
 
-    it('retrieves multiple resources from list of IDs', async () => {
-      const ids = [1, 2, 3];
-      const found = ids.map(makeResource);
-      const findByIds = jest
-        .spyOn(service, 'findByIds')
-        .mockResolvedValue(found);
-
-      await expect(controller.findByIds(ids)).resolves.toEqual(found);
-      expect(findByIds).toHaveBeenCalledWith(ids);
-    });
-
-    it('forwards not-found error from the service', async () => {
-      jest
-        .spyOn(service, 'findByIds')
-        .mockRejectedValue(
-          new NotFoundException('No resources found with IDs [123]'),
-        );
-
-      await expect(controller.findByIds([123])).rejects.toThrow(
-        new NotFoundException('No resources found with IDs [123]'),
-      );
-    });
-
-    it('forwards database error from the service', async () => {
-      jest
-        .spyOn(service, 'findByIds')
-        .mockRejectedValue(
-          new InternalServerErrorException(
-            'Failed to retrieve resources from the database. Please try again later.',
-          ),
-        );
-
-      await expect(controller.findByIds([1])).rejects.toThrow(
-        new InternalServerErrorException(
-          'Failed to retrieve resources from the database. Please try again later.',
-        ),
-      );
-    });
-  });
-
-  /** Tests for POST /resources/find. */
-  describe('find', () => {
-    it('responds with a 200 status code', () => {
-      expect(
-        Reflect.getMetadata(
-          HTTP_CODE_METADATA,
-          ResourcesController.prototype.find,
-        ),
-      ).toBe(HttpStatus.OK);
-    });
-
-    it('retrieves resources matching query', async () => {
-      const query: FindResourceQueryDTO = {
-        category: [Category.FOOD_ACCESS],
-        county: County.SUFFOLK,
-      };
-      const found = [makeResource(1), makeResource(2)];
-      const find = jest.spyOn(service, 'find').mockResolvedValue(found);
-
-      await expect(controller.find(query)).resolves.toEqual(found);
-      expect(find).toHaveBeenCalledWith(query);
-    });
-
-    it('forwards not-found error from the service', async () => {
-      jest
-        .spyOn(service, 'find')
-        .mockRejectedValue(
-          new NotFoundException(
-            'No resources found matching the given fields.',
-          ),
-        );
-
-      await expect(controller.find({ zip_code: '00000' })).rejects.toThrow(
-        new NotFoundException('No resources found matching the given fields.'),
-      );
-    });
-
-    it('forwards an invalid category error from the service', async () => {
-      jest
-        .spyOn(service, 'find')
-        .mockRejectedValue(
-          new BadRequestException('Unknown category: [NOT_A_CATEGORY]'),
-        );
-
-      await expect(
-        controller.find({
-          category: ['NOT_A_CATEGORY' as Category],
-        }),
-      ).rejects.toThrow(
-        new BadRequestException('Unknown category: [NOT_A_CATEGORY]'),
-      );
-    });
-
-    it('forwards database error from the service', async () => {
-      jest
-        .spyOn(service, 'find')
-        .mockRejectedValue(
-          new InternalServerErrorException(
-            'Failed to retrieve resources: connection lost',
-          ),
-        );
-
-      await expect(controller.find({})).rejects.toThrow(
-        new InternalServerErrorException(
-          'Failed to retrieve resources: connection lost',
-        ),
-      );
+    it.each([
+      ['not found', new NotFoundException('No resources found.')],
+      ['validation', new BadRequestException('Invalid query.')],
+      ['database', new InternalServerErrorException('Database failure.')],
+    ])('forwards %s errors from retrieval methods', async (_label, error) => {
+      service.findByIds.mockRejectedValue(error);
+      await expect(controller.findByIds([999])).rejects.toThrow(error);
+      service.find.mockRejectedValue(error);
+      await expect(controller.find({})).rejects.toThrow(error);
     });
   });
 });

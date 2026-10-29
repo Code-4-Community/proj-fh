@@ -3,13 +3,10 @@ import {
   Column,
   Entity,
   Index,
-  JoinColumn,
-  ManyToOne,
   PrimaryGeneratedColumn,
   Unique,
 } from 'typeorm';
-import { TagGroup } from './tag-group.entity';
-import { TagCategory } from './types';
+import { TagCategory, TagGroup } from './types';
 
 /**
  * Represents a Tag in the system.
@@ -17,7 +14,7 @@ import { TagCategory } from './types';
  * Resources store the IDs of their Tags in Resource.tags.
  */
 @Entity()
-@Unique('UQ_tags_group_id_slug', ['group_id', 'slug'])
+@Unique('UQ_tags_group_slug', ['group', 'slug'])
 @Check('CHK_tags_other_text', '("other_text" IS NOT NULL) = "is_custom"')
 @Index('IDX_tags_category', ['category'])
 export class Tag {
@@ -42,19 +39,12 @@ export class Tag {
   category!: TagCategory;
 
   /**
-   * ID of the TagGroup this Tag belongs to.
+   * The TagGroup (form question) this Tag belongs to.
    *
-   * E.g. 1, 2, 3
+   * E.g. TagGroup.POPULATION, TagGroup.FREQUENCY
    */
-  @Column({ type: 'int' })
-  group_id!: number;
-
-  @ManyToOne(() => TagGroup, { nullable: false })
-  @JoinColumn({
-    name: 'group_id',
-    foreignKeyConstraintName: 'FK_tags_group_id',
-  })
-  group?: TagGroup;
+  @Column({ type: 'enum', enum: TagGroup, enumName: 'tag_group' })
+  group!: TagGroup;
 
   /**
    * The human-readable name of the Tag, used for display.

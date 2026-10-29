@@ -2,14 +2,13 @@
 
 Companion to [resources-tags-refactor-plan.md](./resources-tags-refactor-plan.md). It shows the target PostgreSQL schema for every table the refactor touches. Table names follow the project's plural naming strategy.
 
-Tables touched: `resources` (changed), `scores` (changed), `tags` (rewritten), `tag_groups` (new).
+Tables touched: `resources` (changed), `scores` (changed), `tags` (rewritten).
 
 ## Relationships
 
 ```mermaid
 erDiagram
     resources }o--o{ tags : "tags int[] (no FK)"
-    tag_groups ||--o{ tags : contains
     scores ||--o{ resources : "score_id"
 ```
 
@@ -24,7 +23,7 @@ erDiagram
 | `response_time` | `same_day`, `1_3_days`, `1_week_plus`, `no_response` |
 | `yes_no_maybe` | `yes`, `no`, `maybe` |
 | `recommendation` | `strongly_recommend`, `recommend_minor_concerns`, `recommend_with_caution`, `not_recommended`, `needs_review` |
-| `tag_selection` | `single`, `multi` |
+| `tag_group` | `population`, `intake_process`, `required_documentation`, `contact_method`, `red_flag`, `food_assistance_type`, `food_type`, `pricing`, `frequency`, `estimated_wait_time`, `housing_service_type`, `accessibility`, `cultural_competency`, `program_observation` |
 | `tag_category` | `food_access`, `housing`, `other`, `common` |
 | `public_field` | `website`, `phone`, `email`, `address` (the `resources` columns whose visibility can be chosen; adding a value means a new enum value) |
 
@@ -89,18 +88,11 @@ Indexes: `category`, `county`, `zip_code`.
 | `score_id` | `int` PK | no | | unchanged |
 | `overall_rating` | `smallint` | no | | new, CHECK 1-5 (1 = very poor, 5 = excellent); form: overall rating of the organization |
 
-## `tag_groups` (new)
+## Tag groups
 
-| Column | Type | Null | Default | Notes |
-|---|---|---|---|---|
-| `group_id` | `int` PK | no | generated | |
-| `key` | `varchar(255)` | no | | unique, e.g. `food_type` |
-| `label` | `varchar(255)` | no | | display name |
-| `selection` | `tag_selection` enum | no | `multi` | `single` allows at most one tag per resource |
+A tag group is the `tag_group` enum on `tags.group`, not a table. Which groups allow only one answer (`frequency` and `estimated_wait_time`) is defined in code (`SINGLE_SELECT_TAG_GROUPS` in `apps/backend/src/tags/types.ts`). Adding a group means a new enum value in a migration.
 
-Seeded groups: `population`, `intake_process`, `required_documentation`, `contact_method`, `red_flag`, `food_assistance_type`, `food_type`, `pricing`, `frequency` (single), `estimated_wait_time` (single), `housing_service_type`, `accessibility`, `cultural_competency`, `program_observation`.
-
-The last three hold the Yes/No/Unsure tables: each row is two tags (a Yes tag and an "(unsure)" tag), and "No" is represented by neither being present. See section 4 of the plan.
+The `accessibility`, `cultural_competency` and `program_observation` groups hold the Yes/No/Unsure tables: each row has a Yes tag, an "(unsure)" tag and an "(inapplicable)" tag, and "No" is represented by none being present. See section 4 of the plan.
 
 ## `tags` (rewritten)
 
@@ -108,7 +100,7 @@ The last three hold the Yes/No/Unsure tables: each row is two tags (a Yes tag an
 |---|---|---|---|---|
 | `tag_id` | `int` PK | no | generated | no longer hand-numbered |
 | `category` | `tag_category` enum | no | | **changed**: values are now a resource category or `common` |
-| `group_id` | `int` | no | | FK to `tag_groups.group_id` |
+| `group` | `tag_group` enum | no | | the question or section the tag answers |
 | `label` | `varchar(255)` | no | | |
 | `slug` | `varchar(255)` | no | | |
 | `sort_order` | `int` | no | `0` | |
@@ -118,12 +110,12 @@ The last three hold the Yes/No/Unsure tables: each row is two tags (a Yes tag an
 | `other_text` | `text` | yes | | the typed text; set only when `is_custom` is true |
 
 Constraints:
-- unique `(group_id, slug)`;
+- unique `(group, slug)`;
 - CHECK that `other_text` is not null exactly when `is_custom` is true.
 
 Index: `category`. A custom tag copies the `category` of its template "Other" tag.
 
-The old `category` values (`food_service_type` and so on) are replaced by `group_id` plus the new `category` meaning.
+The old `category` values (`food_service_type` and so on) are replaced by `group` plus the new `category` meaning.
 
 **Custom ("Other") tags:** when a user picks "Other" and types text, the service creates a tag row in that group with `label = 'Other'`, `is_custom = true`, `other_text` set to the text, and `slug = 'other-' + slugified text`. The new `tag_id` goes into `resources.tags`. If a custom tag with the same slug already exists in that group, it is reused instead of duplicated. Custom tags are ordinary tags: every retrieval method returns them, and `is_custom` lets a client tell them apart from the seeded options.
 

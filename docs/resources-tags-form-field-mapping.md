@@ -5,7 +5,7 @@ Companion to [resources-tags-refactor-plan.md](./resources-tags-refactor-plan.md
 ## How to read this
 
 - **`resources.<column>`** means that column on the `resources` table. A form's category sets `resources.category` (`food_access` for the food form, `housing` for the housing form).
-- **`tags` table, group `<key>`** means rows in the `tags` table whose `group_id` points at the `tag_groups` row with that `key`. Each selected option is one `tags` row, and its `tag_id` is stored in the `resources.tags` array. The `tag_groups` table holds only the group definition (key, label, single or multi). The tag's `category` is `common` (valid on both forms) or one form's category.
+- **`tags` table, group `<key>`** means rows in the `tags` table whose `group` equals that key. Each selected option is one `tags` row, and its `tag_id` is stored in the `resources.tags` array. Groups are the `tag_group` enum; single or multi selection is defined in code. The tag's `category` is `common` (valid on both forms) or one form's category.
 - **Single** and **multi** are the group's `selection` value. Single allows at most one tag per resource.
 - **Other + text**: the group has a seeded "Other" tag with `allows_free_text = true`. The typed text becomes a custom tag row (`is_custom = true`, `other_text` set) in the same group. See the end-state schema.
 - **Yes / Unsure table**: each row has a Yes tag and an "(unsure)" tag. "No" is neither tag. Both tags for one row are rejected.
