@@ -40,6 +40,19 @@ export enum YesNoMaybe {
 }
 
 /**
+ * Where a Resource is in the review workflow.
+ * SENT_BACK_FOR_REVIEW and NEEDS_CHANGES are both kept for now until one is chosen.
+ */
+export enum ReviewStatus {
+  PENDING_REVIEW = 'pending_review',
+  APPROVED_PUBLISHED = 'approved_published',
+  REJECTED = 'rejected',
+  ARCHIVED = 'archived',
+  SENT_BACK_FOR_REVIEW = 'sent_back_for_review',
+  NEEDS_CHANGES = 'needs_changes',
+}
+
+/**
  * The reviewer's answer to "Would you feel comfortable referring Fenway Health patients here?"
  * (vetting form Section 7).
  */

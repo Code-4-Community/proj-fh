@@ -33,6 +33,9 @@ export class CreateResourcesTagsScores1793500000000 implements MigrationInterfac
       `CREATE TYPE "public"."yes_no_maybe" AS ENUM('yes', 'no', 'maybe')`,
     );
     await queryRunner.query(
+      `CREATE TYPE "public"."review_status" AS ENUM('pending_review', 'approved_published', 'rejected', 'archived', 'sent_back_for_review', 'needs_changes')`,
+    );
+    await queryRunner.query(
       `CREATE TYPE "public"."recommendation" AS ENUM('strongly_recommend', 'recommend_minor_concerns', 'recommend_with_caution', 'not_recommended', 'needs_review')`,
     );
 
@@ -55,7 +58,7 @@ export class CreateResourcesTagsScores1793500000000 implements MigrationInterfac
     );
 
     await queryRunner.query(
-      `CREATE TABLE "resources" ("resource_id" SERIAL NOT NULL, "score_id" integer NOT NULL, "organization_name" character varying(255) NOT NULL, "program_name" character varying(255) NOT NULL, "category" "public"."category" NOT NULL, "address" character varying(255), "county" "public"."county" NOT NULL, "zip_code" character varying(10) NOT NULL, "phone" character varying(20), "email" character varying(255), "website" character varying(255), "public_fields" "public"."public_field" array NOT NULL DEFAULT '{}', "eligibility" text, "vetting_status" character varying(255) NOT NULL, "last_verified_date" date NOT NULL, "completed_by" character varying(255) NOT NULL, "outreach_date" date NOT NULL, "staff_contact_name" character varying(255) NOT NULL, "staff_contact_role" character varying(255) NOT NULL, "responsiveness" smallint NOT NULL, "response_time" "public"."response_time" NOT NULL, "interaction_notes" text NOT NULL, "accessibility_notes" text NOT NULL, "program_notes" text, "red_flag_concerns" text NOT NULL, "can_refer_directly" boolean NOT NULL, "has_referral_contact" boolean NOT NULL, "referral_contact" character varying(255), "provides_followup" boolean NOT NULL, "referral_realistic" "public"."yes_no_maybe" NOT NULL, "referral_notes" text NOT NULL, "recommendation" "public"."recommendation" NOT NULL, "strengths" text NOT NULL, "followup_needed" text NOT NULL, "needs_changes_notes" text, "submission_rejection_notes" text, "tags" integer array NOT NULL DEFAULT '{}', "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "CHK_resources_responsiveness" CHECK ("responsiveness" BETWEEN 1 AND 5), CONSTRAINT "PK_resources_resource_id" PRIMARY KEY ("resource_id"))`,
+      `CREATE TABLE "resources" ("resource_id" SERIAL NOT NULL, "score_id" integer NOT NULL, "organization_name" character varying(255) NOT NULL, "program_name" character varying(255) NOT NULL, "category" "public"."category" NOT NULL, "address" character varying(255), "county" "public"."county" NOT NULL, "zip_code" character varying(10) NOT NULL, "phone" character varying(20), "email" character varying(255), "website" character varying(255), "public_fields" "public"."public_field" array NOT NULL DEFAULT '{}', "eligibility" text, "review_status" "public"."review_status" NOT NULL DEFAULT 'pending_review', "last_verified_date" date NOT NULL, "completed_by" character varying(255) NOT NULL, "outreach_date" date NOT NULL, "staff_contact_name" character varying(255) NOT NULL, "staff_contact_role" character varying(255) NOT NULL, "responsiveness" smallint NOT NULL, "response_time" "public"."response_time" NOT NULL, "interaction_notes" text NOT NULL, "accessibility_notes" text NOT NULL, "program_notes" text, "red_flag_concerns" text NOT NULL, "can_refer_directly" boolean NOT NULL, "has_referral_contact" boolean NOT NULL, "referral_contact" character varying(255), "provides_followup" boolean NOT NULL, "referral_realistic" "public"."yes_no_maybe" NOT NULL, "referral_notes" text NOT NULL, "recommendation" "public"."recommendation" NOT NULL, "strengths" text NOT NULL, "followup_needed" text NOT NULL, "needs_changes_notes" text, "submission_rejection_notes" text, "tags" integer array NOT NULL DEFAULT '{}', "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "CHK_resources_responsiveness" CHECK ("responsiveness" BETWEEN 1 AND 5), CONSTRAINT "PK_resources_resource_id" PRIMARY KEY ("resource_id"))`,
     );
     await queryRunner.query(
       `CREATE INDEX "IDX_resources_category" ON "resources" ("category")`,
@@ -81,6 +84,7 @@ export class CreateResourcesTagsScores1793500000000 implements MigrationInterfac
     await queryRunner.query(`DROP TABLE "tag_groups"`);
     await queryRunner.query(`DROP TABLE "scores"`);
     await queryRunner.query(`DROP TYPE "public"."recommendation"`);
+    await queryRunner.query(`DROP TYPE "public"."review_status"`);
     await queryRunner.query(`DROP TYPE "public"."yes_no_maybe"`);
     await queryRunner.query(`DROP TYPE "public"."response_time"`);
     await queryRunner.query(`DROP TYPE "public"."public_field"`);
