@@ -119,7 +119,7 @@ Two consequences of a hardcoded form:
 }
 ```
 
-`review_status`, `score_id`, `submitted_by_user_id` (taken from the logged-in user), `created_at` and `updated_at` are not sent. The backend sets them. `needs_changes_notes` and `submission_rejection_notes` are optional and left out.
+`review_status`, `score_id`, `completed_by` (the logged-in user's name, copied once), `created_at` and `updated_at` are not sent. The backend sets them. `needs_changes_notes` and `submission_rejection_notes` are optional and left out.
 
 ## Step 2: what the backend does
 

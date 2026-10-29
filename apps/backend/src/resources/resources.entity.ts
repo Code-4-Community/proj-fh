@@ -4,12 +4,9 @@ import {
   CreateDateColumn,
   Entity,
   Index,
-  JoinColumn,
-  ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { User } from '../users/user.entity';
 import {
   Category,
   County,
@@ -179,20 +176,13 @@ export class Resource {
   last_verified_date!: Date;
 
   /**
-   * The id of the user who submitted the vetting form. Set by the backend from the logged-in user.
-   * Null for resources with no submitter (e.g. bulk imports) or whose submitter was deleted.
+   * The name of the staff member who completed the vetting form. Copied once from the logged-in user
+   * when the resource is created, so it stays correct if that user is later renamed or deleted.
    *
-   * E.g. 12
+   * E.g. 'Jane Doe'
    */
-  @Column({ type: 'int', nullable: true })
-  submitted_by_user_id!: number | null;
-
-  @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
-  @JoinColumn({
-    name: 'submitted_by_user_id',
-    foreignKeyConstraintName: 'FK_resources_submitted_by_user_id',
-  })
-  submitted_by?: User | null;
+  @Column({ type: 'varchar', length: 255 })
+  completed_by!: string;
 
   /**
    * The date the staff member reached out to the organization.

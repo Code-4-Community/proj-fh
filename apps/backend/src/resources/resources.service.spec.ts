@@ -1,4 +1,4 @@
-﻿import { BadRequestException, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import { ArrayContains, In, Repository } from 'typeorm';
 import { ResourcesService } from './resources.service';
 import { Resource } from './resources.entity';
@@ -68,32 +68,32 @@ describe('ResourcesService', () => {
   afterEach(() => jest.restoreAllMocks());
 
   describe('create', () => {
-    it('saves the resource, score, resolved tags, and submitter in one transaction', async () => {
+    it('saves the resource, score, resolved tags, and completed_by name in one transaction', async () => {
       const score = { score_id: 12, overall_rating: 5 };
-      const saved = { resource_id: 8, ...createDto, score_id: 12, tags: [1], review_status: ReviewStatus.PENDING_REVIEW, submitted_by_user_id: 42 };
+      const saved = { resource_id: 8, ...createDto, score_id: 12, tags: [1], review_status: ReviewStatus.PENDING_REVIEW, completed_by: 'Jane Doe' };
       manager.save.mockResolvedValueOnce(score).mockResolvedValueOnce(saved);
-      await expect(service.create(createDto, 42)).resolves.toEqual(saved);
+      await expect(service.create(createDto, 'Jane Doe')).resolves.toEqual(saved);
       expect(repository.manager.transaction).toHaveBeenCalledTimes(1);
       expect(tagsService.resolveForResource).toHaveBeenCalledWith(manager, Category.FOOD_ACCESS, [1], undefined);
       expect(manager.create).toHaveBeenNthCalledWith(1, Score, { overall_rating: 5 });
       expect(manager.create).toHaveBeenNthCalledWith(2, Resource, expect.objectContaining({
         organization_name: createDto.organization_name, program_name: createDto.program_name, category: Category.FOOD_ACCESS,
-        score_id: 12, review_status: ReviewStatus.PENDING_REVIEW, submitted_by_user_id: 42, tags: [1],
+        score_id: 12, review_status: ReviewStatus.PENDING_REVIEW, completed_by: 'Jane Doe', tags: [1],
       }));
       expect(manager.save).toHaveBeenNthCalledWith(1, { overall_rating: 5 });
-      expect(manager.save).toHaveBeenNthCalledWith(2, expect.objectContaining({ score_id: 12, submitted_by_user_id: 42 }));
+      expect(manager.save).toHaveBeenNthCalledWith(2, expect.objectContaining({ score_id: 12, completed_by: 'Jane Doe' }));
     });
 
-    it('passes custom tags through resolution and defaults the submitter to null', async () => {
+    it('passes custom tags through resolution', async () => {
       const dto = { ...createDto, tags: [], custom_tags: [{ group: TagGroup.POPULATION, other_text: 'New group' }] };
       manager.save.mockResolvedValueOnce({ score_id: 3 }).mockResolvedValueOnce({ resource_id: 4 });
-      await service.create(dto);
+      await service.create(dto, 'Jane Doe');
       expect(tagsService.resolveForResource).toHaveBeenCalledWith(manager, Category.FOOD_ACCESS, [], dto.custom_tags);
-      expect(manager.create).toHaveBeenLastCalledWith(Resource, expect.objectContaining({ submitted_by_user_id: null }));
+      expect(manager.create).toHaveBeenLastCalledWith(Resource, expect.objectContaining({ completed_by: 'Jane Doe' }));
     });
 
     it('rejects invalid required form fields before opening a transaction', async () => {
-      await expect(service.create({ ...createDto, program_name: ' ' })).rejects.toThrow(
+      await expect(service.create({ ...createDto, program_name: ' ' }, 'Jane Doe')).rejects.toThrow(
         new BadRequestException('Program name is required and must be at most 255 characters.'),
       );
       expect(repository.manager.transaction).not.toHaveBeenCalled();
@@ -101,9 +101,9 @@ describe('ResourcesService', () => {
 
     it('preserves tag validation errors and wraps database failures as 500', async () => {
       tagsService.resolveForResource.mockRejectedValueOnce(new BadRequestException('Tag does not apply.'));
-      await expect(service.create(createDto)).rejects.toThrow(new BadRequestException('Tag does not apply.'));
+      await expect(service.create(createDto, 'Jane Doe')).rejects.toThrow(new BadRequestException('Tag does not apply.'));
       manager.save.mockRejectedValueOnce(new Error('database unavailable'));
-      await expect(service.create(createDto)).rejects.toThrow(new InternalServerErrorException(
+      await expect(service.create(createDto, 'Jane Doe')).rejects.toThrow(new InternalServerErrorException(
         'Failed to save the resource to the database. Please try again later.',
       ));
     });

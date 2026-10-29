@@ -15,7 +15,7 @@ Companion to [resources-tags-refactor-plan.md](./resources-tags-refactor-plan.md
 
 | Question | Required | Type | Maps to |
 |---|---|---|---|
-| Name of Staff Member Completing this Form | no (not asked) | none | `resources.submitted_by_user_id`, a nullable FK to `users.id` set from the logged-in user |
+| Name of Staff Member Completing this Form | no (not asked) | none | `resources.completed_by`, the logged-in user's name copied onto the resource when it is created (no FK) |
 | Date of Outreach | yes | date | `resources.outreach_date` |
 | Organization Name | yes | short text | `resources.organization_name` |
 | Program Name | yes | short text | `resources.program_name` |

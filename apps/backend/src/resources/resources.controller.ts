@@ -65,7 +65,10 @@ export class ResourcesController {
       );
     }
 
-    return this.resourcesService.create(createResourceDto, user.id);
+    return this.resourcesService.create(
+      createResourceDto,
+      `${user.firstName} ${user.lastName}`.trim(),
+    );
   }
 
   /**

@@ -51,7 +51,7 @@ export class CreateResourcesTagsScores1793500000000 implements MigrationInterfac
     );
 
     await queryRunner.query(
-      `CREATE TABLE "resources" ("resource_id" SERIAL NOT NULL, "score_id" integer NOT NULL, "organization_name" character varying(255) NOT NULL, "program_name" character varying(255) NOT NULL, "category" "public"."category" NOT NULL, "address" character varying(255), "county" "public"."county" NOT NULL, "zip_code" character varying(10) NOT NULL, "phone" character varying(20), "email" character varying(255), "website" character varying(255), "public_fields" "public"."public_field" array NOT NULL DEFAULT '{}', "eligibility" text, "review_status" "public"."review_status" NOT NULL DEFAULT 'pending_review', "last_verified_date" date NOT NULL, "submitted_by_user_id" integer, "outreach_date" date NOT NULL, "staff_contact_name" character varying(255) NOT NULL, "staff_contact_role" character varying(255) NOT NULL, "responsiveness" smallint NOT NULL, "response_time" "public"."response_time" NOT NULL, "interaction_notes" text NOT NULL, "accessibility_notes" text NOT NULL, "program_notes" text, "red_flag_concerns" text NOT NULL, "can_refer_directly" boolean NOT NULL, "has_referral_contact" boolean NOT NULL, "referral_contact" character varying(255), "provides_followup" boolean NOT NULL, "referral_realistic" "public"."yes_no_maybe" NOT NULL, "referral_notes" text NOT NULL, "recommendation" "public"."recommendation" NOT NULL, "strengths" text NOT NULL, "followup_needed" text NOT NULL, "needs_changes_notes" text, "submission_rejection_notes" text, "tags" integer array NOT NULL DEFAULT '{}', "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "CHK_resources_responsiveness" CHECK ("responsiveness" BETWEEN 1 AND 5), CONSTRAINT "PK_resources_resource_id" PRIMARY KEY ("resource_id"))`,
+      `CREATE TABLE "resources" ("resource_id" SERIAL NOT NULL, "score_id" integer NOT NULL, "organization_name" character varying(255) NOT NULL, "program_name" character varying(255) NOT NULL, "category" "public"."category" NOT NULL, "address" character varying(255), "county" "public"."county" NOT NULL, "zip_code" character varying(10) NOT NULL, "phone" character varying(20), "email" character varying(255), "website" character varying(255), "public_fields" "public"."public_field" array NOT NULL DEFAULT '{}', "eligibility" text, "review_status" "public"."review_status" NOT NULL DEFAULT 'pending_review', "last_verified_date" date NOT NULL, "completed_by" character varying(255) NOT NULL, "outreach_date" date NOT NULL, "staff_contact_name" character varying(255) NOT NULL, "staff_contact_role" character varying(255) NOT NULL, "responsiveness" smallint NOT NULL, "response_time" "public"."response_time" NOT NULL, "interaction_notes" text NOT NULL, "accessibility_notes" text NOT NULL, "program_notes" text, "red_flag_concerns" text NOT NULL, "can_refer_directly" boolean NOT NULL, "has_referral_contact" boolean NOT NULL, "referral_contact" character varying(255), "provides_followup" boolean NOT NULL, "referral_realistic" "public"."yes_no_maybe" NOT NULL, "referral_notes" text NOT NULL, "recommendation" "public"."recommendation" NOT NULL, "strengths" text NOT NULL, "followup_needed" text NOT NULL, "needs_changes_notes" text, "submission_rejection_notes" text, "tags" integer array NOT NULL DEFAULT '{}', "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "CHK_resources_responsiveness" CHECK ("responsiveness" BETWEEN 1 AND 5), CONSTRAINT "PK_resources_resource_id" PRIMARY KEY ("resource_id"))`,
     );
     await queryRunner.query(
       `CREATE INDEX "IDX_resources_category" ON "resources" ("category")`,
@@ -62,15 +62,9 @@ export class CreateResourcesTagsScores1793500000000 implements MigrationInterfac
     await queryRunner.query(
       `CREATE INDEX "IDX_resources_zip_code" ON "resources" ("zip_code")`,
     );
-    await queryRunner.query(
-      `ALTER TABLE "resources" ADD CONSTRAINT "FK_resources_submitted_by_user_id" FOREIGN KEY ("submitted_by_user_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE NO ACTION`,
-    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(
-      `ALTER TABLE "resources" DROP CONSTRAINT "FK_resources_submitted_by_user_id"`,
-    );
     await queryRunner.query(`DROP INDEX "public"."IDX_resources_zip_code"`);
     await queryRunner.query(`DROP INDEX "public"."IDX_resources_county"`);
     await queryRunner.query(`DROP INDEX "public"."IDX_resources_category"`);
