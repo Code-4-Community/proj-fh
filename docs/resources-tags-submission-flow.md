@@ -149,7 +149,7 @@ sequenceDiagram
    - Every ID exists and is active.
    - Each tag's `category` is `common` or equals the resource's `category` (`food_access`).
    - No single-select group (`frequency`, `estimated_wait_time`) has more than one tag.
-   - No Yes/Unsure row has both its tags.
+   - No Yes/Unsure/Inapplicable row has more than one of its tags.
 4. **Handle custom tags.** For each entry in `custom_tags`:
    - look up the group by `group_key` and its seeded "Other" template tag (`allows_free_text = true`); a group with no such tag is rejected;
    - build the slug `other-letter-from-landlord`;

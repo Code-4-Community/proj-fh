@@ -4,6 +4,13 @@ export class CreateResourcesTagsScores1793500000000 implements MigrationInterfac
   name = 'CreateResourcesTagsScores1793500000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
+    // Drop the legacy tags/resources tables (no data to preserve) and their enums
+    await queryRunner.query(`DROP TABLE "resources"`);
+    await queryRunner.query(`DROP TYPE "public"."resources_county_enum"`);
+    await queryRunner.query(`DROP TYPE "public"."resources_category_enum"`);
+    await queryRunner.query(`DROP TABLE "tags"`);
+    await queryRunner.query(`DROP TYPE "public"."tags_category_enum"`);
+
     await queryRunner.query(
       `CREATE TYPE "public"."tag_selection" AS ENUM('single', 'multi')`,
     );
@@ -81,5 +88,22 @@ export class CreateResourcesTagsScores1793500000000 implements MigrationInterfac
     await queryRunner.query(`DROP TYPE "public"."category"`);
     await queryRunner.query(`DROP TYPE "public"."tag_category"`);
     await queryRunner.query(`DROP TYPE "public"."tag_selection"`);
+
+    // Recreate the legacy structure (data and tag seeds are not restored)
+    await queryRunner.query(
+      `CREATE TYPE "public"."tags_category_enum" AS ENUM('food_service_type', 'food_type', 'nutrition_program', 'access_requirement', 'housing_service_type', 'population_focus', 'price', 'eligibility_scope', 'accepts_ebt', 'transportation', 'language', 'other')`,
+    );
+    await queryRunner.query(
+      `CREATE TABLE "tags" ("tag_id" integer NOT NULL, "category" "public"."tags_category_enum" NOT NULL, "label" character varying(255) NOT NULL, "slug" character varying(255) NOT NULL, CONSTRAINT "PK_06a35221325edeb80ad2ec1ff85" PRIMARY KEY ("tag_id"))`,
+    );
+    await queryRunner.query(
+      `CREATE TYPE "public"."resources_category_enum" AS ENUM('food_access', 'housing', 'other')`,
+    );
+    await queryRunner.query(
+      `CREATE TYPE "public"."resources_county_enum" AS ENUM('Suffolk', 'Middlesex', 'Norfolk', 'Essex', 'Worcester', 'Plymouth', 'Hampden', 'Hampshire', 'Berkshire', 'Barnstable', 'Bristol', 'Dukes', 'Nantucket', 'Franklin')`,
+    );
+    await queryRunner.query(
+      `CREATE TABLE "resources" ("resource_id" SERIAL NOT NULL, "score_id" integer NOT NULL, "name" character varying(255) NOT NULL, "category" "public"."resources_category_enum" array NOT NULL, "description" text, "address" character varying(255), "county" "public"."resources_county_enum" NOT NULL, "zip_code" character varying(10) NOT NULL, "phone" character varying(20), "email" character varying(255), "website" character varying(255), "eligibility" text, "last_verified_date" date NOT NULL, "vetting_status" character varying(255) NOT NULL, "reviewer_notes" text, "tags" integer array NOT NULL DEFAULT '{}', CONSTRAINT "PK_b9fa5542581d6107e9bf2f49ac0" PRIMARY KEY ("resource_id"))`,
+    );
   }
 }
