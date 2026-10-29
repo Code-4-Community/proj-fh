@@ -7,7 +7,8 @@ Plan only. No code has been changed.
 - Each resource has **one category**, stored as a single enum value (not an array). The name `category` stays.
 - Categories should be **able to be extended**, and the design shouldn't lock them in. But building generic extensibility machinery is **not part of this refactor** and doesn't block it. Instead, the refactor delivers documentation on how to add a new category (section 8). Today that means one new enum value, a migration, and seed rows.
 - Tag scoping is dropped. Tags are plain groups with no per-category scoping.
-- **Kept:** `eligibility`, `score_id`, `vetting_status`, `last_verified_date`, and the existing contact and location fields.
+- **Kept:** `eligibility`, `score_id`, `last_verified_date`, and the existing contact and location fields.
+- **Renamed:** `vetting_status` is now `review_status`, an enum (`pending_review`, `approved_published`, `rejected`, `archived`, plus both `sent_back_for_review` and `needs_changes` for now).
 - **Removed:** `description` and `reviewer_notes`. The specific notes fields from the forms replace the reviewer notes.
 - There is no existing data, so tables can be replaced instead of backfilled.
 - Internal assessment fields (rating, recommendation, red flags) are returned in public responses for now. Access control comes later.
@@ -48,8 +49,7 @@ The Food and Housing vetting forms (`FoodForm.txt`, `HousinForm.txt`) are identi
 **Kept:**
 - `resource_id`, `score_id`, `address`, `county`, `zip_code`, `phone`, `email`, `website`
 - `eligibility` (now also the form's "describe eligibility requirements")
-- `vetting_status`
-- `last_verified_date` (the form's "Date Information Verified")
+- `review_status` (renamed from `vetting_status`, now an enum)- `last_verified_date` (the form's "Date Information Verified")
 
 **Changed:**
 - `name` is renamed to `organization_name` (the form's "Organization Name"). The rename touches the entity, DTOs, service, specs, Postman collections, and any frontend or shared-type usage.

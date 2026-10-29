@@ -195,7 +195,7 @@ These columns are set by the system or by reviewers, not by the form. All are on
 | `resources.resource_id`, `resources.created_at`, `resources.updated_at` | generated |
 | `resources.category` | which form was used |
 | `resources.score_id` | scoring system; the `scores` row it points to holds `scores.overall_rating` |
-| `resources.vetting_status` | review workflow |
+| `resources.review_status` | review workflow |
 | `resources.needs_changes_notes` | reviewer, optional |
 | `resources.submission_rejection_notes` | reviewer, optional |
 

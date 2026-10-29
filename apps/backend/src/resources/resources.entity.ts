@@ -13,6 +13,7 @@ import {
   PublicField,
   Recommendation,
   ResponseTime,
+  ReviewStatus,
   YesNoMaybe,
 } from './types';
 
@@ -153,13 +154,17 @@ export class Resource {
   eligibility?: string;
 
   /**
-   * The vetting status of the Resource, indicating how much its information has been verified.
-   * This is stored as plain text for now since the verification/scoring process hasn't been finalized.
+   * Where the Resource is in the review workflow.
    *
-   * E.g. 'verified', 'pending review'
+   * E.g. ReviewStatus.PENDING_REVIEW
    */
-  @Column({ type: 'varchar', length: 255 })
-  vetting_status!: string;
+  @Column({
+    type: 'enum',
+    enum: ReviewStatus,
+    enumName: 'review_status',
+    default: ReviewStatus.PENDING_REVIEW,
+  })
+  review_status!: ReviewStatus;
 
   /**
    * The date the Resource's information was last verified (the form's "Date Information Verified").

@@ -120,7 +120,7 @@ Two consequences of a hardcoded form:
 }
 ```
 
-`vetting_status`, `score_id`, `created_at` and `updated_at` are not sent. The backend sets them. `needs_changes_notes` and `submission_rejection_notes` are optional and left out.
+`review_status`, `score_id`, `created_at` and `updated_at` are not sent. The backend sets them. `needs_changes_notes` and `submission_rejection_notes` are optional and left out.
 
 ## Step 2: what the backend does
 
@@ -156,7 +156,7 @@ sequenceDiagram
    - if a tag with that `(group_id, slug)` exists, reuse it; otherwise insert a new tag row with `is_custom = true`, `other_text = 'Letter from landlord'`, and the template's `category`;
    - add the resulting `tag_id` to the list and re-run the category and single-select checks on the combined list.
 5. **Create the score.** Insert a `scores` row with `overall_rating = 4`. This gives `score_id = 7`.
-6. **Create the resource.** Insert into `resources` with `score_id = 7`, `vetting_status` set to its starting value, and `tags = [12, 15, 33, 41, 58, 60, 102]` (the new custom tag is `102`).
+6. **Create the resource.** Insert into `resources` with `score_id = 7`, `review_status` set to `pending_review`, and `tags = [12, 15, 33, 41, 58, 60, 102]` (the new custom tag is `102`).
 7. **Commit.** If any step fails, everything rolls back, including the custom tag and the score.
 
 The score is created before the resource because `resources.score_id` is `NOT NULL`. This needs two changes from today: `Score.score_id` must become a generated key (it is a hand-set `PrimaryColumn` now), and the current default of `score_id = 0` in `create()` goes away.
@@ -171,7 +171,7 @@ The score is created before the resource because `resources.score_id` is `NOT NU
   "score_id": 7,
   "category": "food_access",
   "organization_name": "Greater Boston Food Pantry",
-  "vetting_status": "pending review",
+  "review_status": "pending_review",
   "tags": [12, 15, 33, 41, 58, 60, 102],
   "created_at": "2026-10-29T12:00:00Z",
   "updated_at": "2026-10-29T12:00:00Z"
