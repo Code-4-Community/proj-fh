@@ -347,12 +347,12 @@ export class ResourcesService {
    * Creates a new resource, and the Score row that holds its overall rating, in one transaction.
    *
    * Only the fields in CreateResourceDto are saved; anything else in the request body is ignored.
-   * Server-managed fields are set here: review_status starts as pending review and submitted_by_user_id is the given user.
+   * Server-managed fields are set here: review_status starts as pending review and completed_by is the given name.
    * custom_tags are turned into custom tags whose IDs are added to the resource's tags.
    * If anything fails, nothing is saved.
    *
    * @param createResourceDto The fields provided for the new resource. Optional fields may be omitted.
-   * @param submittedByUserId The id of the logged-in user submitting the resource, or null if there is none.
+   * @param completedBy The name of the logged-in user completing the form. It is copied onto the resource and not linked to the user.
    *
    * @returns A promise that resolves to the newly created Resource entity, including its generated resource_id and score_id.
    *
@@ -363,7 +363,7 @@ export class ResourcesService {
    */
   async create(
     createResourceDto: CreateResourceDto,
-    submittedByUserId: number | null = null,
+    completedBy: string,
   ): Promise<Resource> {
     this.validateFields(createResourceDto);
 
@@ -394,7 +394,7 @@ export class ResourcesService {
             ...columns,
             score_id: score.score_id,
             review_status: ReviewStatus.PENDING_REVIEW,
-            submitted_by_user_id: submittedByUserId,
+            completed_by: completedBy,
             tags,
           } as unknown as DeepPartial<Resource>),
         );
@@ -416,7 +416,7 @@ export class ResourcesService {
    * submission_rejection_notes) can be cleared by sending null.
    * review_status and the review notes can be changed here, e.g. by a reviewer. overall_rating updates the resource's Score row.
    * Sending tags, custom_tags or a new category re-checks the resource's tags against its category.
-   * resource_id, score_id and submitted_by_user_id can't be changed, and unknown fields are ignored.
+   * resource_id, score_id and completed_by can't be changed, and unknown fields are ignored.
    *
    * @param id The resource_id of the resource to update.
    * @param updateResourceDto The fields to change.

@@ -22,7 +22,7 @@ export interface CustomTagDto {
 /**
  * The request body for creating a new Resource (the Food or Housing vetting form).
  *
- * Server-managed fields (resource_id, score_id, review_status, submitted_by_user_id,
+ * Server-managed fields (resource_id, score_id, review_status, completed_by,
  * needs_changes_notes, submission_rejection_notes, created_at, updated_at) are intentionally excluded
  * and set by the ResourcesService.
  */

@@ -1,4 +1,4 @@
-﻿import { BadRequestException, ForbiddenException, HttpStatus, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, HttpStatus, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { GUARDS_METADATA, HTTP_CODE_METADATA } from '@nestjs/common/constants';
 import { ResourcesController } from './resources.controller';
 import { ResourcesService } from './resources.service';
@@ -45,11 +45,11 @@ describe('ResourcesController', () => {
 
     it('looks up the authenticated user and sends their ID to the service', async () => {
       const saved = { resource_id: 1, ...dto } as Resource;
-      usersService.findByEmail.mockResolvedValue({ id: 21, email: request.user.email });
+      usersService.findByEmail.mockResolvedValue({ id: 21, firstName: 'Jane', lastName: 'Doe', email: request.user.email });
       service.create.mockResolvedValue(saved);
       await expect(controller.create(dto, request)).resolves.toEqual(saved);
       expect(usersService.findByEmail).toHaveBeenCalledWith('reviewer@example.org');
-      expect(service.create).toHaveBeenCalledWith(dto, 21);
+      expect(service.create).toHaveBeenCalledWith(dto, 'Jane Doe');
     });
 
     it('returns 403 if no user record matches the token email', async () => {
@@ -70,7 +70,7 @@ describe('ResourcesController', () => {
       ['validation', new BadRequestException('Program name is required.')],
       ['database', new InternalServerErrorException('Failed to save resource.')],
     ])('forwards %s errors from the resource service', async (_label, error) => {
-      usersService.findByEmail.mockResolvedValue({ id: 21 });
+      usersService.findByEmail.mockResolvedValue({ id: 21, firstName: 'Jane', lastName: 'Doe' });
       service.create.mockRejectedValue(error);
       await expect(controller.create(dto, request)).rejects.toThrow(error);
     });
