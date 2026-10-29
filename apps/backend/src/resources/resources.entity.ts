@@ -251,8 +251,7 @@ export class Resource {
   accessibility_notes!: string;
 
   /**
-   * Optional notes about the program itself (the food form's Section 2 notes).
-   *
+   * Optional notes about the program itself 
    * E.g. 'Open Saturdays only.'
    */
   @Column({ type: 'text', nullable: true })
