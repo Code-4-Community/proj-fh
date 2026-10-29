@@ -1,18 +1,18 @@
 /**
- * Represents the different categories of tags that can be associated with resources in the system.
- * The Category enum defines various types of tags that can be used to classify and filter resources based on specific criteria.
+ * Which resources a Tag applies to: one resource Category, or COMMON for tags valid on every resource.
+ * The first three values match the resource Category enum values.
  */
-export enum Category {
-  FOOD_SERVICE_TYPE = 'food_service_type',
-  FOOD_TYPE = 'food_type',
-  NUTRITION_PROGRAM = 'nutrition_program',
-  ACCESS_REQUIREMENT = 'access_requirement',
-  HOUSING_SERVICE_TYPE = 'housing_service_type',
-  POPULATION_FOCUS = 'population_focus',
-  PRICE = 'price',
-  ELIGIBILITY_SCOPE = 'eligibility_scope',
-  ACCEPTS_EBT = 'accepts_ebt',
-  TRANSPORTATION = 'transportation',
-  LANGUAGE = 'language',
+export enum TagCategory {
+  FOOD_ACCESS = 'food_access',
+  HOUSING = 'housing',
   OTHER = 'other',
+  COMMON = 'common',
+}
+
+/**
+ * Whether a resource may have one or several Tags from a TagGroup.
+ */
+export enum TagSelection {
+  SINGLE = 'single',
+  MULTI = 'multi',
 }

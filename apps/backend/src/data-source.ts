@@ -1,6 +1,7 @@
 import { DataSource } from 'typeorm';
 import { PluralNamingStrategy } from './strategies/plural-naming.strategy';
 import { Tag } from './tags/tag.entity';
+import { TagGroup } from './tags/tag-group.entity';
 import { Resource } from './resources/resources.entity';
 import { Score } from './score/score.entity';
 import { User } from './users/user.entity';
@@ -22,7 +23,7 @@ const AppDataSource = new DataSource({
   database: envUtility.POSTGRES_DB,
   // Entities are imported directly rather than globbed by path, since glob
   // strings don't resolve once the app is bundled/copied for production.
-  entities: [Tag, Resource, Score, User],
+  entities: [Tag, TagGroup, Resource, Score, User],
   migrations: [
     'apps/backend/src/migrations/*.js',
     'apps/backend/src/migrations/*.ts',
