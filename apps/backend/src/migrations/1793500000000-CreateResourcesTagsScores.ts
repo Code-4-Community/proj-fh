@@ -12,7 +12,7 @@ export class CreateResourcesTagsScores1793500000000 implements MigrationInterfac
     await queryRunner.query(`DROP TYPE "public"."tags_category_enum"`);
 
     await queryRunner.query(
-      `CREATE TYPE "public"."tag_selection" AS ENUM('single', 'multi')`,
+      `CREATE TYPE "public"."tag_group" AS ENUM('population', 'intake_process', 'required_documentation', 'contact_method', 'red_flag', 'food_assistance_type', 'food_type', 'pricing', 'frequency', 'estimated_wait_time', 'housing_service_type', 'accessibility', 'cultural_competency', 'program_observation')`,
     );
     await queryRunner.query(
       `CREATE TYPE "public"."tag_category" AS ENUM('food_access', 'housing', 'other', 'common')`,
@@ -44,17 +44,10 @@ export class CreateResourcesTagsScores1793500000000 implements MigrationInterfac
     );
 
     await queryRunner.query(
-      `CREATE TABLE "tag_groups" ("group_id" SERIAL NOT NULL, "key" character varying(255) NOT NULL, "label" character varying(255) NOT NULL, "selection" "public"."tag_selection" NOT NULL DEFAULT 'multi', CONSTRAINT "UQ_tag_groups_key" UNIQUE ("key"), CONSTRAINT "PK_tag_groups_group_id" PRIMARY KEY ("group_id"))`,
-    );
-
-    await queryRunner.query(
-      `CREATE TABLE "tags" ("tag_id" SERIAL NOT NULL, "category" "public"."tag_category" NOT NULL, "group_id" integer NOT NULL, "label" character varying(255) NOT NULL, "slug" character varying(255) NOT NULL, "sort_order" integer NOT NULL DEFAULT '0', "is_active" boolean NOT NULL DEFAULT true, "allows_free_text" boolean NOT NULL DEFAULT false, "is_custom" boolean NOT NULL DEFAULT false, "other_text" text, CONSTRAINT "UQ_tags_group_id_slug" UNIQUE ("group_id", "slug"), CONSTRAINT "CHK_tags_other_text" CHECK (("other_text" IS NOT NULL) = "is_custom"), CONSTRAINT "PK_tags_tag_id" PRIMARY KEY ("tag_id"))`,
+      `CREATE TABLE "tags" ("tag_id" SERIAL NOT NULL, "category" "public"."tag_category" NOT NULL, "group" "public"."tag_group" NOT NULL, "label" character varying(255) NOT NULL, "slug" character varying(255) NOT NULL, "sort_order" integer NOT NULL DEFAULT '0', "is_active" boolean NOT NULL DEFAULT true, "allows_free_text" boolean NOT NULL DEFAULT false, "is_custom" boolean NOT NULL DEFAULT false, "other_text" text, CONSTRAINT "UQ_tags_group_slug" UNIQUE ("group", "slug"), CONSTRAINT "CHK_tags_other_text" CHECK (("other_text" IS NOT NULL) = "is_custom"), CONSTRAINT "PK_tags_tag_id" PRIMARY KEY ("tag_id"))`,
     );
     await queryRunner.query(
       `CREATE INDEX "IDX_tags_category" ON "tags" ("category")`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "tags" ADD CONSTRAINT "FK_tags_group_id" FOREIGN KEY ("group_id") REFERENCES "tag_groups"("group_id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
     );
 
     await queryRunner.query(
@@ -82,12 +75,8 @@ export class CreateResourcesTagsScores1793500000000 implements MigrationInterfac
     await queryRunner.query(`DROP INDEX "public"."IDX_resources_county"`);
     await queryRunner.query(`DROP INDEX "public"."IDX_resources_category"`);
     await queryRunner.query(`DROP TABLE "resources"`);
-    await queryRunner.query(
-      `ALTER TABLE "tags" DROP CONSTRAINT "FK_tags_group_id"`,
-    );
     await queryRunner.query(`DROP INDEX "public"."IDX_tags_category"`);
     await queryRunner.query(`DROP TABLE "tags"`);
-    await queryRunner.query(`DROP TABLE "tag_groups"`);
     await queryRunner.query(`DROP TABLE "scores"`);
     await queryRunner.query(`DROP TYPE "public"."recommendation"`);
     await queryRunner.query(`DROP TYPE "public"."review_status"`);
@@ -97,7 +86,7 @@ export class CreateResourcesTagsScores1793500000000 implements MigrationInterfac
     await queryRunner.query(`DROP TYPE "public"."county"`);
     await queryRunner.query(`DROP TYPE "public"."category"`);
     await queryRunner.query(`DROP TYPE "public"."tag_category"`);
-    await queryRunner.query(`DROP TYPE "public"."tag_selection"`);
+    await queryRunner.query(`DROP TYPE "public"."tag_group"`);
 
     // Recreate the legacy structure (data and tag seeds are not restored)
     await queryRunner.query(

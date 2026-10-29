@@ -85,8 +85,8 @@ The form's overall rating is scoring information, so it lives on the `scores` ta
 
 ## 3. Tags: grouped and normalized
 
-- **`tag_groups`:** `group_id`, `key`, `label`, `selection` (`single` or `multi`).
-- **`tags`:** serial `tag_id`, `category` (`TagCategory`: a resource category or `common`), `group_id`, `label`, `slug` (unique within its group), `sort_order`, `is_active`, `allows_free_text` (true on each group's seeded "Other" tag), `is_custom`, and a nullable `other_text` (set only on custom tags).
+- **Tag groups:** the `tag_group` enum on `tags.group`, not a table. Which groups are single-select (`frequency`, `estimated_wait_time`) is defined in code.
+- **`tags`:** serial `tag_id`, `category` (`TagCategory`: a resource category or `common`), `group` (`tag_group` enum), `label`, `slug` (unique within its group), `sort_order`, `is_active`, `allows_free_text` (true on each group's seeded "Other" tag), `is_custom`, and a nullable `other_text` (set only on custom tags).
 - Resources keep `tags int[]`, a list of tag IDs on the resource itself. There is no join table. Tags are deactivated rather than deleted so IDs don't dangle.
 
 | Group | Selection |
@@ -145,9 +145,9 @@ These cover the accessibility, cultural competency and food observation tables. 
 - `POST /resources` and `PATCH /resources/:id` take a single `category`, the shared fields, `tags` (`[{ tag_id, other_text? }]`, where `other_text` is only valid with an "Other" template tag; the service turns it into a custom tag ID before saving).
 - `GET /resources` filters by `category`, `county`, `zip_code` and `tags`. It returns tags grouped by group.
 - **Tags endpoints:** build on the existing methods.
-  - `POST /tags/findByIds` and `GET /tags/:tagId` stay as they are. Their responses keep `category` (now a `TagCategory`) and add `group_id`, `is_custom` and `other_text`.
+  - `POST /tags/findByIds` and `GET /tags/:tagId` stay as they are. Their responses keep `category` (now a `TagCategory`) and add `group`, `is_custom` and `other_text`.
   - `GET /tags/category/:category` stays and accepts a `TagCategory`. It returns that category's tags only; a client wanting a form's full list also asks for `common`. Without a filter it returns every tag, custom ones included. An optional `is_custom` query parameter (`true` or `false`) filters on that column; the frontend passes `is_custom=false` to fetch only seeded tags for its cached slug-to-ID map (see [resources-tags-submission-flow.md](./resources-tags-submission-flow.md)).
-  - `GET /tags/group/:groupKey` is added and returns every tag in a group, custom ones included, and accepts the same optional `is_custom` parameter.
+  - `GET /tags/group/:group` is added and returns every tag in a group, custom ones included, and accepts the same optional `is_custom` parameter.
   - No new `GET /tags` list endpoint is added.
 - Internal fields are returned as-is for now. `public_fields` masking will be handled with access control.
 
@@ -163,8 +163,8 @@ The collections live in `postman-tests/`. Two are in scope and two are not.
   - **Find:** the body filters on `name`, which becomes `organization_name`. Also filter on the single `category` value, and on `tags` if it is supported.
   - **FindByIds:** check that its assertions still match the new response shape (grouped tags).
 - `tags-success.postman_collection.json`:
-  - **GetTagsByCategory** calls `/tags/category/food_service_type`, which is no longer a valid category. Change it to `/tags/category/food_access` and add a `/tags/category/common` case. Add a case for `GET /tags/group/:groupKey`. Add cases for the `is_custom` filter: `?is_custom=false` returns no custom tags, `?is_custom=true` returns only custom tags (create one first by submitting a resource with `custom_tags`), and no parameter returns both.
-  - **FindByIds** and **GetTagById:** update the assertions for the new tag shape (`group_id`, `is_custom`, `other_text`, no hand-numbered IDs).
+  - **GetTagsByCategory** calls `/tags/category/food_service_type`, which is no longer a valid category. Change it to `/tags/category/food_access` and add a `/tags/category/common` case. Add a case for `GET /tags/group/:group`. Add cases for the `is_custom` filter: `?is_custom=false` returns no custom tags, `?is_custom=true` returns only custom tags (create one first by submitting a resource with `custom_tags`), and no parameter returns both.
+  - **FindByIds** and **GetTagById:** update the assertions for the new tag shape (`group`, `is_custom`, `other_text`, no hand-numbered IDs).
 - Add failure-path cases, using the project's `*-success` / `*-failure` collection naming if it has one. For example: an unknown tag ID, two tags in a single-select group, and both the Yes and Unsure tag for the same row.
 
 **Out of scope (no changes expected):**

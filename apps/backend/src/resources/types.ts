@@ -32,7 +32,7 @@ export enum ResponseTime {
 }
 
 /**
- * A yes / no / maybe answer (vetting form Section 6: referral process seemed realistic).
+ * A yes / no / maybe answer.
  */
 export enum YesNoMaybe {
   YES = 'yes',
@@ -44,6 +44,7 @@ export enum YesNoMaybe {
  * Where a Resource is in the review workflow.
  * SENT_BACK_FOR_REVIEW and NEEDS_CHANGES are both kept for now until one is chosen.
  */
+// TODO REVIEW THIS AFTER CLIENT MEETING 10.30
 export enum ReviewStatus {
   PENDING_REVIEW = 'pending_review',
   APPROVED_PUBLISHED = 'approved_published',

@@ -18,7 +18,7 @@ Why not post custom tags first (the alternative you raised):
 | Round trips | 1 | 1 per custom tag, plus 1 |
 | New public endpoint | none | `POST /tags` has to be exposed to the frontend, so anyone can create tags |
 | Validation | the service checks category, single-select and slug reuse in one place | split across two requests, and the resource request has to re-check anyway |
-| Frontend work | send IDs plus `{ group_key, other_text }` | sequence the calls and handle partial failure |
+| Frontend work | send IDs plus `{ group, other_text }` | sequence the calls and handle partial failure |
 
 If you prefer the two-step version, the change is small: add `POST /tags` that creates or reuses a custom tag and returns its row, and drop `custom_tags` from the resource payload. The orphan-tag and public-endpoint costs above are what you take on.
 
@@ -38,7 +38,7 @@ GET /tags/category/food_access?is_custom=false   -> seeded tags for the food for
 GET /tags/category/common?is_custom=false        -> seeded tags shared by both forms
 ```
 
-`is_custom` is an **optional** query parameter. Without it, the endpoint still returns every tag, custom ones included, as agreed earlier. The frontend opts in to the filter. The same optional parameter should be accepted by `GET /tags/group/:groupKey`.
+`is_custom` is an **optional** query parameter. Without it, the endpoint still returns every tag, custom ones included, as agreed earlier. The frontend opts in to the filter. The same optional parameter should be accepted by `GET /tags/group/:group`.
 
 Each tag comes back like this:
 
@@ -46,7 +46,7 @@ Each tag comes back like this:
 {
   "tag_id": 41,
   "category": "common",
-  "group_id": 3,
+  "group": "required_documentation",
   "label": "Other",
   "slug": "other",
   "sort_order": 99,
@@ -114,7 +114,7 @@ Two consequences of a hardcoded form:
   "overall_rating": 4,
   "tags": [12, 15, 33, 41, 58, 60],
   "custom_tags": [
-    { "group_key": "required_documentation", "other_text": "Letter from landlord" }
+    { "group": "required_documentation", "other_text": "Letter from landlord" }
   ]
 }
 ```
@@ -150,9 +150,9 @@ sequenceDiagram
    - No single-select group (`frequency`, `estimated_wait_time`) has more than one tag.
    - No Yes/Unsure/Inapplicable row has more than one of its tags.
 4. **Handle custom tags.** For each entry in `custom_tags`:
-   - look up the group by `group_key` and its seeded "Other" template tag (`allows_free_text = true`); a group with no such tag is rejected;
+   - look up the group's seeded "Other" template tag (`allows_free_text = true`); a group with no such tag is rejected;
    - build the slug `other-letter-from-landlord`;
-   - if a tag with that `(group_id, slug)` exists, reuse it; otherwise insert a new tag row with `is_custom = true`, `other_text = 'Letter from landlord'`, and the template's `category`;
+   - if a tag with that `(group, slug)` exists, reuse it; otherwise insert a new tag row with `is_custom = true`, `other_text = 'Letter from landlord'`, and the template's `category`;
    - add the resulting `tag_id` to the list and re-run the category and single-select checks on the combined list.
 5. **Create the score.** Insert a `scores` row with `overall_rating = 4`. This gives `score_id = 7`.
 6. **Create the resource.** Insert into `resources` with `score_id = 7`, `review_status` set to `pending_review`, and `tags = [12, 15, 33, 41, 58, 60, 102]` (the new custom tag is `102`).

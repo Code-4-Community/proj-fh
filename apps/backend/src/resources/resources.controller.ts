@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  ForbiddenException,
   HttpCode,
   HttpStatus,
   Param,
@@ -8,6 +9,8 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { ResourcesService } from './resources.service';
@@ -15,6 +18,14 @@ import { Resource } from './resources.entity';
 import { FindResourceQueryDto } from './dto/find-resource-by-query.dto';
 import { CreateResourceDto } from './dto/create-resource.dto';
 import { UpdateResourceDto } from './dto/update-resource.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import type { AuthenticatedIdentity } from '../auth/authenticated-identity';
+import { UsersService } from '../users/users.service';
+
+/** An authenticated request; JwtAuthGuard puts the token's identity in request.user. */
+type AuthenticatedRequest = {
+  user: AuthenticatedIdentity;
+};
 
 /**
  * Controller for managing resources. Provides endpoints for retrieving and managing resources in the system.
@@ -23,20 +34,38 @@ import { UpdateResourceDto } from './dto/update-resource.dto';
 @ApiBearerAuth()
 @Controller('resources')
 export class ResourcesController {
-  constructor(private resourcesService: ResourcesService) {}
+  constructor(
+    private resourcesService: ResourcesService,
+    private usersService: UsersService,
+  ) {}
 
   /**
-   * Creates a new resource.
+   * Creates a new resource. The logged-in user becomes its submitter.
    * @param createResourceDto The validated request body describing the resource.
+   * @param request The authenticated request; its token identifies the submitting user.
    *
    * @returns 201 with the newly created Resource entity.
    * Returns 400 with a message naming the invalid field if the body fails validation,
+   * 401 if the request has no valid token,
+   * 403 if no user record exists for the token's email,
    * or 500 with a descriptive message if the resource can't be saved to the database.
    */
+  @UseGuards(JwtAuthGuard)
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  create(@Body() createResourceDto: CreateResourceDto): Promise<Resource> {
-    return this.resourcesService.create(createResourceDto);
+  async create(
+    @Body() createResourceDto: CreateResourceDto,
+    @Req() request: AuthenticatedRequest,
+  ): Promise<Resource> {
+    const { email } = request.user;
+    const user = email ? await this.usersService.findByEmail(email) : null;
+    if (!user) {
+      throw new ForbiddenException(
+        `No user record exists for ${email ?? 'this token'}.`,
+      );
+    }
+
+    return this.resourcesService.create(createResourceDto, user.id);
   }
 
   /**
