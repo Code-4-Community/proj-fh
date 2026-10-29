@@ -1,0 +1,85 @@
+import { MigrationInterface, QueryRunner } from 'typeorm';
+
+export class CreateResourcesTagsScores1793500000000 implements MigrationInterface {
+  name = 'CreateResourcesTagsScores1793500000000';
+
+  public async up(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(
+      `CREATE TYPE "public"."tag_selection" AS ENUM('single', 'multi')`,
+    );
+    await queryRunner.query(
+      `CREATE TYPE "public"."tag_category" AS ENUM('food_access', 'housing', 'other', 'common')`,
+    );
+    await queryRunner.query(
+      `CREATE TYPE "public"."category" AS ENUM('food_access', 'housing', 'other')`,
+    );
+    await queryRunner.query(
+      `CREATE TYPE "public"."county" AS ENUM('Suffolk', 'Middlesex', 'Norfolk', 'Essex', 'Worcester', 'Plymouth', 'Hampden', 'Hampshire', 'Berkshire', 'Barnstable', 'Bristol', 'Dukes', 'Nantucket', 'Franklin')`,
+    );
+    await queryRunner.query(
+      `CREATE TYPE "public"."public_field" AS ENUM('website', 'phone', 'email', 'address')`,
+    );
+    await queryRunner.query(
+      `CREATE TYPE "public"."response_time" AS ENUM('same_day', '1_3_days', '1_week_plus', 'no_response')`,
+    );
+    await queryRunner.query(
+      `CREATE TYPE "public"."yes_no_maybe" AS ENUM('yes', 'no', 'maybe')`,
+    );
+    await queryRunner.query(
+      `CREATE TYPE "public"."recommendation" AS ENUM('strongly_recommend', 'recommend_minor_concerns', 'recommend_with_caution', 'not_recommended', 'needs_review')`,
+    );
+
+    await queryRunner.query(
+      `CREATE TABLE "scores" ("score_id" SERIAL NOT NULL, "overall_rating" smallint NOT NULL, CONSTRAINT "CHK_scores_overall_rating" CHECK ("overall_rating" BETWEEN 1 AND 5), CONSTRAINT "PK_scores_score_id" PRIMARY KEY ("score_id"))`,
+    );
+
+    await queryRunner.query(
+      `CREATE TABLE "tag_groups" ("group_id" SERIAL NOT NULL, "key" character varying(255) NOT NULL, "label" character varying(255) NOT NULL, "selection" "public"."tag_selection" NOT NULL DEFAULT 'multi', CONSTRAINT "UQ_tag_groups_key" UNIQUE ("key"), CONSTRAINT "PK_tag_groups_group_id" PRIMARY KEY ("group_id"))`,
+    );
+
+    await queryRunner.query(
+      `CREATE TABLE "tags" ("tag_id" SERIAL NOT NULL, "category" "public"."tag_category" NOT NULL, "group_id" integer NOT NULL, "label" character varying(255) NOT NULL, "slug" character varying(255) NOT NULL, "sort_order" integer NOT NULL DEFAULT '0', "is_active" boolean NOT NULL DEFAULT true, "allows_free_text" boolean NOT NULL DEFAULT false, "is_custom" boolean NOT NULL DEFAULT false, "other_text" text, CONSTRAINT "UQ_tags_group_id_slug" UNIQUE ("group_id", "slug"), CONSTRAINT "CHK_tags_other_text" CHECK (("other_text" IS NOT NULL) = "is_custom"), CONSTRAINT "PK_tags_tag_id" PRIMARY KEY ("tag_id"))`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_tags_category" ON "tags" ("category")`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "tags" ADD CONSTRAINT "FK_tags_group_id" FOREIGN KEY ("group_id") REFERENCES "tag_groups"("group_id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
+    );
+
+    await queryRunner.query(
+      `CREATE TABLE "resources" ("resource_id" SERIAL NOT NULL, "score_id" integer NOT NULL, "organization_name" character varying(255) NOT NULL, "program_name" character varying(255) NOT NULL, "category" "public"."category" NOT NULL, "address" character varying(255), "county" "public"."county" NOT NULL, "zip_code" character varying(10) NOT NULL, "phone" character varying(20), "email" character varying(255), "website" character varying(255), "public_fields" "public"."public_field" array NOT NULL DEFAULT '{}', "eligibility" text, "vetting_status" character varying(255) NOT NULL, "last_verified_date" date NOT NULL, "completed_by" character varying(255) NOT NULL, "outreach_date" date NOT NULL, "staff_contact_name" character varying(255) NOT NULL, "staff_contact_role" character varying(255) NOT NULL, "responsiveness" smallint NOT NULL, "response_time" "public"."response_time" NOT NULL, "interaction_notes" text NOT NULL, "accessibility_notes" text NOT NULL, "program_notes" text, "red_flag_concerns" text NOT NULL, "can_refer_directly" boolean NOT NULL, "has_referral_contact" boolean NOT NULL, "referral_contact" character varying(255), "provides_followup" boolean NOT NULL, "referral_realistic" "public"."yes_no_maybe" NOT NULL, "referral_notes" text NOT NULL, "recommendation" "public"."recommendation" NOT NULL, "strengths" text NOT NULL, "followup_needed" text NOT NULL, "needs_changes_notes" text, "submission_rejection_notes" text, "tags" integer array NOT NULL DEFAULT '{}', "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "CHK_resources_responsiveness" CHECK ("responsiveness" BETWEEN 1 AND 5), CONSTRAINT "PK_resources_resource_id" PRIMARY KEY ("resource_id"))`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_resources_category" ON "resources" ("category")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_resources_county" ON "resources" ("county")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_resources_zip_code" ON "resources" ("zip_code")`,
+    );
+  }
+
+  public async down(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(`DROP INDEX "public"."IDX_resources_zip_code"`);
+    await queryRunner.query(`DROP INDEX "public"."IDX_resources_county"`);
+    await queryRunner.query(`DROP INDEX "public"."IDX_resources_category"`);
+    await queryRunner.query(`DROP TABLE "resources"`);
+    await queryRunner.query(
+      `ALTER TABLE "tags" DROP CONSTRAINT "FK_tags_group_id"`,
+    );
+    await queryRunner.query(`DROP INDEX "public"."IDX_tags_category"`);
+    await queryRunner.query(`DROP TABLE "tags"`);
+    await queryRunner.query(`DROP TABLE "tag_groups"`);
+    await queryRunner.query(`DROP TABLE "scores"`);
+    await queryRunner.query(`DROP TYPE "public"."recommendation"`);
+    await queryRunner.query(`DROP TYPE "public"."yes_no_maybe"`);
+    await queryRunner.query(`DROP TYPE "public"."response_time"`);
+    await queryRunner.query(`DROP TYPE "public"."public_field"`);
+    await queryRunner.query(`DROP TYPE "public"."county"`);
+    await queryRunner.query(`DROP TYPE "public"."category"`);
+    await queryRunner.query(`DROP TYPE "public"."tag_category"`);
+    await queryRunner.query(`DROP TYPE "public"."tag_selection"`);
+  }
+}

@@ -145,8 +145,8 @@ These cover the accessibility, cultural competency and food observation tables. 
 - `GET /resources` filters by `category`, `county`, `zip_code` and `tags`. It returns tags grouped by group.
 - **Tags endpoints:** build on the existing methods.
   - `POST /tags/findByIds` and `GET /tags/:tagId` stay as they are. Their responses keep `category` (now a `TagCategory`) and add `group_id`, `is_custom` and `other_text`.
-  - `GET /tags/category/:category` stays and accepts a `TagCategory`. It returns that category's tags only; a client wanting a form's full list also asks for `common`.
-  - `GET /tags/group/:groupKey` is added and returns every tag in a group, custom ones included.
+  - `GET /tags/category/:category` stays and accepts a `TagCategory`. It returns that category's tags only; a client wanting a form's full list also asks for `common`. Without a filter it returns every tag, custom ones included. An optional `is_custom` query parameter (`true` or `false`) filters on that column; the frontend passes `is_custom=false` to fetch only seeded tags for its cached slug-to-ID map (see [resources-tags-submission-flow.md](./resources-tags-submission-flow.md)).
+  - `GET /tags/group/:groupKey` is added and returns every tag in a group, custom ones included, and accepts the same optional `is_custom` parameter.
   - No new `GET /tags` list endpoint is added.
 - Internal fields are returned as-is for now. `public_fields` masking will be handled with access control.
 
@@ -162,7 +162,7 @@ The collections live in `postman-tests/`. Two are in scope and two are not.
   - **Find:** the body filters on `name`, which becomes `organization_name`. Also filter on the single `category` value, and on `tags` if it is supported.
   - **FindByIds:** check that its assertions still match the new response shape (grouped tags).
 - `tags-success.postman_collection.json`:
-  - **GetTagsByCategory** calls `/tags/category/food_service_type`, which is no longer a valid category. Change it to `/tags/category/food_access` and add a `/tags/category/common` case. Add a case for `GET /tags/group/:groupKey`.
+  - **GetTagsByCategory** calls `/tags/category/food_service_type`, which is no longer a valid category. Change it to `/tags/category/food_access` and add a `/tags/category/common` case. Add a case for `GET /tags/group/:groupKey`. Add cases for the `is_custom` filter: `?is_custom=false` returns no custom tags, `?is_custom=true` returns only custom tags (create one first by submitting a resource with `custom_tags`), and no parameter returns both.
   - **FindByIds** and **GetTagById:** update the assertions for the new tag shape (`group_id`, `is_custom`, `other_text`, no hand-numbered IDs).
 - Add failure-path cases, using the project's `*-success` / `*-failure` collection naming if it has one. For example: an unknown tag ID, two tags in a single-select group, and both the Yes and Unsure tag for the same row.
 
