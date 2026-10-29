@@ -50,7 +50,7 @@ The old tag-level `category` enum (`food_service_type`, `food_type`, and so on) 
 | `eligibility` | `text` | yes | | unchanged, also holds the form's eligibility description |
 | `review_status` | `review_status` enum | no | `pending_review` | renamed from `vetting_status`; values: `pending_review`, `approved_published`, `rejected`, `archived`, `sent_back_for_review`, `needs_changes` (the last two are both kept for now until one is chosen) |
 | `last_verified_date` | `date` | no | | form: Date Information Verified |
-| `completed_by` | `varchar(255)` | no | | new, staff member completing the form |
+| `submitted_by_user_id` | `int` | yes | | FK to `users.id`, `ON DELETE SET NULL` (deleting a user never deletes their resources); set by the backend from the logged-in user, replaces `completed_by` |
 | `outreach_date` | `date` | no | | new |
 | `staff_contact_name` | `varchar(255)` | no | | new |
 | `staff_contact_role` | `varchar(255)` | no | | new |
