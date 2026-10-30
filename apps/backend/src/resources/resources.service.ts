@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   HttpException,
   Injectable,
   InternalServerErrorException,
@@ -30,6 +31,7 @@ import {
 import { UpdateResourceDto } from './dto/update-resource.dto';
 import { Score } from '../score/score.entity';
 import { TagsService } from '../tags/tags.service';
+import { UsersService } from '../users/users.service';
 
 const ZIP_CODE_PATTERN = /^\d{5}(-\d{4})?$/;
 
@@ -88,6 +90,7 @@ export class ResourcesService {
   constructor(
     @InjectRepository(Resource) private repo: Repository<Resource>,
     private tagsService: TagsService,
+    private usersService: UsersService,
   ) {}
 
   /**
@@ -350,20 +353,28 @@ export class ResourcesService {
    * The overall rating is saved with the resource's Score, and tags are resolved in the same transaction.
    *
    * @param createResourceDto The fields provided for the new resource.
-   * @param completedBy The name of the logged-in user completing the form.
+   * @param email The email of the logged-in user completing the form.
    *
    * @returns A promise that resolves to the newly created Resource entity, including its generated resource_id.
    *
    * @throws BadRequestException (400) if a field fails validation, e.g. an empty name, an unknown county or a malformed zip code.
    * The message names the invalid field.
+   * @throws ForbiddenException (403) if no user account matches the authenticated email.
    * @throws InternalServerErrorException (500) if the database fails to save the resource, e.g. the database is unreachable.
    * The original database error is logged rather than returned to the client.
    */
   async create(
     createResourceDto: CreateResourceDto,
-    completedBy: string,
+    email?: string,
   ): Promise<Resource> {
     this.validateResourceFields(createResourceDto);
+
+    const user = email ? await this.usersService.findByEmail(email) : null;
+    if (!user) {
+      throw new ForbiddenException(
+        `No user record exists for ${email ?? 'this token'}.`,
+      );
+    }
 
     const { tags, custom_tags, overall_rating, ...resourceFields } =
       createResourceDto;
@@ -383,7 +394,7 @@ export class ResourcesService {
           ...resourceFields,
           public_fields: resourceFields.public_fields ?? [],
           last_verified_date: new Date(resourceFields.last_verified_date),
-          completed_by: completedBy,
+          completed_by: `${user.firstName} ${user.lastName}`.trim(),
           outreach_date: new Date(resourceFields.outreach_date),
           score_id: score.score_id,
           review_status: ReviewStatus.PENDING_REVIEW,

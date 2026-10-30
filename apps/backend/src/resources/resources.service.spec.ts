@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   InternalServerErrorException,
   Logger,
   NotFoundException,
@@ -18,6 +19,7 @@ import {
 } from './types';
 import { Score } from '../score/score.entity';
 import { TagsService } from '../tags/tags.service';
+import { UsersService } from '../users/users.service';
 import { CreateResourceDto } from './dto/create-resource.dto';
 import { UpdateResourceDto } from './dto/update-resource.dto';
 import { FindResourceQueryDto } from './dto/find-resource-by-query.dto';
@@ -63,6 +65,7 @@ describe('ResourcesService', () => {
     update: jest.Mock;
   };
   let tagsService: { resolveForResource: jest.Mock };
+  let usersService: { findByEmail: jest.Mock };
   let repository: {
     manager: { transaction: jest.Mock };
     find: jest.Mock;
@@ -85,6 +88,12 @@ describe('ResourcesService', () => {
     tagsService = {
       resolveForResource: jest.fn((_manager, _category, ids) => ids),
     };
+    usersService = {
+      findByEmail: jest.fn().mockResolvedValue({
+        firstName: 'Jane',
+        lastName: 'Doe',
+      }),
+    };
     repository = {
       manager: {
         transaction: jest.fn((callback) => callback(manager)),
@@ -95,6 +104,7 @@ describe('ResourcesService', () => {
     service = new ResourcesService(
       repository as unknown as Repository<Resource>,
       tagsService as unknown as TagsService,
+      usersService as unknown as UsersService,
     );
 
     jest.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
@@ -207,12 +217,12 @@ describe('ResourcesService', () => {
         tags: [],
       };
 
-      await expect(service.create(requiredFields, 'Jane Doe')).resolves.toEqual(
-        {
-          resource_id: 1,
-          ...expected,
-        },
-      );
+      await expect(
+        service.create(requiredFields, 'reviewer@example.org'),
+      ).resolves.toEqual({
+        resource_id: 1,
+        ...expected,
+      });
       expect(manager.create).toHaveBeenCalledWith(Score, {
         overall_rating: requiredFields.overall_rating,
       });
@@ -233,10 +243,9 @@ describe('ResourcesService', () => {
         tags: [],
       };
 
-      await expect(service.create(allFields, 'Jane Doe')).resolves.toEqual({
-        resource_id: 1,
-        ...expected,
-      });
+      await expect(
+        service.create(allFields, 'reviewer@example.org'),
+      ).resolves.toEqual({ resource_id: 1, ...expected });
       expect(manager.save).toHaveBeenCalledWith(expected);
     });
 
@@ -249,7 +258,7 @@ describe('ResourcesService', () => {
         completed_by: 'Other User',
       } as CreateResourceDto;
 
-      await service.create(body, 'Jane Doe');
+      await service.create(body, 'reviewer@example.org');
 
       expect(manager.create).toHaveBeenLastCalledWith(
         Resource,
@@ -261,11 +270,26 @@ describe('ResourcesService', () => {
       );
     });
 
+    it('rejects a user without a matching account', async () => {
+      usersService.findByEmail.mockResolvedValue(null);
+
+      await expect(
+        service.create(requiredFields, 'unknown@example.org'),
+      ).rejects.toThrow(
+        new ForbiddenException(
+          'No user record exists for unknown@example.org.',
+        ),
+      );
+      expect(repository.manager.transaction).not.toHaveBeenCalled();
+    });
+
     it('returns a descriptive error when the database errors', async () => {
       jest.spyOn(Logger.prototype, 'error').mockImplementation();
       manager.save.mockRejectedValue(new Error('connection refused'));
 
-      await expect(service.create(requiredFields, 'Jane Doe')).rejects.toThrow(
+      await expect(
+        service.create(requiredFields, 'reviewer@example.org'),
+      ).rejects.toThrow(
         new InternalServerErrorException(
           'Failed to save the resource to the database. Please try again later.',
         ),
@@ -499,7 +523,7 @@ describe('ResourcesService', () => {
     ])('rejects an invalid %s', async (_, override, message) => {
       const dto = { ...requiredFields, ...override } as CreateResourceDto;
 
-      await expect(service.create(dto, 'Jane Doe')).rejects.toThrow(
+      await expect(service.create(dto, 'reviewer@example.org')).rejects.toThrow(
         new BadRequestException(message),
       );
       expect(manager.save).not.toHaveBeenCalled();
@@ -509,7 +533,7 @@ describe('ResourcesService', () => {
       await expect(
         service.create(
           { ...requiredFields, zip_code: '02118-1234' },
-          'Jane Doe',
+          'reviewer@example.org',
         ),
       ).resolves.toBeDefined();
     });
