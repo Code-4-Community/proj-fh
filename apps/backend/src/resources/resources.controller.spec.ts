@@ -11,6 +11,7 @@ import { Resource } from './resources.entity';
 import { Repository } from 'typeorm';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { TagsService } from '../tags/tags.service';
+import { ScoreService } from '../score/score.service';
 import { UsersService } from '../users/users.service';
 import {
   Category,
@@ -48,6 +49,7 @@ describe('ResourcesController', () => {
       {} as Repository<Resource>,
       {} as TagsService,
       {} as UsersService,
+      {} as ScoreService,
     );
     controller = new ResourcesController(service);
   });
