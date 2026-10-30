@@ -1,7 +1,7 @@
 import { Badge } from '@chakra-ui/react';
 import {
-  STAFF_STATUS_BADGE_VARIANT,
   ManageStaffStatusBadgeProps,
+  STAFF_STATUS_BADGE_VARIANT,
 } from '../types';
 
 /**
@@ -11,16 +11,13 @@ import {
  * @param props - The status to display.
  * @returns The badge element.
  */
-
-const ManageStaffStatusBadge = ({ status }: ManageStaffStatusBadgeProps) => {
+const ManageStaffStatusBadge = ({ status }: ManageStaffStatusBadgeProps) => (
   <Badge
     unstyled
-    className={
-      'manage-staff-badge manage-staff-badge-${STAFF_STATUS_BADGE_VARIANT[status]}'
-    }
+    className={`manage-staff-badge manage-staff-badge-${STAFF_STATUS_BADGE_VARIANT[status]}`}
   >
     {status}
-  </Badge>;
-};
+  </Badge>
+);
 
 export default ManageStaffStatusBadge;
