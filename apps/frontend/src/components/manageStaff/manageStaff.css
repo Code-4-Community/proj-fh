@@ -1,11 +1,8 @@
-/* 
-* Design values only. Layout (stacking, alignment, justification) comes from the 
-Chakra components in manageStaff, and outer page padding comes from .page-content
-in AppLayout. Values are measured from the design reference. 
-*/
-
+/* Design values only. Layout (stacking, alignment, justification) comes from the
+   Chakra components in manageStaff, and outer page padding comes from .page-content
+   in AppLayout. Values are measured from the design reference. */
 .manage-staff {
-  --manage-staff-header-font-size: 48px;
+  --manage-staff-section-gap: 48px;
   --manage-staff-content-gap: 24px;
   --manage-staff-heading-gap: 6px;
   --manage-staff-title-font-size: 20px;
@@ -31,15 +28,15 @@ in AppLayout. Values are measured from the design reference.
   --manage-staff-col-email-width: 22%;
   --manage-staff-col-role-width: 12%;
   --manage-staff-col-date-width: 13%;
-  --manage-staff-status-width: 10%;
+  --manage-staff-col-status-width: 10%;
   --manage-staff-col-actions-width: 11%;
-  --manage-staff-focus-outline: 2px solid var(--colors-text);
+  --manage-staff-focus-outline: 2px solid var(--color-text);
   --manage-staff-focus-offset: 4px;
 
   gap: var(--manage-staff-section-gap);
 }
 
-.manage-staff-header {
+.manage-staff-heading {
   gap: var(--manage-staff-heading-gap);
 }
 
@@ -61,24 +58,27 @@ in AppLayout. Values are measured from the design reference.
   font-size: var(--manage-staff-font-size);
   line-height: var(--line-height-tight);
   letter-spacing: var(--letter-spacing-none);
-  color: var(--colors-text);
+  color: var(--color-text);
 }
 
 .manage-staff-title {
+  margin: 0;
   font-weight: var(--font-weight-bold);
   font-size: var(--manage-staff-title-font-size);
 }
 
 .manage-staff-subtitle {
+  margin: 0;
   color: var(--manage-staff-subtitle-color);
 }
 
 .manage-staff-add-button {
   height: var(--manage-staff-add-button-height);
   padding: 0 var(--manage-staff-add-button-padding-x);
+  border: none;
   border-radius: var(--manage-staff-radius);
-  background: var(--colors-accent);
-  color: var(--colors-surface);
+  background: var(--color-accent);
+  color: var(--color-surface);
   cursor: pointer;
 }
 
@@ -89,7 +89,7 @@ in AppLayout. Values are measured from the design reference.
   padding: 0 var(--manage-staff-search-padding-x);
   border: var(--manage-staff-border);
   border-radius: var(--manage-staff-radius);
-  background: var(--colors-surface);
+  background: var(--color-surface);
 }
 
 .manage-staff-search::placeholder {
@@ -121,7 +121,7 @@ in AppLayout. Values are measured from the design reference.
 }
 
 .manage-staff-col-status {
-  width: var(--manage-staff-status-width);
+  width: var(--manage-staff-col-status-width);
 }
 
 .manage-staff-col-actions {
@@ -132,8 +132,8 @@ in AppLayout. Values are measured from the design reference.
 .manage-staff-table-cell {
   height: var(--manage-staff-row-height);
   padding: 0 var(--manage-staff-cell-padding-x);
-  text-align: left;
   border-bottom: var(--manage-staff-border);
+  text-align: left;
   vertical-align: middle;
 }
 
@@ -146,8 +146,8 @@ in AppLayout. Values are measured from the design reference.
 .manage-staff-badge {
   display: inline-block;
   padding: var(--manage-staff-badge-padding);
-  border-radius: var(--manage-staff-radius);
   border: var(--manage-staff-border-width) solid transparent;
+  border-radius: var(--manage-staff-radius);
 }
 
 .manage-staff-badge-filled-light {
@@ -156,17 +156,16 @@ in AppLayout. Values are measured from the design reference.
 
 .manage-staff-badge-outlined {
   border-color: var(--manage-staff-border-color);
-  background: var(--colors-surface);
+  background: var(--color-surface);
 }
 
 .manage-staff-remove-button {
   height: var(--manage-staff-remove-button-height);
   padding: 0 var(--manage-staff-remove-button-padding-x);
-  border-radius: var(--manage-staff-radius);
-  background: var(--colors-error);
-  color: var(--colors-surface);
-  cursor: pointer;
   border: var(--manage-staff-border);
+  border-radius: var(--manage-staff-radius);
+  background: var(--color-surface);
+  cursor: pointer;
 }
 
 .manage-staff-add-button:focus-visible,
