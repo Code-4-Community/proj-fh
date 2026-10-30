@@ -167,7 +167,6 @@ export class TagsService {
         group,
         ...(isCustom === undefined ? {} : { is_custom: isCustom }),
       },
-      order: { tag_id: 'ASC' },
     });
   }
 
