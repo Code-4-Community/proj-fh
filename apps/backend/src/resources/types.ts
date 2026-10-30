@@ -42,7 +42,6 @@ export enum YesNoMaybe {
 
 /**
  * Where a Resource is in the review workflow.
- * SENT_BACK_FOR_REVIEW and NEEDS_CHANGES are both kept for now until one is chosen.
  */
 // TODO REVIEW THIS AFTER CLIENT MEETING 10.30
 export enum ReviewStatus {
@@ -50,7 +49,6 @@ export enum ReviewStatus {
   APPROVED_PUBLISHED = 'approved_published',
   REJECTED = 'rejected',
   ARCHIVED = 'archived',
-  SENT_BACK_FOR_REVIEW = 'sent_back_for_review',
   NEEDS_CHANGES = 'needs_changes',
 }
 
