@@ -1,7 +1,7 @@
 /**
  * Represents the broad classification a Resource belongs to.
  * Each Resource has exactly one Category, which is also the form that was used to vet it.
- * See docs/resources-tags-refactor-plan.md (section 8) for how to add a new Category.
+ * See docs/adding-a-resource-category.md for how to add a new Category.
  */
 export enum Category {
   FOOD_ACCESS = 'food_access',

@@ -86,8 +86,8 @@ The form's overall rating is scoring information, so it lives on the `scores` ta
 ## 3. Tags: grouped and normalized
 
 - **Tag groups:** the `tag_group` enum on `tags.group`, not a table. Which groups are single-select (`frequency`, `estimated_wait_time`) is defined in code.
-- **`tags`:** serial `tag_id`, `category` (`TagCategory`: a resource category or `common`), `group` (`tag_group` enum), `label`, `slug` (unique within its group), `sort_order`, `is_active`, `allows_free_text` (true on each group's seeded "Other" tag), `is_custom`, and a nullable `other_text` (set only on custom tags).
-- Resources keep `tags int[]`, a list of tag IDs on the resource itself. There is no join table. Tags are deactivated rather than deleted so IDs don't dangle.
+- **`tags`:** serial `tag_id`, `category` (`TagCategory`: a resource category or `common`), `group` (`tag_group` enum), `label`, `slug` (unique within its group), `allows_free_text` (true on each group's seeded "Other" tag), `is_custom`, and a nullable `other_text` (set only on custom tags).
+- Resources keep `tags int[]`, a list of tag IDs on the resource itself. There is no join table. Tags are retained rather than deleted so IDs don't dangle.
 
 | Group | Selection |
 |---|---|

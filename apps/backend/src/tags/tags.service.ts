@@ -167,7 +167,7 @@ export class TagsService {
         group,
         ...(isCustom === undefined ? {} : { is_custom: isCustom }),
       },
-      order: { sort_order: 'ASC', tag_id: 'ASC' },
+      order: { tag_id: 'ASC' },
     });
   }
 
@@ -178,7 +178,7 @@ export class TagsService {
    *
    * - Each custom tag is created from its group's "Other" template tag, or reused if a custom tag
    * with the same text already exists in that group.
-   * - Every tag must exist, be active, not be a template "Other" tag, and be `common` or match the resource's category.
+   * - Every tag must exist, not be a template "Other" tag, and be `common` or match the resource's category.
    * - Single-select groups allow at most one tag, and each Yes/Unsure/Inapplicable row allows at most one answer.
    *
    * @param manager The entity manager (usually of the caller's transaction).
@@ -216,7 +216,6 @@ export class TagsService {
       const template = await tagRepo.findOneBy({
         group: custom.group,
         allows_free_text: true,
-        is_active: true,
       });
       if (!template) {
         throw new BadRequestException(
@@ -245,7 +244,6 @@ export class TagsService {
             group: custom.group,
             label: template.label,
             slug,
-            sort_order: template.sort_order,
             is_custom: true,
             other_text: otherText,
           }),
@@ -262,13 +260,6 @@ export class TagsService {
     if (missing.length > 0) {
       throw new BadRequestException(
         `Tag ID(s) not found: ${missing.join(', ')}.`,
-      );
-    }
-
-    const inactive = tags.filter((tag) => !tag.is_active);
-    if (inactive.length > 0) {
-      throw new BadRequestException(
-        `Tag ID(s) are no longer active: ${inactive.map((tag) => tag.tag_id).join(', ')}.`,
       );
     }
 

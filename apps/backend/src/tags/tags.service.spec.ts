@@ -21,7 +21,7 @@ describe('TagsService', () => {
 
   const tag = (id: number, overrides: Partial<Tag> = {}): Tag => ({
     tag_id: id, category: TagCategory.FOOD_ACCESS, group: TagGroup.POPULATION, label: `Tag ${id}`,
-    slug: `tag-${id}`, sort_order: id, is_active: true, allows_free_text: false, is_custom: false,
+    slug: `tag-${id}`, allows_free_text: false, is_custom: false,
     ...overrides,
   } as Tag);
 
@@ -80,13 +80,13 @@ describe('TagsService', () => {
       expect(repository.findBy).toHaveBeenLastCalledWith({ category: TagCategory.COMMON, is_custom: true });
     });
 
-    it('rejects invalid categories and filters tags by group in sort order', async () => {
+    it('rejects invalid categories and filters tags by group in tag ID order', async () => {
       await expect(service.getTagsByCategory('bad' as TagCategory)).rejects.toThrow(BadRequestException);
       const result = [tag(2)];
       repository.find.mockResolvedValue(result);
       await expect(service.getTagsByGroup(TagGroup.POPULATION, false)).resolves.toEqual(result);
       expect(repository.find).toHaveBeenCalledWith({
-        where: { group: TagGroup.POPULATION, is_custom: false }, order: { sort_order: 'ASC', tag_id: 'ASC' },
+        where: { group: TagGroup.POPULATION, is_custom: false }, order: { tag_id: 'ASC' },
       });
       await expect(service.getTagsByGroup('bad' as TagGroup)).rejects.toThrow(BadRequestException);
     });
@@ -103,23 +103,18 @@ describe('TagsService', () => {
   });
 
   describe('resolveForResource', () => {
-    it('returns existing applicable active tag IDs, de-duplicated', async () => {
+    it('returns existing applicable tag IDs, de-duplicated', async () => {
       const { manager, tagRepo } = makeManager();
       tagRepo.findBy.mockResolvedValue([tag(1), tag(2, { category: TagCategory.COMMON })]);
       await expect(service.resolveForResource(manager, Category.FOOD_ACCESS, [1, 1, 2])).resolves.toEqual([1, 2]);
       expect(tagRepo.findBy).toHaveBeenCalledWith({ tag_id: In([1, 2]) });
     });
 
-    it('rejects tags from another category, inactive tags, and missing IDs', async () => {
+    it('rejects tags from another category and missing IDs', async () => {
       const mismatch = makeManager();
       mismatch.tagRepo.findBy.mockResolvedValue([tag(3, { category: TagCategory.HOUSING })]);
       await expect(service.resolveForResource(mismatch.manager, Category.FOOD_ACCESS, [3])).rejects.toThrow(
         'Tag ID(s) 3 do not apply to food_access resources.',
-      );
-      const inactive = makeManager();
-      inactive.tagRepo.findBy.mockResolvedValue([tag(4, { is_active: false })]);
-      await expect(service.resolveForResource(inactive.manager, Category.FOOD_ACCESS, [4])).rejects.toThrow(
-        'Tag ID(s) are no longer active: 4.',
       );
       const missing = makeManager();
       missing.tagRepo.findBy.mockResolvedValue([]);
@@ -136,10 +131,10 @@ describe('TagsService', () => {
       );
     });
 
-    it('creates custom tags from the active Other template and stores the resolved ID', async () => {
+    it('creates custom tags from the Other template and stores the resolved ID', async () => {
       const { manager, tagRepo } = makeManager();
-      const template = tag(10, { allows_free_text: true, label: 'Other', sort_order: 8 });
-      const custom = tag(50, { label: 'Other', slug: 'other-letter-from-landlord', is_custom: true, other_text: 'Letter from landlord', sort_order: 8 });
+      const template = tag(10, { allows_free_text: true, label: 'Other' });
+      const custom = tag(50, { label: 'Other', slug: 'other-letter-from-landlord', is_custom: true, other_text: 'Letter from landlord' });
       tagRepo.findOneBy.mockResolvedValueOnce(template).mockResolvedValueOnce(null);
       tagRepo.findBy.mockResolvedValue([custom]);
       await expect(service.resolveForResource(manager, Category.FOOD_ACCESS, [], [
@@ -147,7 +142,7 @@ describe('TagsService', () => {
       ])).resolves.toEqual([50]);
       expect(tagRepo.create).toHaveBeenCalledWith(expect.objectContaining({
         category: TagCategory.FOOD_ACCESS, group: TagGroup.POPULATION, label: 'Other',
-        slug: 'other-letter-from-landlord', is_custom: true, other_text: 'Letter from landlord!!', sort_order: 8,
+        slug: 'other-letter-from-landlord', is_custom: true, other_text: 'Letter from landlord!!',
       }));
       expect(tagRepo.save).toHaveBeenCalledTimes(1);
     });

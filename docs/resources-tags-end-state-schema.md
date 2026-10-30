@@ -75,7 +75,7 @@ The old tag-level `category` enum (`food_service_type`, `food_type`, and so on) 
 
 Removed columns: `description`, `reviewer_notes`.
 
-`tags` stays an `int[]` of tag IDs on the resource (`NOT NULL`, default `{}`), as it is today. It has no database foreign key, so `ResourcesService` checks that every ID exists in `tags`. Tags are deactivated with `is_active` rather than deleted, so IDs never dangle. Add a GIN index on `tags` for filtering.
+`tags` stays an `int[]` of tag IDs on the resource (`NOT NULL`, default `{}`), as it is today. It has no database foreign key, so `ResourcesService` checks that every ID exists in `tags`. Tags are retained rather than deleted so IDs stored on resources never dangle. Add a GIN index on `tags` for filtering.
 
 Nullability follows the forms: questions marked required are `NOT NULL`, optional ones are nullable. `phone`, `email` and `website` stay nullable because they already are.
 
@@ -103,8 +103,6 @@ The `accessibility`, `cultural_competency` and `program_observation` groups hold
 | `group` | `tag_group` enum | no | | the question or section the tag answers |
 | `label` | `varchar(255)` | no | | |
 | `slug` | `varchar(255)` | no | | |
-| `sort_order` | `int` | no | `0` | |
-| `is_active` | `boolean` | no | `true` | |
 | `allows_free_text` | `boolean` | no | `false` | `true` on the seeded "Other" tag of each group. It is a template that custom tags are created from |
 | `is_custom` | `boolean` | no | `false` | `true` on tag rows created from user-typed "Other" text |
 | `other_text` | `text` | yes | | the typed text; set only when `is_custom` is true |
