@@ -5,7 +5,6 @@ import {
   HttpStatus,
   Param,
   ParseArrayPipe,
-  ParseIntPipe,
   Patch,
   Post,
   Req,
@@ -13,6 +12,7 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { ResourcesService } from './resources.service';
+import { ParseResourceIdPipe } from './parse-resource-id.pipe';
 import { Resource } from './resources.entity';
 import { FindResourceQueryDto } from './dto/find-resource-by-query.dto';
 import { CreateResourceDto } from './dto/create-resource.dto';
@@ -58,14 +58,14 @@ export class ResourcesController {
    * @param updateResourceDto The fields to change.
    *
    * @returns 200 with the full updated Resource entity.
-   * Returns 400 if the id isn't an integer, the body has no editable fields, or a field fails validation (the message names the field),
+   * Returns 400 if the id isn't an integer, the body has a field that can't be updated (the message names it) or no editable fields, or a field fails validation (the message names the field),
    * 404 if no resource has the given id,
    * or 500 with a descriptive message if the database fails while looking up or saving the resource.
    */
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
   update(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseResourceIdPipe) id: number,
     @Body() updateResourceDto: UpdateResourceDto,
   ): Promise<Resource> {
     return this.resourcesService.update(id, updateResourceDto);

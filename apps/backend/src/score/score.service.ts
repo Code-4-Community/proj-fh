@@ -25,6 +25,19 @@ export class ScoreService {
   }
 
   /**
+   * Finds the IDs of every Score with the given overall rating.
+   * @param overallRating The overall rating to match.
+   *
+   * @returns A promise that resolves to the matching score IDs (empty if none match).
+   */
+  async findIdsByOverallRating(overallRating: number): Promise<number[]> {
+    const scores = await this.repo.find({
+      where: { overall_rating: overallRating },
+    });
+    return scores.map((score) => score.score_id);
+  }
+
+  /**
    * Finds a single Score by its ID.
    * @param scoreId The ID of the Score to find.
    *

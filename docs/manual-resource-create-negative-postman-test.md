@@ -92,7 +92,7 @@ Errors from the backend have this shape; only `message` differs:
 
 ```json
 {
-  "message": "County must be a valid Massachusetts county.",
+  "message": "Invalid county (received \"Atlantis\"): must be a valid Massachusetts county.",
   "error": "Bad Request",
   "statusCode": 400
 }
@@ -118,17 +118,17 @@ unchanged baseline counts.
 
 | # | Change | Expected `message` |
 |---|---|---|
-| 3.1 | `"county": "Atlantis"` | `County must be a valid Massachusetts county.` |
-| 3.2 | `"zip_code": "2118"` | `Zip code must be a 5-digit or ZIP+4 code.` |
-| 3.3 | `"responsiveness": 6` | `Responsiveness must be an integer from 1 to 5.` |
-| 3.4 | `"overall_rating": 6` | `Overall rating must be an integer from 1 to 5.` |
-| 3.5 | Delete the `staff_contact_name` line | `Staff contact name is required and must be at most 255 characters.` |
-| 3.6 | `"public_fields": ["website", "fax"]` | `Public fields must be a list of: website, phone, email, address.` |
-| 3.7 | `"category": "transport"` | `Category must be one of: food_access, housing, other.` |
-| 3.8 | `"email": "not-an-email"` | `Email must be a valid email address.` |
-| 3.9 | `"last_verified_date": "2025-13-40"` | `Last verified date must be a valid date, e.g. 2026-10-05.` |
-| 3.10 | `"can_refer_directly": "yes"` | `Can refer directly must be true or false.` |
-| 3.11 | `"tags": "1,15"` | `Tags must be a list of integer tag IDs.` |
+| 3.1 | `"county": "Atlantis"` | `Invalid county (received "Atlantis"): must be a valid Massachusetts county.` |
+| 3.2 | `"zip_code": "2118"` | `Invalid zip_code (received "2118"): must be a 5-digit or ZIP+4 code.` |
+| 3.3 | `"responsiveness": 6` | `Invalid responsiveness (received 6): must be an integer from 1 to 5.` |
+| 3.4 | `"overall_rating": 6` | `Invalid overall_rating (received 6): must be an integer from 1 to 5.` |
+| 3.5 | Delete the `staff_contact_name` line | `Invalid staff_contact_name (missing): required and must be at most 255 characters.` |
+| 3.6 | `"public_fields": ["website", "fax"]` | `Invalid public_fields (received ["website","fax"]): must be a list of: website, phone, email, address.` |
+| 3.7 | `"category": "transport"` | `Invalid category (received "transport"): must be one of: food_access, housing, other.` |
+| 3.8 | `"email": "not-an-email"` | `Invalid email (received "not-an-email"): must be a valid email address.` |
+| 3.9 | `"last_verified_date": "2025-13-40"` | `Invalid last_verified_date (received "2025-13-40"): must be a valid date, e.g. 2026-10-05.` |
+| 3.10 | `"can_refer_directly": "yes"` | `Invalid can_refer_directly (received "yes"): must be true or false.` |
+| 3.11 | `"tags": "1,15"` | `Invalid tags (received "1,15"): must be a list of integer tag IDs.` |
 
 ## 4. Tag rules
 
@@ -218,41 +218,26 @@ prove a failure rolls back the custom tag that was created before it:
    (1 row)
    ```
 
-## 7. Server-managed fields are ignored
+## 7. Server-managed and unknown fields are rejected
 
-Send the base body plus fields the server controls. Replace `<existing_id>` with
-the `resource_id` of a resource you already created:
+Create does not silently drop fields it will not save. Send the base body plus a
+field the server controls, one request per row. All expect `400 Bad Request`,
+no resource, score, or tag created, and unchanged baseline counts.
 
-```json
-"resource_id": <existing_id>,
-"score_id": 1,
-"review_status": "approved_published",
-"completed_by": "Someone Else",
-"needs_changes_notes": "injected note",
-"submission_rejection_notes": "injected note",
-"created_at": "2000-01-01T00:00:00.000Z"
-```
+| # | Extra field in the body | Expected `message` |
+|---|---|---|
+| 7.1 | `"resource_id": 99` | `Field(s) can't be set when creating a resource: resource_id. Allowed fields are: ...` |
+| 7.2 | `"score_id": 1` | same, naming `score_id` |
+| 7.3 | `"review_status": "approved_published"` | same, naming `review_status` |
+| 7.4 | `"completed_by": "Someone Else"` | same, naming `completed_by` |
+| 7.5 | `"needs_changes_notes": "x"` | same, naming `needs_changes_notes` |
+| 7.6 | `"created_at": "2000-01-01T00:00:00.000Z"` | same, naming `created_at` |
+| 7.7 | `"not_a_field": "x"` | same, naming `not_a_field` |
+| 7.8 | `"completed_by": "Someone Else", "score_id": 1` | same, naming `completed_by, score_id` |
 
-Expect `201 Created`, and in the response:
-
-- `resource_id` is a **new** ID, not `<existing_id>`.
-- `review_status` is `pending_review`.
-- `completed_by` is your own first and last name.
-- `needs_changes_notes` and `submission_rejection_notes` are `null` (or absent).
-- `created_at` is the current time, not 2000.
-
-Then in `psql` confirm the original resource was not touched:
-
-```sql
-\x on
-
-SELECT resource_id, score_id, completed_by, review_status, needs_changes_notes, created_at
-FROM resources
-WHERE resource_id = <existing_id>;
-```
-
-Expect its original values, not the injected ones. Baseline counts: `resources`
-and `scores` each go up by `1`.
+`Allowed fields are:` is followed by every field the create request accepts. The
+review fields (`review_status`, `needs_changes_notes`,
+`submission_rejection_notes`) can only be set later with `PATCH`.
 
 ## 8. Housing resource
 

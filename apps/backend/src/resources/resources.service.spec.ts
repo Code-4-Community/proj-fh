@@ -153,13 +153,18 @@ describe('ResourcesService', () => {
     eligibility: 'Open to all Massachusetts residents.',
   };
 
-  const NAME_MESSAGE =
-    'Organization name is required and must be at most 255 characters.';
-  const CATEGORY_MESSAGE =
-    'Category must be one of: food_access, housing, other.';
-  const COUNTY_MESSAGE = 'County must be a valid Massachusetts county.';
-  const ZIP_CODE_MESSAGE = 'Zip code must be a 5-digit or ZIP+4 code.';
-  const NO_FIELDS_MESSAGE = `At least one of the following fields must be provided: ${[
+  const NAME_RULE = 'required and must be at most 255 characters.';
+  const CATEGORY_RULE = 'must be one of: food_access, housing, other.';
+  const COUNTY_RULE = 'must be a valid Massachusetts county.';
+  const ZIP_CODE_RULE = 'must be a 5-digit or ZIP+4 code.';
+  const PUBLIC_FIELDS_RULE =
+    'must be a list of: website, phone, email, address.';
+  const TAGS_RULE = 'must be a list of integer tag IDs.';
+  const DATE_RULE = 'must be a valid date, e.g. 2026-10-05.';
+  // Echoed values over 120 characters are cut off in the error message.
+  const truncatedReceived = (value: string) =>
+    `${`received "${value}"`.slice(0, 120)}…`;
+  const EDITABLE_LIST = [
     'organization_name',
     'program_name',
     'category',
@@ -196,7 +201,18 @@ describe('ResourcesService', () => {
     'overall_rating',
     'tags',
     'custom_tags',
-  ].join(', ')}.`;
+  ].join(', ');
+  const NO_FIELDS_MESSAGE = `At least one of the following fields must be provided: ${EDITABLE_LIST}.`;
+  const CREATABLE_LIST = EDITABLE_LIST.split(', ')
+    .filter(
+      (field) =>
+        ![
+          'review_status',
+          'needs_changes_notes',
+          'submission_rejection_notes',
+        ].includes(field),
+    )
+    .join(', ');
 
   describe('create', () => {
     it('creates a resource without any optional fields', async () => {
@@ -252,36 +268,35 @@ describe('ResourcesService', () => {
       expect(manager.save).toHaveBeenCalledWith(expected);
     });
 
-    it('ignores fields that are not part of the DTO', async () => {
-      const body = {
-        ...requiredFields,
-        resource_id: 99,
-        needs_changes_notes: 'injected',
-        submission_rejection_notes: 'injected',
-        tags: [1, 2],
-        review_status: ReviewStatus.APPROVED_PUBLISHED,
-        completed_by: 'Other User',
-      } as CreateResourceDto;
-
-      await service.create(body, 'reviewer@example.org');
-
-      expect(manager.create).toHaveBeenLastCalledWith(
-        Resource,
-        expect.objectContaining({
-          organization_name: requiredFields.organization_name,
-          completed_by: 'Jane Doe',
-          review_status: ReviewStatus.PENDING_REVIEW,
-        }),
-      );
-      expect(manager.create).not.toHaveBeenLastCalledWith(
-        Resource,
-        expect.objectContaining({ resource_id: 99 }),
-      );
-      expect(manager.create).not.toHaveBeenLastCalledWith(
-        Resource,
-        expect.objectContaining({ needs_changes_notes: 'injected' }),
-      );
-    });
+    it.each<[string, Record<string, unknown>, string]>([
+      ['resource_id', { resource_id: 99 }, 'resource_id'],
+      [
+        'review_status',
+        { review_status: 'approved_published' },
+        'review_status',
+      ],
+      [
+        'several server-managed fields',
+        { completed_by: 'Other User', score_id: 5, needs_changes_notes: 'x' },
+        'completed_by, score_id, needs_changes_notes',
+      ],
+      ['an unknown field', { not_a_field: 'x' }, 'not_a_field'],
+    ])(
+      'rejects %s instead of silently ignoring it',
+      async (_, extra, fields) => {
+        await expect(
+          service.create(
+            { ...requiredFields, ...extra } as CreateResourceDto,
+            'reviewer@example.org',
+          ),
+        ).rejects.toThrow(
+          new BadRequestException(
+            `Field(s) can't be set when creating a resource: ${fields}. Allowed fields are: ${CREATABLE_LIST}.`,
+          ),
+        );
+        expect(repository.manager.transaction).not.toHaveBeenCalled();
+      },
+    );
 
     it('rejects a user without a matching account', async () => {
       usersService.findByEmail.mockResolvedValue(null);
@@ -439,24 +454,32 @@ describe('ResourcesService', () => {
       [
         'category (unknown value)',
         { category: 'NOT_A_CATEGORY' },
-        CATEGORY_MESSAGE,
+        `Invalid category (received "NOT_A_CATEGORY"): ${CATEGORY_RULE}`,
       ],
       [
         'public fields (unknown value)',
         { public_fields: ['NOT_A_FIELD'] },
-        'Public fields must be a list of: website, phone, email, address.',
+        `Invalid public_fields (received ["NOT_A_FIELD"]): ${PUBLIC_FIELDS_RULE}`,
       ],
-      ['county', { county: 'Atlantis' }, COUNTY_MESSAGE],
-      ['zip_code', { zip_code: '2118' }, ZIP_CODE_MESSAGE],
+      [
+        'county',
+        { county: 'Atlantis' },
+        `Invalid county (received "Atlantis"): ${COUNTY_RULE}`,
+      ],
+      [
+        'zip_code',
+        { zip_code: '2118' },
+        `Invalid zip_code (received "2118"): ${ZIP_CODE_RULE}`,
+      ],
       [
         'overall_rating (out of range)',
         { overall_rating: 6 },
-        'Overall rating must be an integer from 1 to 5.',
+        'Invalid overall_rating (received 6): must be an integer from 1 to 5.',
       ],
       [
         'tags (not a list)',
         { tags: 'abc' },
-        'Tags must be a list of integer tag IDs.',
+        `Invalid tags (received "abc"): ${TAGS_RULE}`,
       ],
     ])(
       'rejects an invalid %s without querying the database',
@@ -514,50 +537,62 @@ describe('ResourcesService', () => {
       [
         'organization name (missing)',
         { organization_name: undefined },
-        NAME_MESSAGE,
+        `Invalid organization_name (missing): ${NAME_RULE}`,
       ],
-      ['organization name (blank)', { organization_name: '   ' }, NAME_MESSAGE],
+      [
+        'organization name (blank)',
+        { organization_name: '   ' },
+        `Invalid organization_name (received "   "): ${NAME_RULE}`,
+      ],
       [
         'organization name (too long)',
         { organization_name: 'a'.repeat(256) },
-        NAME_MESSAGE,
+        `Invalid organization_name (${truncatedReceived('a'.repeat(256))}): ${NAME_RULE}`,
       ],
-      ['category (missing)', { category: undefined }, CATEGORY_MESSAGE],
+      [
+        'category (missing)',
+        { category: undefined },
+        `Invalid category (missing): ${CATEGORY_RULE}`,
+      ],
       [
         'category (unknown value)',
         { category: 'FOOD_ACCESS' },
-        CATEGORY_MESSAGE,
+        `Invalid category (received "FOOD_ACCESS"): ${CATEGORY_RULE}`,
       ],
       [
         'county',
         { county: 'Atlantis' },
-        'County must be a valid Massachusetts county.',
+        `Invalid county (received "Atlantis"): ${COUNTY_RULE}`,
       ],
       [
         'zip_code',
         { zip_code: '2118' },
-        'Zip code must be a 5-digit or ZIP+4 code.',
+        `Invalid zip_code (received "2118"): ${ZIP_CODE_RULE}`,
       ],
       [
         'address',
         { address: 'a'.repeat(256) },
-        'Address must be at most 255 characters.',
+        `Invalid address (${truncatedReceived('a'.repeat(256))}): must be at most 255 characters.`,
       ],
       [
         'phone',
         { phone: '1'.repeat(21) },
-        'Phone must be at most 20 characters.',
+        `Invalid phone (received "${'1'.repeat(21)}"): must be at most 20 characters.`,
       ],
       [
         'email',
         { email: 'not-an-email' },
-        'Email must be a valid email address.',
+        'Invalid email (received "not-an-email"): must be a valid email address.',
       ],
-      ['website', { website: 'not a url' }, 'Website must be a valid URL.'],
+      [
+        'website',
+        { website: 'not a url' },
+        'Invalid website (received "not a url"): must be a valid URL.',
+      ],
       [
         'public fields',
         { public_fields: ['NOT_A_FIELD'] },
-        'Public fields must be a list of: website, phone, email, address.',
+        `Invalid public_fields (received ["NOT_A_FIELD"]): ${PUBLIC_FIELDS_RULE}`,
       ],
     ])('rejects an invalid %s', async (_, override, message) => {
       const dto = { ...requiredFields, ...override } as CreateResourceDto;
@@ -644,28 +679,37 @@ describe('ResourcesService', () => {
       });
     });
 
-    it('ignores resource_id and unknown fields', async () => {
-      const body = {
-        organization_name: 'GBFB',
-        resource_id: 99,
-        not_a_field: 'x',
-      } as UpdateResourceDto;
+    it.each<[string, Record<string, unknown>, string]>([
+      [
+        'resource_id',
+        { organization_name: 'GBFB', resource_id: 99 },
+        'resource_id',
+      ],
+      ['an unknown field', { not_a_field: 'x' }, 'not_a_field'],
+      [
+        'several fields that cannot be edited',
+        { completed_by: 'Other', score_id: 5 },
+        'completed_by, score_id',
+      ],
+    ])(
+      'rejects %s instead of silently ignoring it',
+      async (_, body, fields) => {
+        await expect(
+          service.update(1, body as UpdateResourceDto),
+        ).rejects.toThrow(
+          new BadRequestException(
+            `Field(s) can't be updated: ${fields}. Editable fields are: ${EDITABLE_LIST}.`,
+          ),
+        );
+        expect(manager.findOneBy).not.toHaveBeenCalled();
+        expect(manager.save).not.toHaveBeenCalled();
+      },
+    );
 
-      await service.update(1, body);
-
-      expect(manager.save).toHaveBeenCalledWith(Resource, {
-        ...existing,
-        organization_name: 'GBFB',
-      });
-    });
-
-    it.each<[string, Record<string, unknown>]>([
-      ['an empty body', {}],
-      ['only fields that cannot be edited', { resource_id: 5 }],
-    ])('rejects %s', async (_, body) => {
-      await expect(
-        service.update(1, body as UpdateResourceDto),
-      ).rejects.toThrow(new BadRequestException(NO_FIELDS_MESSAGE));
+    it('rejects an empty body', async () => {
+      await expect(service.update(1, {})).rejects.toThrow(
+        new BadRequestException(NO_FIELDS_MESSAGE),
+      );
       expect(manager.findOneBy).not.toHaveBeenCalled();
       expect(manager.save).not.toHaveBeenCalled();
     });
@@ -713,63 +757,95 @@ describe('ResourcesService', () => {
     });
 
     it.each<[string, Record<string, unknown>, string]>([
-      ['organization name (null)', { organization_name: null }, NAME_MESSAGE],
-      ['organization name (blank)', { organization_name: '   ' }, NAME_MESSAGE],
+      [
+        'organization name (null)',
+        { organization_name: null },
+        `Invalid organization_name (received null): ${NAME_RULE}`,
+      ],
+      [
+        'organization name (blank)',
+        { organization_name: '   ' },
+        `Invalid organization_name (received "   "): ${NAME_RULE}`,
+      ],
       [
         'organization name (too long)',
         { organization_name: 'a'.repeat(256) },
-        NAME_MESSAGE,
+        `Invalid organization_name (${truncatedReceived('a'.repeat(256))}): ${NAME_RULE}`,
       ],
-      ['category (null)', { category: null }, CATEGORY_MESSAGE],
+      [
+        'category (null)',
+        { category: null },
+        `Invalid category (received null): ${CATEGORY_RULE}`,
+      ],
       [
         'category (unknown value)',
         { category: 'FOOD_ACCESS' },
-        CATEGORY_MESSAGE,
+        `Invalid category (received "FOOD_ACCESS"): ${CATEGORY_RULE}`,
       ],
-      ['county (null)', { county: null }, COUNTY_MESSAGE],
-      ['county', { county: 'Atlantis' }, COUNTY_MESSAGE],
-      ['zip_code (null)', { zip_code: null }, ZIP_CODE_MESSAGE],
-      ['zip_code', { zip_code: '2118' }, ZIP_CODE_MESSAGE],
+      [
+        'county (null)',
+        { county: null },
+        `Invalid county (received null): ${COUNTY_RULE}`,
+      ],
+      [
+        'county',
+        { county: 'Atlantis' },
+        `Invalid county (received "Atlantis"): ${COUNTY_RULE}`,
+      ],
+      [
+        'zip_code (null)',
+        { zip_code: null },
+        `Invalid zip_code (received null): ${ZIP_CODE_RULE}`,
+      ],
+      [
+        'zip_code',
+        { zip_code: '2118' },
+        `Invalid zip_code (received "2118"): ${ZIP_CODE_RULE}`,
+      ],
       [
         'address',
         { address: 'a'.repeat(256) },
-        'Address must be at most 255 characters.',
+        `Invalid address (${truncatedReceived('a'.repeat(256))}): must be at most 255 characters.`,
       ],
       [
         'phone',
         { phone: '1'.repeat(21) },
-        'Phone must be at most 20 characters.',
+        `Invalid phone (received "${'1'.repeat(21)}"): must be at most 20 characters.`,
       ],
       [
         'email',
         { email: 'not-an-email' },
-        'Email must be a valid email address.',
+        'Invalid email (received "not-an-email"): must be a valid email address.',
       ],
-      ['website', { website: 'not a url' }, 'Website must be a valid URL.'],
+      [
+        'website',
+        { website: 'not a url' },
+        'Invalid website (received "not a url"): must be a valid URL.',
+      ],
       [
         'public fields',
         { public_fields: ['NOT_A_FIELD'] },
-        'Public fields must be a list of: website, phone, email, address.',
+        `Invalid public_fields (received ["NOT_A_FIELD"]): ${PUBLIC_FIELDS_RULE}`,
       ],
       [
         'last_verified_date',
         { last_verified_date: 'not a date' },
-        'Last verified date must be a valid date, e.g. 2026-10-05.',
+        `Invalid last_verified_date (received "not a date"): ${DATE_RULE}`,
       ],
       [
         'last_verified_date (null)',
         { last_verified_date: null },
-        'Last verified date must be a valid date, e.g. 2026-10-05.',
+        `Invalid last_verified_date (received null): ${DATE_RULE}`,
       ],
       [
         'tags (not a list)',
         { tags: 'abc' },
-        'Tags must be a list of integer tag IDs.',
+        `Invalid tags (received "abc"): ${TAGS_RULE}`,
       ],
       [
         'tags (non-integer ID)',
         { tags: ['a'] },
-        'Tags must be a list of integer tag IDs.',
+        `Invalid tags (received ["a"]): ${TAGS_RULE}`,
       ],
     ])('rejects an invalid %s', async (_, body, message) => {
       await expect(
