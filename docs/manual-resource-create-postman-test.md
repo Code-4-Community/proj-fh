@@ -236,49 +236,264 @@ Common failures:
 
 ## 6. Verify rows in PostgreSQL
 
-Use the `resource_id` and `score_id` from the response:
+In `psql`, turn on expanded display so each row prints one column per line
+(easier to read than a very wide table). Run this once per session:
+
+```sql
+\x on
+```
+
+The latest resource is the one with the highest `resource_id` (a serial
+column), so you do not need to copy IDs from the response:
 
 ```sql
 SELECT *
 FROM resources
-WHERE resource_id = 123;
+ORDER BY resource_id DESC
+LIMIT 1;
 ```
 
-Expect one row with the submitted resource fields, `completed_by` matching the
-user record, `review_status = 'pending_review'`, `score_id = 456`, the chosen
-`public_fields`, and the selected tag IDs in `tags`.
+Expect output like this. `resource_id`, `score_id`, `completed_by`,
+`created_at`, and `updated_at` will differ in your database:
+
+```text
+-[ RECORD 1 ]-------+-------------------------------------------------
+resource_id         | 123
+score_id            | 456
+organization_name   | Postman Test Food Pantry
+program_name        | Postman Test Weekly Pantry
+category            | food_access
+address             | 123 Test Street, Boston, MA 02118
+county              | Suffolk
+zip_code            | 02118
+phone               | (617) 555-0100
+email               | postman-test@example.org
+website             | https://example.org/postman-test
+public_fields       | {website,phone,email}
+eligibility         | Open to all Massachusetts residents.
+review_status       | pending_review
+last_verified_date  | 2025-01-15
+completed_by        | <your first and last name>
+outreach_date       | 2025-01-14
+staff_contact_name  | Pat Example
+staff_contact_role  | Pantry Coordinator
+responsiveness      | 4
+response_time       | 1_3_days
+interaction_notes   | Contacted by phone; staff responded promptly.
+accessibility_notes | Near public transportation.
+program_notes       | Open weekly.
+red_flag_concerns   | Long waitlist reported.
+can_refer_directly  | t
+has_referral_contact| t
+referral_contact    | Pat Example
+provides_followup   | t
+referral_realistic  | yes
+referral_notes      | Call before referring.
+recommendation      | strongly_recommend
+strengths           | Welcoming staff and fresh produce.
+followup_needed     | Confirm holiday hours.
+needs_changes_notes |
+submission_rejection_notes |
+tags                | {1,15,24,27,32,55,71,77,84,93,100,112,130}
+created_at          | 2026-10-30 17:00:00.123456-04
+updated_at          | 2026-10-30 17:00:00.123456-04
+```
+
+`needs_changes_notes` and `submission_rejection_notes` are empty (NULL) because
+they are set later by reviewers. The exact column alignment `psql` prints may
+differ slightly.
+
+Check the score that belongs to that same resource:
 
 ```sql
-SELECT *
-FROM scores
-WHERE score_id = 456;
+SELECT s.*
+FROM scores AS s
+WHERE s.score_id = (
+  SELECT score_id FROM resources ORDER BY resource_id DESC LIMIT 1
+);
 ```
 
-Expect one row with `overall_rating = 5`.
+```text
+-[ RECORD 1 ]--+--
+score_id       | 456
+overall_rating | 5
+```
+
+Check the tags attached to the latest resource:
 
 ```sql
 SELECT t.*
 FROM tags AS t
-JOIN resources AS r ON t.tag_id = ANY (r.tags)
-WHERE r.resource_id = 123
+WHERE t.tag_id IN (
+  SELECT unnest(tags)
+  FROM (
+    SELECT tags FROM resources ORDER BY resource_id DESC LIMIT 1
+  ) AS latest
+)
 ORDER BY t.tag_id;
 ```
 
-Expect the 13 seeded tag rows used in the request, with the groups and slugs in
-the table above. This test sends no custom tags, so it should not add any tag
-rows.
+Expect 13 records, one per ID in the request (still in `\x on` format):
 
-To confirm all predetermined tags are seeded:
-
-```sql
-SELECT "group", COUNT(*)
-FROM tags
-WHERE is_custom = false
-GROUP BY "group"
-ORDER BY "group";
+```text
+-[ RECORD 1 ]----+-----------------------------------------
+tag_id           | 1
+category         | food_access
+group            | food_assistance_type
+label            | Food pantry
+slug             | food-pantry
+allows_free_text | f
+is_custom        | f
+other_text       |
+-[ RECORD 2 ]----+-----------------------------------------
+tag_id           | 15
+category         | food_access
+group            | food_type
+label            | Produce
+slug             | produce
+allows_free_text | f
+is_custom        | f
+other_text       |
+-[ RECORD 3 ]----+-----------------------------------------
+tag_id           | 24
+category         | food_access
+group            | pricing
+label            | Free
+slug             | free
+allows_free_text | f
+is_custom        | f
+other_text       |
+-[ RECORD 4 ]----+-----------------------------------------
+tag_id           | 27
+category         | food_access
+group            | frequency
+label            | Weekly
+slug             | weekly
+allows_free_text | f
+is_custom        | f
+other_text       |
+-[ RECORD 5 ]----+-----------------------------------------
+tag_id           | 32
+category         | food_access
+group            | program_observation
+label            | Food appeared organized
+slug             | food-appeared-organized
+allows_free_text | f
+is_custom        | f
+other_text       |
+-[ RECORD 6 ]----+-----------------------------------------
+tag_id           | 55
+category         | common
+group            | population
+label            | General population
+slug             | general-population
+allows_free_text | f
+is_custom        | f
+other_text       |
+-[ RECORD 7 ]----+-----------------------------------------
+tag_id           | 71
+category         | common
+group            | contact_method
+label            | Phone call
+slug             | phone-call
+allows_free_text | f
+is_custom        | f
+other_text       |
+-[ RECORD 8 ]----+-----------------------------------------
+tag_id           | 77
+category         | common
+group            | intake_process
+label            | Walk-ins accepted
+slug             | walk-ins-accepted
+allows_free_text | f
+is_custom        | f
+other_text       |
+-[ RECORD 9 ]----+-----------------------------------------
+tag_id           | 84
+category         | common
+group            | required_documentation
+label            | Government-issued ID
+slug             | government-issued-id
+allows_free_text | f
+is_custom        | f
+other_text       |
+-[ RECORD 10 ]---+-----------------------------------------
+tag_id           | 93
+category         | common
+group            | estimated_wait_time
+label            | Same day
+slug             | same-day
+allows_free_text | f
+is_custom        | f
+other_text       |
+-[ RECORD 11 ]---+-----------------------------------------
+tag_id           | 100
+category         | common
+group            | accessibility
+label            | Near public transportation
+slug             | near-public-transportation
+allows_free_text | f
+is_custom        | f
+other_text       |
+-[ RECORD 12 ]---+-----------------------------------------
+tag_id           | 112
+category         | common
+group            | cultural_competency
+label            | LGBTQ+ affirming environment
+slug             | lgbtq-affirming-environment
+allows_free_text | f
+is_custom        | f
+other_text       |
+-[ RECORD 13 ]---+-----------------------------------------
+tag_id           | 130
+category         | common
+group            | red_flag
+label            | Long waitlist
+slug             | long-waitlist
+allows_free_text | f
+is_custom        | f
+other_text       |
 ```
 
-On a fresh database, expect 141 rows total across 14 groups. If this test
-creates duplicate test resources, each successful POST creates a new resource
-and score row; remove only test rows after verifying them, using their returned
-IDs.
+This test sends no custom tags, so no new tag rows should be added (the total
+tag count stays at 141).
+
+To confirm all predetermined tags are seeded, switch back to the normal table
+layout and count them per group. `ROLLUP` adds the total as the last row:
+
+```sql
+\x off
+
+SELECT COALESCE("group"::text, 'TOTAL') AS "group", COUNT(*) AS count
+FROM tags
+WHERE is_custom = false
+GROUP BY ROLLUP ("group")
+ORDER BY GROUPING("group"), 1;
+```
+
+On a fresh database, expect exactly:
+
+```text
+         group          | count
+------------------------+-------
+ accessibility          |    12
+ contact_method         |     6
+ cultural_competency    |    18
+ estimated_wait_time    |     7
+ food_assistance_type   |    14
+ food_type              |     9
+ frequency              |     6
+ housing_service_type   |    13
+ intake_process         |     7
+ population             |    16
+ pricing                |     2
+ program_observation    |    10
+ red_flag               |    12
+ required_documentation |     9
+ TOTAL                  |   141
+(15 rows)
+```
+
+If this test creates duplicate test resources, each successful POST creates a
+new resource and score row; remove only test rows after verifying them, using
+their returned IDs.

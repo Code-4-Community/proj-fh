@@ -241,7 +241,7 @@ export class Resource {
   accessibility_notes!: string;
 
   /**
-   * Optional notes about the program itself 
+   * Optional notes about the program itself
    * E.g. 'Open Saturdays only.'
    */
   @Column({ type: 'text', nullable: true })

@@ -77,8 +77,20 @@ const EDITABLE_FIELDS: (keyof UpdateResourceDto)[] = [
 ];
 
 const SEARCHABLE_FIELDS = EDITABLE_FIELDS.filter(
-  (field) => field !== 'overall_rating' && field !== 'custom_tags',
+  (field) => field !== 'custom_tags',
 );
+
+/** Columns the server sets itself on creation, so any value sent for them is dropped. */
+const SERVER_MANAGED_FIELDS = [
+  'resource_id',
+  'score_id',
+  'review_status',
+  'completed_by',
+  'needs_changes_notes',
+  'submission_rejection_notes',
+  'created_at',
+  'updated_at',
+];
 
 /**
  * The ResourcesService is a NestJS service that provides business logic for managing resources in the system.
@@ -380,6 +392,9 @@ export class ResourcesService {
 
     const { tags, custom_tags, overall_rating, ...resourceFields } =
       createResourceDto;
+    for (const field of SERVER_MANAGED_FIELDS) {
+      delete (resourceFields as Record<string, unknown>)[field];
+    }
 
     try {
       return await this.repo.manager.transaction(async (manager) => {
@@ -578,12 +593,18 @@ export class ResourcesService {
     this.validateResourceFields(query, true);
     this.validateUpdateOnlyFields(query);
 
+    // overall_rating lives on the Score, so it is matched through the resources' score_id.
+    const { overall_rating, ...resourceQuery } = query;
+
     // Array fields match resources that contain every given value; everything else must match exactly.
     const where = Object.fromEntries(
-      fields
-        .filter((field) => query[field] !== undefined)
+      Object.keys(resourceQuery)
+        .filter(
+          (field) =>
+            resourceQuery[field as keyof typeof resourceQuery] !== undefined,
+        )
         .map((field) => {
-          const value = query[field];
+          const value = resourceQuery[field as keyof typeof resourceQuery];
           return [
             field,
             Array.isArray(value) ? ArrayContains(value as unknown[]) : value,
@@ -593,6 +614,11 @@ export class ResourcesService {
 
     let resources: Resource[];
     try {
+      if (overall_rating !== undefined) {
+        where.score_id = In(
+          await this.scoreService.findIdsByOverallRating(overall_rating),
+        );
+      }
       resources = await this.repo.find({ where });
     } catch (error) {
       this.logger.error('Failed to retrieve resources', error);
