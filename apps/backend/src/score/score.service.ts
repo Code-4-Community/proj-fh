@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 
 import { Score } from './score.entity';
 
@@ -11,6 +11,18 @@ import { Score } from './score.entity';
 @Injectable()
 export class ScoreService {
   constructor(@InjectRepository(Score) private repo: Repository<Score>) {}
+
+  /**
+   * Creates a Score using the caller's transaction.
+   * @param overallRating The reviewer's overall rating.
+   * @param manager The entity manager for the transaction.
+   *
+   * @returns A promise that resolves to the newly created Score entity.
+   */
+  async create(overallRating: number, manager: EntityManager): Promise<Score> {
+    const score = manager.create(Score, { overall_rating: overallRating });
+    return manager.save(score);
+  }
 
   /**
    * Finds a single Score by its ID.

@@ -30,6 +30,7 @@ import {
 } from './types';
 import { UpdateResourceDto } from './dto/update-resource.dto';
 import { Score } from '../score/score.entity';
+import { ScoreService } from '../score/score.service';
 import { TagsService } from '../tags/tags.service';
 import { UsersService } from '../users/users.service';
 
@@ -91,6 +92,7 @@ export class ResourcesService {
     @InjectRepository(Resource) private repo: Repository<Resource>,
     private tagsService: TagsService,
     private usersService: UsersService,
+    private scoreService: ScoreService,
   ) {}
 
   /**
@@ -387,9 +389,7 @@ export class ResourcesService {
           tags,
           custom_tags,
         );
-        const score = await manager.save(
-          manager.create(Score, { overall_rating }),
-        );
+        const score = await this.scoreService.create(overall_rating, manager);
         const resource = manager.create(Resource, {
           ...resourceFields,
           public_fields: resourceFields.public_fields ?? [],

@@ -18,6 +18,7 @@ import {
   YesNoMaybe,
 } from './types';
 import { Score } from '../score/score.entity';
+import { ScoreService } from '../score/score.service';
 import { TagsService } from '../tags/tags.service';
 import { UsersService } from '../users/users.service';
 import { CreateResourceDto } from './dto/create-resource.dto';
@@ -66,6 +67,7 @@ describe('ResourcesService', () => {
   };
   let tagsService: { resolveForResource: jest.Mock };
   let usersService: { findByEmail: jest.Mock };
+  let scoreService: { create: jest.Mock };
   let repository: {
     manager: { transaction: jest.Mock };
     find: jest.Mock;
@@ -74,14 +76,9 @@ describe('ResourcesService', () => {
   beforeEach(() => {
     manager = {
       create: jest.fn((_entity, values) => values),
-      save: jest.fn((entityOrValue, value) => {
-        const saved = value ?? entityOrValue;
-        return Promise.resolve(
-          saved.overall_rating === undefined
-            ? { resource_id: 1, ...saved }
-            : { score_id: 12, ...saved },
-        );
-      }),
+      save: jest.fn((entityOrValue, value) =>
+        Promise.resolve({ resource_id: 1, ...(value ?? entityOrValue) }),
+      ),
       findOneBy: jest.fn(),
       update: jest.fn(),
     };
@@ -94,6 +91,9 @@ describe('ResourcesService', () => {
         lastName: 'Doe',
       }),
     };
+    scoreService = {
+      create: jest.fn().mockResolvedValue({ score_id: 12 }),
+    };
     repository = {
       manager: {
         transaction: jest.fn((callback) => callback(manager)),
@@ -105,6 +105,7 @@ describe('ResourcesService', () => {
       repository as unknown as Repository<Resource>,
       tagsService as unknown as TagsService,
       usersService as unknown as UsersService,
+      scoreService as unknown as ScoreService,
     );
 
     jest.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
@@ -223,9 +224,10 @@ describe('ResourcesService', () => {
         resource_id: 1,
         ...expected,
       });
-      expect(manager.create).toHaveBeenCalledWith(Score, {
-        overall_rating: requiredFields.overall_rating,
-      });
+      expect(scoreService.create).toHaveBeenCalledWith(
+        requiredFields.overall_rating,
+        manager,
+      );
       expect(manager.save).toHaveBeenCalledWith(expected);
     });
 
