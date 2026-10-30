@@ -22,7 +22,6 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import type { AuthenticatedIdentity } from '../auth/authenticated-identity';
 import { UsersService } from '../users/users.service';
 
-/** An authenticated request; JwtAuthGuard puts the token's identity in request.user. */
 type AuthenticatedRequest = {
   user: AuthenticatedIdentity;
 };
@@ -40,14 +39,11 @@ export class ResourcesController {
   ) {}
 
   /**
-   * Creates a new resource. The logged-in user becomes its submitter.
+   * Creates a new resource.
    * @param createResourceDto The validated request body describing the resource.
-   * @param request The authenticated request; its token identifies the submitting user.
    *
    * @returns 201 with the newly created Resource entity.
    * Returns 400 with a message naming the invalid field if the body fails validation,
-   * 401 if the request has no valid token,
-   * 403 if no user record exists for the token's email,
    * or 500 with a descriptive message if the resource can't be saved to the database.
    */
   @UseGuards(JwtAuthGuard)
