@@ -1,6 +1,5 @@
 import {
   BadRequestException,
-  ForbiddenException,
   HttpStatus,
   InternalServerErrorException,
   NotFoundException,
@@ -10,9 +9,9 @@ import { ResourcesController } from './resources.controller';
 import { ResourcesService } from './resources.service';
 import { Resource } from './resources.entity';
 import { Repository } from 'typeorm';
-import { UsersService } from '../users/users.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { TagsService } from '../tags/tags.service';
+import { UsersService } from '../users/users.service';
 import {
   Category,
   County,
@@ -42,19 +41,15 @@ const makeResource = (id: number): Resource =>
 describe('ResourcesController', () => {
   let controller: ResourcesController;
   let service: ResourcesService;
-  let usersService: { findByEmail: jest.Mock };
   const request = { user: { email: 'reviewer@example.org' } };
 
   beforeEach(() => {
     service = new ResourcesService(
       {} as Repository<Resource>,
       {} as TagsService,
+      {} as UsersService,
     );
-    usersService = { findByEmail: jest.fn() };
-    controller = new ResourcesController(
-      service,
-      usersService as unknown as UsersService,
-    );
+    controller = new ResourcesController(service);
   });
 
   afterEach(() => {
@@ -107,33 +102,15 @@ describe('ResourcesController', () => {
     it('returns the resource created by the service', async () => {
       const saved = { resource_id: 1, ...dto } as Resource;
       const create = jest.spyOn(service, 'create').mockResolvedValue(saved);
-      usersService.findByEmail.mockResolvedValue({
-        firstName: 'Jane',
-        lastName: 'Doe',
-      });
 
       await expect(controller.create(dto, request)).resolves.toEqual(saved);
-      expect(create).toHaveBeenCalledWith(dto, 'Jane Doe');
-    });
-
-    it('rejects a request without a matching user', async () => {
-      usersService.findByEmail.mockResolvedValue(null);
-
-      await expect(controller.create(dto, request)).rejects.toThrow(
-        new ForbiddenException(
-          'No user record exists for reviewer@example.org.',
-        ),
-      );
+      expect(create).toHaveBeenCalledWith(dto, 'reviewer@example.org');
     });
 
     it('forwards validation errors from the service', async () => {
       const error = new BadRequestException(
         'Zip code must be a 5-digit or ZIP+4 code.',
       );
-      usersService.findByEmail.mockResolvedValue({
-        firstName: 'Jane',
-        lastName: 'Doe',
-      });
       jest.spyOn(service, 'create').mockRejectedValue(error);
 
       await expect(controller.create(dto, request)).rejects.toThrow(error);
@@ -143,10 +120,6 @@ describe('ResourcesController', () => {
       const error = new InternalServerErrorException(
         'Failed to save the resource to the database. Please try again later.',
       );
-      usersService.findByEmail.mockResolvedValue({
-        firstName: 'Jane',
-        lastName: 'Doe',
-      });
       jest.spyOn(service, 'create').mockRejectedValue(error);
 
       await expect(controller.create(dto, request)).rejects.toThrow(error);

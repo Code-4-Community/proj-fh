@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  ForbiddenException,
   HttpCode,
   HttpStatus,
   Param,
@@ -20,7 +19,6 @@ import { CreateResourceDto } from './dto/create-resource.dto';
 import { UpdateResourceDto } from './dto/update-resource.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import type { AuthenticatedIdentity } from '../auth/authenticated-identity';
-import { UsersService } from '../users/users.service';
 
 type AuthenticatedRequest = {
   user: AuthenticatedIdentity;
@@ -33,10 +31,7 @@ type AuthenticatedRequest = {
 @ApiBearerAuth()
 @Controller('resources')
 export class ResourcesController {
-  constructor(
-    private resourcesService: ResourcesService,
-    private usersService: UsersService,
-  ) {}
+  constructor(private resourcesService: ResourcesService) {}
 
   /**
    * Creates a new resource.
@@ -44,27 +39,17 @@ export class ResourcesController {
    *
    * @returns 201 with the newly created Resource entity.
    * Returns 400 with a message naming the invalid field if the body fails validation,
+   * 403 if no user record matches the authenticated email,
    * or 500 with a descriptive message if the resource can't be saved to the database.
    */
   @UseGuards(JwtAuthGuard)
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  async create(
+  create(
     @Body() createResourceDto: CreateResourceDto,
     @Req() request: AuthenticatedRequest,
   ): Promise<Resource> {
-    const { email } = request.user;
-    const user = email ? await this.usersService.findByEmail(email) : null;
-    if (!user) {
-      throw new ForbiddenException(
-        `No user record exists for ${email ?? 'this token'}.`,
-      );
-    }
-
-    return this.resourcesService.create(
-      createResourceDto,
-      `${user.firstName} ${user.lastName}`.trim(),
-    );
+    return this.resourcesService.create(createResourceDto, request.user.email);
   }
 
   /**
