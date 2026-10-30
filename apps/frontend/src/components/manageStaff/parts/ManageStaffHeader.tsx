@@ -1,4 +1,4 @@
-import { Button, Flex, Heading, Text, Stack } from '@chakra-ui/react';
+import { Button, Flex, Heading, Text } from '@chakra-ui/react';
 import { ManageStaffHeaderProps } from '../types';
 
 
@@ -13,12 +13,12 @@ import { ManageStaffHeaderProps } from '../types';
 
 const ManageStaffHeader = ({ onAddStaffClick }: ManageStaffHeaderProps) => (
   <Flex justify="space-between" align="center">
-    <Stack className="manage-staff-heading">
-      <Heading as="h1" className="manage-staff-title">
+    <Flex direction="column" className="manage-staff-heading">      
+        <Heading as="h1" className="manage-staff-title">
         Staff Management
       </Heading>
       <Text className="manage-staff-subtitle">Add or remove staff users</Text>
-    </Stack>
+    </Flex>
     <Button
       unstyled
       className="manage-staff-add-button"
