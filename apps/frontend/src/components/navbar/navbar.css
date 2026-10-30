@@ -65,7 +65,9 @@
 }
 
 .navbar-user,
-.navbar-user:hover {
+.navbar-user:hover,
+.navbar-user:focus-visible,
+.navbar-user-name {
   text-decoration: none;
 }
 
