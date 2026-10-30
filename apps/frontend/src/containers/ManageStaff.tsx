@@ -89,11 +89,13 @@ const ManageStaff = () => {
       email.toLowerCase().includes(query),
   );
 
-  // TODO: Replace with variable in the future
-  const handleAddStaffClick = () => {};
+  const handleAddStaffClick = () => {
+    // TODO: Replace with variable in the future
+  };
 
-  // TODO: Replace with variable in the future
-  const handleRemoveClick = () => {};
+  const handleRemoveClick = () => {
+    // TODO: Replace with variable in the future
+  };
 
   return (
     <Flex direction="column" className="manage-staff">
