@@ -31,7 +31,7 @@ The form's questions, options and layout are hardcoded in the frontend. Each opt
 { group: 'required_documentation', slug: 'other', label: 'Other', freeText: true }
 ```
 
-Hardcoding means the frontend, not the database, decides which questions appear, their order, and which ones show a text box. So `sort_order` and `allows_free_text` on the tag are used by the backend, not needed to draw the form. The frontend still has to turn slugs into IDs, so it fetches only the **seeded (non-custom) tags**, once, and builds a map. Custom tags are never needed here, because they are created by the submission itself and are only referenced by ID afterwards. It needs both the form's own category and `common`.
+Hardcoding means the frontend, not the database, decides which questions appear, their order, and which ones show a text box. `allows_free_text` marks the "Other" template for the backend; the frontend does not need it to draw the form. The frontend still has to turn slugs into IDs, so it fetches only the **seeded (non-custom) tags**, once, and builds a map. Custom tags are never needed here, because they are created by the submission itself and are only referenced by ID afterwards. It needs both the form's own category and `common`.
 
 ```
 GET /tags/category/food_access?is_custom=false   -> seeded tags for the food form only
@@ -49,8 +49,6 @@ Each tag comes back like this:
   "group": "required_documentation",
   "label": "Other",
   "slug": "other",
-  "sort_order": 99,
-  "is_active": true,
   "allows_free_text": true,
   "is_custom": false,
   "other_text": null
@@ -66,13 +64,13 @@ Seeded tags only change through a migration, so the map is cached and reused ins
 - **Where:** persistent browser storage (for example `localStorage`), under a key that is not tied to the user.
 - **Across login and logout:** the cache is not cleared on logout and is not keyed by user. The data is the same for everyone and holds nothing personal.
 - **When to refetch:** only when the cache is missing (first visit, cleared storage), or when validation says it is stale (below).
-- **Stale cache:** if a later migration adds, renames or deactivates a seeded tag, a cached map would silently miss it. Two safeguards:
+- **Stale cache:** if a later migration adds or renames a seeded tag, a cached map would silently miss it. Two safeguards:
   - store a `tagsVersion` next to the map and bump the frontend's expected version whenever a seed migration changes tags, so a mismatch forces a refetch;
-  - treat a backend rejection of a tag ID (unknown, inactive or wrong category) as a signal to clear the cache, refetch, and retry once.
+  - treat a backend rejection of a tag ID (unknown or wrong category) as a signal to clear the cache, refetch, and retry once.
 - **Custom tags are not cached.** They are returned by the submission response and by `findByIds` when a saved resource is displayed.
 
 Two consequences of a hardcoded form:
-- **Drift.** If a slug in the frontend is missing from the map (seed changed, tag deactivated), the frontend should fail loudly instead of silently dropping the answer, and refetch once before failing. The backend's existence and `is_active` checks are the safety net.
+- **Drift.** If a slug in the frontend is missing from the map (seed changed), the frontend should fail loudly instead of silently dropping the answer, and refetch once before failing. The backend's existence check is the safety net.
 - **Adding or changing an option** needs both a seed migration and a frontend change (see [adding-a-resource-category.md](./adding-a-resource-category.md)).
 
 ## Step 1: the request
@@ -200,4 +198,4 @@ A second pantry also types "Letter from landlord" under required documentation. 
 - **Editing** a resource (`PATCH /resources/:id`) follows the same rules: the frontend sends the full `tags` list plus any new `custom_tags`, and `overall_rating` updates the existing `scores` row instead of creating one.
 - **Scoring is one row per resource.** If scoring should later allow several scores per resource, the FK direction would have to change. For now `resources.score_id` points at one `scores` row.
 - **Request field name.** The request uses `tags` for IDs to match the column. `custom_tags` is request-only and is never stored on the resource.
-- **Custom tags and `is_active`.** A reused custom tag must still be active. Deactivating a custom tag means resources already using it keep it, but new submissions create a fresh one.
+- **Custom tags.** A reused custom tag is returned when its group and slug match.

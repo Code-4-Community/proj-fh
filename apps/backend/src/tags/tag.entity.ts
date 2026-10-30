@@ -63,21 +63,6 @@ export class Tag {
   slug!: string;
 
   /**
-   * The position of the Tag within its group when listed.
-   *
-   * E.g. 0, 1, 2
-   */
-  @Column({ type: 'int', default: 0 })
-  sort_order!: number;
-
-  /**
-   * Whether the Tag can still be attached to resources. Tags are deactivated instead of deleted
-   * so that IDs stored in Resource.tags never dangle.
-   */
-  @Column({ type: 'boolean', default: true })
-  is_active!: boolean;
-
-  /**
    * True on the seeded "Other" tag of a group. It is a template: when a user types custom text,
    * a new custom Tag is created from it.
    */
@@ -98,4 +83,3 @@ export class Tag {
   @Column({ type: 'text', nullable: true })
   other_text?: string | null;
 }
-
