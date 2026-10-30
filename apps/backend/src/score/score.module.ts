@@ -13,5 +13,6 @@ import { Score } from './score.entity';
   imports: [TypeOrmModule.forFeature([Score])],
   controllers: [ScoreController],
   providers: [ScoreService],
+  exports: [ScoreService],
 })
 export class ScoreModule {}
