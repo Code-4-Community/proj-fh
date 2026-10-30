@@ -80,17 +80,21 @@ const SEARCHABLE_FIELDS = EDITABLE_FIELDS.filter(
   (field) => field !== 'custom_tags',
 );
 
-/** Columns the server sets itself on creation, so any value sent for them is dropped. */
-const SERVER_MANAGED_FIELDS = [
-  'resource_id',
-  'score_id',
-  'review_status',
-  'completed_by',
-  'needs_changes_notes',
-  'submission_rejection_notes',
-  'created_at',
-  'updated_at',
-];
+/** The fields a client may send when creating a resource. The review fields are only set through an update. */
+const CREATABLE_FIELDS = EDITABLE_FIELDS.filter(
+  (field) =>
+    field !== 'review_status' &&
+    field !== 'needs_changes_notes' &&
+    field !== 'submission_rejection_notes',
+);
+
+/** Builds a 400 that names the field (as sent in the body) and echoes the value that was received. */
+function invalidField(field: string, rule: string, value: unknown) {
+  const received =
+    value === undefined ? 'missing' : `received ${JSON.stringify(value)}`;
+  const shown = received.length > 120 ? `${received.slice(0, 120)}…` : received;
+  return new BadRequestException(`Invalid ${field} (${shown}): ${rule}`);
+}
 
 /**
  * The ResourcesService is a NestJS service that provides business logic for managing resources in the system.
@@ -122,8 +126,10 @@ export class ResourcesService {
       shouldCheck(dto.organization_name) &&
       (!dto.organization_name?.trim() || dto.organization_name.length > 255)
     ) {
-      throw new BadRequestException(
-        'Organization name is required and must be at most 255 characters.',
+      throw invalidField(
+        'organization_name',
+        'required and must be at most 255 characters.',
+        dto.organization_name,
       );
     }
 
@@ -131,8 +137,10 @@ export class ResourcesService {
       shouldCheck(dto.category) &&
       !Object.values(Category).includes(dto.category as Category)
     ) {
-      throw new BadRequestException(
-        `Category must be one of: ${Object.values(Category).join(', ')}.`,
+      throw invalidField(
+        'category',
+        `must be one of: ${Object.values(Category).join(', ')}.`,
+        dto.category,
       );
     }
 
@@ -140,8 +148,10 @@ export class ResourcesService {
       shouldCheck(dto.program_name) &&
       (!dto.program_name?.trim() || dto.program_name.length > 255)
     ) {
-      throw new BadRequestException(
-        'Program name is required and must be at most 255 characters.',
+      throw invalidField(
+        'program_name',
+        'required and must be at most 255 characters.',
+        dto.program_name,
       );
     }
 
@@ -149,8 +159,10 @@ export class ResourcesService {
       shouldCheck(dto.county) &&
       !Object.values(County).includes(dto.county as County)
     ) {
-      throw new BadRequestException(
-        'County must be a valid Massachusetts county.',
+      throw invalidField(
+        'county',
+        'must be a valid Massachusetts county.',
+        dto.county,
       );
     }
 
@@ -158,25 +170,31 @@ export class ResourcesService {
       shouldCheck(dto.zip_code) &&
       !ZIP_CODE_PATTERN.test(dto.zip_code ?? '')
     ) {
-      throw new BadRequestException(
-        'Zip code must be a 5-digit or ZIP+4 code.',
+      throw invalidField(
+        'zip_code',
+        'must be a 5-digit or ZIP+4 code.',
+        dto.zip_code,
       );
     }
 
     if (dto.address && dto.address.length > 255) {
-      throw new BadRequestException('Address must be at most 255 characters.');
+      throw invalidField(
+        'address',
+        'must be at most 255 characters.',
+        dto.address,
+      );
     }
 
     if (dto.phone && dto.phone.length > 20) {
-      throw new BadRequestException('Phone must be at most 20 characters.');
+      throw invalidField('phone', 'must be at most 20 characters.', dto.phone);
     }
 
     if (dto.email && (dto.email.length > 255 || !isEmail(dto.email))) {
-      throw new BadRequestException('Email must be a valid email address.');
+      throw invalidField('email', 'must be a valid email address.', dto.email);
     }
 
     if (dto.website && (dto.website.length > 255 || !isURL(dto.website))) {
-      throw new BadRequestException('Website must be a valid URL.');
+      throw invalidField('website', 'must be a valid URL.', dto.website);
     }
 
     if (
@@ -186,8 +204,10 @@ export class ResourcesService {
           Object.values(PublicField).includes(field as PublicField),
         ))
     ) {
-      throw new BadRequestException(
-        `Public fields must be a list of: ${Object.values(PublicField).join(', ')}.`,
+      throw invalidField(
+        'public_fields',
+        `must be a list of: ${Object.values(PublicField).join(', ')}.`,
+        dto.public_fields,
       );
     }
 
@@ -195,16 +215,20 @@ export class ResourcesService {
       shouldCheck(dto.staff_contact_name) &&
       (!dto.staff_contact_name?.trim() || dto.staff_contact_name.length > 255)
     ) {
-      throw new BadRequestException(
-        'Staff contact name is required and must be at most 255 characters.',
+      throw invalidField(
+        'staff_contact_name',
+        'required and must be at most 255 characters.',
+        dto.staff_contact_name,
       );
     }
     if (
       shouldCheck(dto.staff_contact_role) &&
       (!dto.staff_contact_role?.trim() || dto.staff_contact_role.length > 255)
     ) {
-      throw new BadRequestException(
-        'Staff contact role is required and must be at most 255 characters.',
+      throw invalidField(
+        'staff_contact_role',
+        'required and must be at most 255 characters.',
+        dto.staff_contact_role,
       );
     }
     if (
@@ -213,15 +237,21 @@ export class ResourcesService {
         (dto.responsiveness as number) < 1 ||
         (dto.responsiveness as number) > 5)
     ) {
-      throw new BadRequestException(
-        'Responsiveness must be an integer from 1 to 5.',
+      throw invalidField(
+        'responsiveness',
+        'must be an integer from 1 to 5.',
+        dto.responsiveness,
       );
     }
     if (
       shouldCheck(dto.response_time) &&
       !Object.values(ResponseTime).includes(dto.response_time as ResponseTime)
     ) {
-      throw new BadRequestException('Response time must be a valid option.');
+      throw invalidField(
+        'response_time',
+        `must be one of: ${Object.values(ResponseTime).join(', ')}.`,
+        dto.response_time,
+      );
     }
     if (
       shouldCheck(dto.recommendation) &&
@@ -229,14 +259,20 @@ export class ResourcesService {
         dto.recommendation as Recommendation,
       )
     ) {
-      throw new BadRequestException('Recommendation must be a valid option.');
+      throw invalidField(
+        'recommendation',
+        `must be one of: ${Object.values(Recommendation).join(', ')}.`,
+        dto.recommendation,
+      );
     }
     if (
       shouldCheck(dto.referral_realistic) &&
       !Object.values(YesNoMaybe).includes(dto.referral_realistic as YesNoMaybe)
     ) {
-      throw new BadRequestException(
-        'Referral realistic must be one of yes, no, or maybe.',
+      throw invalidField(
+        'referral_realistic',
+        'must be one of yes, no, or maybe.',
+        dto.referral_realistic,
       );
     }
     if (
@@ -244,8 +280,10 @@ export class ResourcesService {
       (typeof dto.outreach_date !== 'string' ||
         !isISO8601(dto.outreach_date, { strict: true }))
     ) {
-      throw new BadRequestException(
-        'Outreach date must be a valid date, e.g. 2026-10-05.',
+      throw invalidField(
+        'outreach_date',
+        'must be a valid date, e.g. 2026-10-05.',
+        dto.outreach_date,
       );
     }
     if (
@@ -253,8 +291,10 @@ export class ResourcesService {
       (typeof dto.last_verified_date !== 'string' ||
         !isISO8601(dto.last_verified_date, { strict: true }))
     ) {
-      throw new BadRequestException(
-        'Last verified date must be a valid date, e.g. 2026-10-05.',
+      throw invalidField(
+        'last_verified_date',
+        'must be a valid date, e.g. 2026-10-05.',
+        dto.last_verified_date,
       );
     }
     if (
@@ -263,8 +303,10 @@ export class ResourcesService {
         (dto.overall_rating as number) < 1 ||
         (dto.overall_rating as number) > 5)
     ) {
-      throw new BadRequestException(
-        'Overall rating must be an integer from 1 to 5.',
+      throw invalidField(
+        'overall_rating',
+        'must be an integer from 1 to 5.',
+        dto.overall_rating,
       );
     }
     if (
@@ -272,62 +314,92 @@ export class ResourcesService {
       (typeof dto.interaction_notes !== 'string' ||
         !dto.interaction_notes.trim())
     ) {
-      throw new BadRequestException('Interaction notes are required.');
+      throw invalidField(
+        'interaction_notes',
+        'is required and must be non-empty text.',
+        dto.interaction_notes,
+      );
     }
     if (
       shouldCheck(dto.accessibility_notes) &&
       (typeof dto.accessibility_notes !== 'string' ||
         !dto.accessibility_notes.trim())
     ) {
-      throw new BadRequestException('Accessibility notes are required.');
+      throw invalidField(
+        'accessibility_notes',
+        'is required and must be non-empty text.',
+        dto.accessibility_notes,
+      );
     }
     if (
       shouldCheck(dto.red_flag_concerns) &&
       (typeof dto.red_flag_concerns !== 'string' ||
         !dto.red_flag_concerns.trim())
     ) {
-      throw new BadRequestException('Red flag concerns are required.');
+      throw invalidField(
+        'red_flag_concerns',
+        'is required and must be non-empty text.',
+        dto.red_flag_concerns,
+      );
     }
     if (
       shouldCheck(dto.referral_notes) &&
       (typeof dto.referral_notes !== 'string' || !dto.referral_notes.trim())
     ) {
-      throw new BadRequestException('Referral notes are required.');
+      throw invalidField(
+        'referral_notes',
+        'is required and must be non-empty text.',
+        dto.referral_notes,
+      );
     }
     if (
       shouldCheck(dto.strengths) &&
       (typeof dto.strengths !== 'string' || !dto.strengths.trim())
     ) {
-      throw new BadRequestException('Strengths are required.');
+      throw invalidField(
+        'strengths',
+        'is required and must be non-empty text.',
+        dto.strengths,
+      );
     }
     if (
       shouldCheck(dto.followup_needed) &&
       (typeof dto.followup_needed !== 'string' || !dto.followup_needed.trim())
     ) {
-      throw new BadRequestException('Follow-up needed is required.');
+      throw invalidField(
+        'followup_needed',
+        'is required and must be non-empty text.',
+        dto.followup_needed,
+      );
     }
     if (
       dto.can_refer_directly !== undefined &&
       typeof dto.can_refer_directly !== 'boolean'
     ) {
-      throw new BadRequestException(
-        'Can refer directly must be true or false.',
+      throw invalidField(
+        'can_refer_directly',
+        'must be true or false.',
+        dto.can_refer_directly,
       );
     }
     if (
       dto.has_referral_contact !== undefined &&
       typeof dto.has_referral_contact !== 'boolean'
     ) {
-      throw new BadRequestException(
-        'Has referral contact must be true or false.',
+      throw invalidField(
+        'has_referral_contact',
+        'must be true or false.',
+        dto.has_referral_contact,
       );
     }
     if (
       dto.provides_followup !== undefined &&
       typeof dto.provides_followup !== 'boolean'
     ) {
-      throw new BadRequestException(
-        'Provides follow-up must be true or false.',
+      throw invalidField(
+        'provides_followup',
+        'must be true or false.',
+        dto.provides_followup,
       );
     }
     if (
@@ -335,11 +407,17 @@ export class ResourcesService {
       (!Array.isArray(dto.tags) ||
         !dto.tags.every((tag) => Number.isInteger(tag)))
     ) {
-      throw new BadRequestException('Tags must be a list of integer tag IDs.');
+      throw invalidField(
+        'tags',
+        'must be a list of integer tag IDs.',
+        dto.tags,
+      );
     }
     if (dto.custom_tags !== undefined && !Array.isArray(dto.custom_tags)) {
-      throw new BadRequestException(
-        'Custom tags must be a list of { group, other_text }.',
+      throw invalidField(
+        'custom_tags',
+        'must be a list of { group, other_text }.',
+        dto.custom_tags,
       );
     }
   }
@@ -356,14 +434,19 @@ export class ResourcesService {
       dto.review_status !== undefined &&
       !Object.values(ReviewStatus).includes(dto.review_status as ReviewStatus)
     ) {
-      throw new BadRequestException('Review status must be a valid option.');
+      throw invalidField(
+        'review_status',
+        `must be one of: ${Object.values(ReviewStatus).join(', ')}.`,
+        dto.review_status,
+      );
     }
   }
 
   /**
    * Creates a new resource after validating its fields.
    *
-   * Only the fields in CreateResourceDto are saved; anything else in the request body is ignored.
+   * Only the fields in CreateResourceDto are accepted; a field the server manages itself (e.g. resource_id, completed_by, review_status)
+   * or an unknown field is rejected instead of being silently dropped.
    * The overall rating is saved with the resource's Score, and tags are resolved in the same transaction.
    *
    * @param createResourceDto The fields provided for the new resource.
@@ -371,7 +454,8 @@ export class ResourcesService {
    *
    * @returns A promise that resolves to the newly created Resource entity, including its generated resource_id.
    *
-   * @throws BadRequestException (400) if a field fails validation, e.g. an empty name, an unknown county or a malformed zip code.
+   * @throws BadRequestException (400) if the body has a field that can't be set on creation (the message names it),
+   * or a field fails validation, e.g. an empty name, an unknown county or a malformed zip code.
    * The message names the invalid field.
    * @throws ForbiddenException (403) if no user account matches the authenticated email.
    * @throws InternalServerErrorException (500) if the database fails to save the resource, e.g. the database is unreachable.
@@ -381,6 +465,15 @@ export class ResourcesService {
     createResourceDto: CreateResourceDto,
     email?: string,
   ): Promise<Resource> {
+    const unsettableFields = Object.keys(createResourceDto).filter(
+      (field) => !(CREATABLE_FIELDS as string[]).includes(field),
+    );
+    if (unsettableFields.length > 0) {
+      throw new BadRequestException(
+        `Field(s) can't be set when creating a resource: ${unsettableFields.join(', ')}. Allowed fields are: ${CREATABLE_FIELDS.join(', ')}.`,
+      );
+    }
+
     this.validateResourceFields(createResourceDto);
 
     const user = email ? await this.usersService.findByEmail(email) : null;
@@ -392,9 +485,6 @@ export class ResourcesService {
 
     const { tags, custom_tags, overall_rating, ...resourceFields } =
       createResourceDto;
-    for (const field of SERVER_MANAGED_FIELDS) {
-      delete (resourceFields as Record<string, unknown>)[field];
-    }
 
     try {
       return await this.repo.manager.transaction(async (manager) => {
@@ -437,7 +527,7 @@ export class ResourcesService {
    *
    * @returns A promise that resolves to the full updated Resource entity, including the fields that weren't changed.
    *
-   * @throws BadRequestException (400) if the body contains no editable fields, or if a sent field fails validation,
+   * @throws BadRequestException (400) if the body contains a field that can't be updated (the message names it), has no editable fields, or if a sent field fails validation,
    * e.g. a blank name, an unknown county or a malformed zip code. The message names the invalid field.
    * @throws NotFoundException (404) if no resource exists with the given id.
    * @throws InternalServerErrorException (500) if the database fails while looking up or saving the resource, e.g. the database is unreachable.
@@ -447,6 +537,15 @@ export class ResourcesService {
     id: number,
     updateResourceDto: UpdateResourceDto,
   ): Promise<Resource> {
+    const uneditableFields = Object.keys(updateResourceDto).filter(
+      (field) => !EDITABLE_FIELDS.includes(field as keyof UpdateResourceDto),
+    );
+    if (uneditableFields.length > 0) {
+      throw new BadRequestException(
+        `Field(s) can't be updated: ${uneditableFields.join(', ')}. Editable fields are: ${EDITABLE_FIELDS.join(', ')}.`,
+      );
+    }
+
     this.validateResourceFields(updateResourceDto, true);
     this.validateUpdateOnlyFields(updateResourceDto);
 
