@@ -17,6 +17,23 @@ describe('ScoreService', () => {
     service = new ScoreService({} as Repository<Score>);
   });
 
+  describe('findIdsByOverallRating', () => {
+    it('returns the IDs of the scores with the given rating', async () => {
+      const repo = {
+        find: jest.fn().mockResolvedValue([
+          { score_id: 3, overall_rating: 5 },
+          { score_id: 7, overall_rating: 5 },
+        ]),
+      };
+      service = new ScoreService(repo as unknown as Repository<Score>);
+
+      await expect(service.findIdsByOverallRating(5)).resolves.toEqual([3, 7]);
+      expect(repo.find).toHaveBeenCalledWith({
+        where: { overall_rating: 5 },
+      });
+    });
+  });
+
   describe('create', () => {
     it('creates and saves a score using the supplied transaction', async () => {
       const score = { score_id: 12, overall_rating: 5 };

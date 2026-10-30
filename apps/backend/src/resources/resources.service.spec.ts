@@ -67,7 +67,7 @@ describe('ResourcesService', () => {
   };
   let tagsService: { resolveForResource: jest.Mock };
   let usersService: { findByEmail: jest.Mock };
-  let scoreService: { create: jest.Mock };
+  let scoreService: { create: jest.Mock; findIdsByOverallRating: jest.Mock };
   let repository: {
     manager: { transaction: jest.Mock };
     find: jest.Mock;
@@ -93,6 +93,7 @@ describe('ResourcesService', () => {
     };
     scoreService = {
       create: jest.fn().mockResolvedValue({ score_id: 12 }),
+      findIdsByOverallRating: jest.fn().mockResolvedValue([12]),
     };
     repository = {
       manager: {
@@ -255,6 +256,8 @@ describe('ResourcesService', () => {
       const body = {
         ...requiredFields,
         resource_id: 99,
+        needs_changes_notes: 'injected',
+        submission_rejection_notes: 'injected',
         tags: [1, 2],
         review_status: ReviewStatus.APPROVED_PUBLISHED,
         completed_by: 'Other User',
@@ -269,6 +272,14 @@ describe('ResourcesService', () => {
           completed_by: 'Jane Doe',
           review_status: ReviewStatus.PENDING_REVIEW,
         }),
+      );
+      expect(manager.create).not.toHaveBeenLastCalledWith(
+        Resource,
+        expect.objectContaining({ resource_id: 99 }),
+      );
+      expect(manager.create).not.toHaveBeenLastCalledWith(
+        Resource,
+        expect.objectContaining({ needs_changes_notes: 'injected' }),
       );
     });
 
@@ -394,6 +405,27 @@ describe('ResourcesService', () => {
       });
     });
 
+    it('matches overall_rating through the scores with that rating', async () => {
+      scoreService.findIdsByOverallRating.mockResolvedValue([3, 7]);
+      repository.find.mockResolvedValue([makeResource(1)]);
+
+      await service.find({ county: County.SUFFOLK, overall_rating: 5 });
+
+      expect(scoreService.findIdsByOverallRating).toHaveBeenCalledWith(5);
+      expect(repository.find).toHaveBeenCalledWith({
+        where: { county: County.SUFFOLK, score_id: In([3, 7]) },
+      });
+    });
+
+    it('throws NotFoundException when no score has the given overall_rating', async () => {
+      scoreService.findIdsByOverallRating.mockResolvedValue([]);
+      repository.find.mockResolvedValue([]);
+
+      await expect(service.find({ overall_rating: 1 })).rejects.toThrow(
+        new NotFoundException('No resources found matching the given fields.'),
+      );
+    });
+
     it('throws NotFoundException when no resources match the given fields', async () => {
       repository.find.mockResolvedValue([]);
 
@@ -416,6 +448,11 @@ describe('ResourcesService', () => {
       ],
       ['county', { county: 'Atlantis' }, COUNTY_MESSAGE],
       ['zip_code', { zip_code: '2118' }, ZIP_CODE_MESSAGE],
+      [
+        'overall_rating (out of range)',
+        { overall_rating: 6 },
+        'Overall rating must be an integer from 1 to 5.',
+      ],
       [
         'tags (not a list)',
         { tags: 'abc' },
