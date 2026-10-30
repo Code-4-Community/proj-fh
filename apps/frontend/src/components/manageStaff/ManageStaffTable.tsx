@@ -7,14 +7,13 @@ import { ManageStaffTableProps } from './types';
  * class that sets its width.
  */
 
-
 const COLUMNS = [
-    { label: 'Name', className: 'manage-staff-col-name' },
-    { label: 'Email', className: 'manage-staff-col-email' },
-    { label: 'Role', className: 'manage-staff-col-role' },
-    { label: 'Date Added', className: 'manage-staff-col-date-added' },
-    { label: 'Status', className: 'manage-staff-col-status' },
-    { label: 'Actions', className: 'manage-staff-col-actions' },
+  { label: 'Name', className: 'manage-staff-col-name' },
+  { label: 'Email', className: 'manage-staff-col-email' },
+  { label: 'Role', className: 'manage-staff-col-role' },
+  { label: 'Date Added', className: 'manage-staff-col-date-added' },
+  { label: 'Status', className: 'manage-staff-col-status' },
+  { label: 'Actions', className: 'manage-staff-col-actions' },
 ];
 
 /**
@@ -26,11 +25,10 @@ const COLUMNS = [
  * @returns The table element.
  */
 
-
-const ManageStaffTable = ({ 
-    staffUsers, 
-    onRemoveClick
- }: ManageStaffTableProps) => (
+const ManageStaffTable = ({
+  staffUsers,
+  onRemoveClick,
+}: ManageStaffTableProps) => (
   <Table.Root unstyled className="manage-staff-table">
     <Table.ColumnGroup>
       {COLUMNS.map(({ label, className }) => (

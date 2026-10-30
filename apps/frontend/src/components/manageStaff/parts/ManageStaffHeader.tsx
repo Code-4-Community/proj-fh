@@ -1,7 +1,6 @@
 import { Button, Flex, Heading, Text } from '@chakra-ui/react';
 import { ManageStaffHeaderProps } from '../types';
 
-
 /**
  * Page header: the Staff Management title and subtitle on the left and the
  * Add Staff button on the right. `unstyled` leaves the button's styling to
@@ -13,8 +12,8 @@ import { ManageStaffHeaderProps } from '../types';
 
 const ManageStaffHeader = ({ onAddStaffClick }: ManageStaffHeaderProps) => (
   <Flex justify="space-between" align="center">
-    <Flex direction="column" className="manage-staff-heading">      
-        <Heading as="h1" className="manage-staff-title">
+    <Flex direction="column" className="manage-staff-heading">
+      <Heading as="h1" className="manage-staff-title">
         Staff Management
       </Heading>
       <Text className="manage-staff-subtitle">Add or remove staff users</Text>
@@ -24,7 +23,7 @@ const ManageStaffHeader = ({ onAddStaffClick }: ManageStaffHeaderProps) => (
       className="manage-staff-add-button"
       onClick={onAddStaffClick}
     >
-        Add Staff
+      Add Staff
     </Button>
   </Flex>
 );
