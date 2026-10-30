@@ -468,7 +468,7 @@ describe('ResourcesService', () => {
     });
   });
 
-  describe('validation', () => {
+  describe('create validation', () => {
     it.each<
       [string, Partial<Record<keyof CreateResourceDto, unknown>>, string]
     >([
