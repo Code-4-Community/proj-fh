@@ -1,5 +1,5 @@
 import { FormEvent, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { isAmplifyConfigured } from '../auth/amplify';
 import {
   completeNewPasswordChallenge,
@@ -15,6 +15,10 @@ import { getIdentityAfterSignIn } from '../auth/backendIdentity';
 const LoginForm = () => {
   // navigate function from react-router-dom to programmatically navigate between routes
   const navigate = useNavigate();
+  // Set by the forgot-password flow after a successful reset so we can tell the user to log in again
+  const passwordReset = (
+    useLocation().state as { passwordReset?: boolean } | null
+  )?.passwordReset;
   // The email of the user
   const [email, setEmail] = useState('');
   // The password of the user, this is only given to AWS Cognito/Amplify during sign-in
@@ -93,6 +97,9 @@ const LoginForm = () => {
           root .env using the Cognito Terraform outputs.
         </p>
       )}
+      {passwordReset && (
+        <p role="status">Your password was changed. Please log in again.</p>
+      )}
       <form onSubmit={handleSubmit}>
         <label htmlFor="email">Email</label>
         <input
@@ -153,6 +160,9 @@ const LoginForm = () => {
               : 'Sign in'}
         </button>
       </form>
+      <p>
+        <Link to="/forgot-password">Forgot password?</Link>
+      </p>
     </main>
   );
 };
