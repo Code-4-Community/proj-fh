@@ -1,8 +1,10 @@
 import {
+  confirmResetPassword,
   fetchAuthSession,
   fetchUserAttributes,
   getCurrentUser,
   confirmSignIn,
+  resetPassword,
   signIn,
   signOut,
 } from 'aws-amplify/auth';
@@ -74,6 +76,46 @@ export const completeNewPasswordChallenge = async (
       `Cognito requires another sign-in step: ${result.nextStep.signInStep}.`,
     );
   }
+};
+
+/**
+ * Starts Cognito's forgot-password flow, which emails the user a verification code.
+ *
+ * The result of the call is deliberately discarded: Cognito's delivery details (such as the masked
+ * destination address) only exist for real accounts, so exposing them would reveal whether an account exists.
+ * Errors are rethrown untouched, callers decide how to present them (see passwordReset.ts).
+ *
+ * @param email The email address of the account to reset.
+ * @returns A promise that resolves once Cognito has accepted the request.
+ * @throws An error if Amplify is not configured or Cognito rejects the request (e.g. UserNotFoundException, LimitExceededException).
+ */
+export const requestPasswordReset = async (email: string): Promise<void> => {
+  requireConfiguration();
+  await resetPassword({ username: email });
+};
+
+/**
+ * Completes Cognito's forgot-password flow with the emailed verification code and the new password.
+ * This does not sign the user in. Neither the code nor the password is logged.
+ *
+ * @param email The email address of the account being reset.
+ * @param code The verification code Cognito emailed to the user.
+ * @param newPassword The new password to set for the account.
+ * @returns A promise that resolves once the password has been changed.
+ * @throws An error if Amplify is not configured or Cognito rejects the request
+ * (e.g. CodeMismatchException, ExpiredCodeException, InvalidPasswordException, LimitExceededException).
+ */
+export const confirmPasswordReset = async (
+  email: string,
+  code: string,
+  newPassword: string,
+): Promise<void> => {
+  requireConfiguration();
+  await confirmResetPassword({
+    username: email,
+    confirmationCode: code,
+    newPassword,
+  });
 };
 
 /**

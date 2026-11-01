@@ -9,6 +9,9 @@ import ManageResources from '@containers/ManageResources';
 import ManageStaff from '@containers/ManageStaff';
 import Profile from '@containers/Profile';
 import AppLayout from '@containers/AppLayout';
+import ForgotPassword from '@containers/forgotPassword';
+import ForgotPasswordRequestForm from '@components/ForgotPasswordRequestForm';
+import ForgotPasswordConfirmForm from '@components/ForgotPasswordConfirmForm';
 
 /**
  * The main application component that sets up the router and provides it to the React application.
@@ -38,6 +41,14 @@ const router = createBrowserRouter([
       { path: '/profile', element: <Profile /> },
     ],
     errorElement: <NotFound />
+  },
+  {
+    path: '/forgot-password',
+    element: <ForgotPassword />,
+    children: [
+      { index: true, element: <ForgotPasswordRequestForm /> },
+      { path: 'confirm', element: <ForgotPasswordConfirmForm /> },
+    ],
   },
 ]);
 
