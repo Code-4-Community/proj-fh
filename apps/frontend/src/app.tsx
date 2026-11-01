@@ -12,6 +12,7 @@ import AppLayout from '@containers/AppLayout';
 import ForgotPassword from '@containers/forgotPassword';
 import ForgotPasswordRequestForm from '@components/ForgotPasswordRequestForm';
 import ForgotPasswordConfirmForm from '@components/ForgotPasswordConfirmForm';
+import ModalDemo from '@containers/ModalDemo';
 
 /**
  * The main application component that sets up the router and provides it to the React application.
@@ -20,6 +21,7 @@ import ForgotPasswordConfirmForm from '@components/ForgotPasswordConfirmForm';
  * Root route: Renders the main application container (Root component). This is necessary but the components may change
  * Test route: Temporary test component that comes from Scaffolding
  * Success route: Temporary route that displays a success page, right now configured specifically for success in signing in.
+ * Modal demo route: Unlinked page for trying the six Modal configurations
  */
 const router = createBrowserRouter([
   {
@@ -30,6 +32,10 @@ const router = createBrowserRouter([
   {
     path: '/test',
     element: <Test />,
+  },
+  {
+    path: '/modal-demo',
+    element: <ModalDemo />,
   },
   {
     element: <AppLayout />,
