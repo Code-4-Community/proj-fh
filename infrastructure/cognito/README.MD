@@ -8,6 +8,7 @@ This Terraform configuration creates the app's Cognito user pool and public fron
 - Self-service sign-up, verified-email account recovery, and the reference password policy.
 - A public client without a client secret, supporting refresh-token, password, and SRP authentication.
 - Client read access to `email` and `email_verified`, so Cognito ID tokens include the email claims when those attributes are present.
+- An attachable role for the backend to assume and use to make calls to other services
 
 Cognito ID tokens contain the user's email claim. Cognito access tokens do not include email by default; send the ID token to an API that needs to read the email claim, or add a pre-token-generation trigger if an access token must carry email.
 
