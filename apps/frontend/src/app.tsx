@@ -14,6 +14,7 @@ import ForgotPassword from '@containers/forgotPassword';
 import ForgotPasswordRequestForm from '@components/ForgotPasswordRequestForm';
 import ForgotPasswordConfirmForm from '@components/ForgotPasswordConfirmForm';
 import ModalDemo from '@containers/ModalDemo';
+import EditResource from '@containers/EditResource';
 
 /**
  * The main application component that sets up the router and provides it to the React application.
@@ -23,6 +24,7 @@ import ModalDemo from '@containers/ModalDemo';
  * Test route: Temporary test component that comes from Scaffolding
  * Success route: Temporary route that displays a success page, right now configured specifically for success in signing in.
  * Modal demo route: Unlinked page for trying the six Modal configurations
+ * Edit resource route: Unlinked page for the Edit Resource design, reached by typing /edit-resource
  */
 const router = createBrowserRouter([
   {
@@ -45,6 +47,7 @@ const router = createBrowserRouter([
       { path: '/review-queue', element: <ReviewQueue /> },
       { path: '/resources', element: <ManageResources /> },
       { path: '/resources/:resourceId/edit', element: <ResourceEdit /> },
+      { path: '/edit-resource', element: <EditResource /> },
       { path: '/manage-staff', element: <ManageStaff /> },
       { path: '/profile', element: <Profile /> },
     ],
