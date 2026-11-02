@@ -6,6 +6,7 @@ import Test from '@containers/Test';
 import Success from '@containers/Success';
 import ReviewQueue from '@containers/ReviewQueue';
 import ManageResources from '@containers/ManageResources';
+import ResourceEdit from '@containers/ResourceEdit';
 import ManageStaff from '@containers/ManageStaff';
 import Profile from '@containers/Profile';
 import AppLayout from '@containers/AppLayout';
@@ -37,6 +38,7 @@ const router = createBrowserRouter([
       { path: '/success', element: <Success /> },
       { path: '/review-queue', element: <ReviewQueue /> },
       { path: '/resources', element: <ManageResources /> },
+      { path: '/resources/:resourceId/edit', element: <ResourceEdit /> },
       { path: '/manage-staff', element: <ManageStaff /> },
       { path: '/profile', element: <Profile /> },
     ],

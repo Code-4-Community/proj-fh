@@ -13,7 +13,7 @@ export const CATEGORY_LABEL: Record<Category, string> = {
 /**
  * CSS variant of the status badge, named by appearance rather than the status itself.
  */
-export type ResourceStatusBadgeVariant = 'filled-light' | 'outlined';
+export type ResourceStatusBadgeVariant = 'filled-light' | 'outlined' | 'filled-dark';
 
 /**
  * Badge variant for each resource status. Change a status's look here.
@@ -25,7 +25,7 @@ export const RESOURCE_STATUS_BADGE_VARIANT: Record<
   [ResourceStatus.PENDING_REVIEW]: 'filled-light',
   [ResourceStatus.APPROVED_PUBLISHED]: 'filled-light',
   [ResourceStatus.NEEDS_CHANGES]: 'outlined',
-  [ResourceStatus.REJECTED]: 'outlined',
+  [ResourceStatus.REJECTED]: 'filled-dark',
   [ResourceStatus.ARCHIVED]: 'outlined',
 };
 
@@ -81,22 +81,6 @@ export interface ReviewQueueFilters {
   status: ResourceStatus | '';
   /** Search text matched against resource names. */
   search: string;
-}
-
-/**
- * Props for the review queue page.
- */
-export interface ReviewQueuePageProps {
-  /** Page title. */
-  title: string;
-  /** Short description shown under the title. */
-  subtitle: string;
-  /** Current filter selections. */
-  filters: ReviewQueueFilters;
-  /** Called with the full updated filters whenever any control changes. */
-  onFiltersChange: (filters: ReviewQueueFilters) => void;
-  /** Resources to show, already filtered. */
-  resources: ReviewQueueResource[];
 }
 
 /**

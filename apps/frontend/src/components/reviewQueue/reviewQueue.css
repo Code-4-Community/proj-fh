@@ -4,7 +4,7 @@
 .review-queue {
   --review-queue-section-gap: 32px;
   --review-queue-content-gap: 24px;
-  --review-queue-heading-gap: 4px;
+  --review-queue-heading-gap: 8px;
   --review-queue-filter-gap: 16px;
   --review-queue-label-gap: 6px;
   --review-queue-title-font-size: 20px;
@@ -20,11 +20,11 @@
   --review-queue-row-height: 44px;
   --review-queue-cell-padding-x: 12px;
   --review-queue-badge-padding: 4px 8px;
-  --review-queue-col-name-width: 41%;
+  --review-queue-col-name-width: 38%;
   --review-queue-col-category-width: 16.5%;
   --review-queue-col-submitted-by-width: 16.5%;
   --review-queue-col-date-width: 12.5%;
-  --review-queue-col-status-width: 13.5%;
+  --review-queue-col-status-width: 16.5%;
   --review-queue-focus-outline: 2px solid var(--color-text);
   --review-queue-focus-offset: 2px;
 
@@ -204,6 +204,11 @@
 
 .review-queue-badge-filled-light {
   background: var(--color-surface-subtle);
+}
+
+.review-queue-badge-filled-dark {
+  background: var(--color-text);
+  color: var(--color-surface);
 }
 
 .review-queue-badge-outlined {
