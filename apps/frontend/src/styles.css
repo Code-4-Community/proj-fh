@@ -14,6 +14,11 @@
   --color-surface: #fff;
   --color-surface-muted: #d9d9d9;
   --color-accent: #00a3e0;
+  --color-text-body: #27272a;
+  --color-text-muted: #52525b;
+  --color-text-placeholder: #a1a1aa;
+  --color-border: #e4e4e7;
+  --color-surface-subtle: #f4f4f5;
 
   /* Shape */
   --radius-round: 50%;

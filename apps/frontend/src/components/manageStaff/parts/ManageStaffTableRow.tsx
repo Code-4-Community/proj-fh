@@ -1,19 +1,7 @@
 import { Button, Table } from '@chakra-ui/react';
+import { formatDate } from '../../../utils/formatDate';
 import ManageStaffStatusBadge from './ManageStaffStatusBadge';
 import { ManageStaffTableRowProps, STAFF_ROLE_LABEL } from '../types';
-
-/**
- * Formats a date as mm/dd/yyyy.
- *
- * @param date - The date to format.
- * @returns The formatted date.
- */
-const formatDate = (date: Date) =>
-  date.toLocaleDateString('en-US', {
-    month: '2-digit',
-    day: '2-digit',
-    year: 'numeric',
-  });
 
 /**
  * One row of the staff table: name, email, role, date added, status, and a
