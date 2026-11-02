@@ -16,6 +16,12 @@ export enum Category {
   OTHER = 'other',
 }
 
+/** Display labels for each Category, used wherever a category is shown to users. */
+export const CATEGORY_LABELS: Record<Category, string> = {
+  [Category.FOOD_ACCESS]: 'Food',
+  [Category.HOUSING]: 'Housing',
+  [Category.OTHER]: 'Other',
+}
 /**
  * Where a Resource is in the review process.
  * Values are the exact text shown in the UI.

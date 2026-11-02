@@ -26,6 +26,7 @@ import { Status } from './types';
 import ModalDemo from '@containers/dev/ModalDemo';
 import AnonymousLayout from '@containers/shared/AnonymousLayout';
 import PublicResources from '@containers/public/PublicResources';
+import EditResource from '@containers/EditResource';
 
 /**
  * The main application component that sets up the router and provides it to the React application.
@@ -65,8 +66,9 @@ const router = createBrowserRouter([
           { path: '/home', element: <Home /> },
           { path: '/review-queue', element: <ReviewQueue /> },
           { path: '/resources', element: <ManageResources /> },
-          { path: '/resources/:resourceId/edit', element: <ResourceEdit /> },
+          { path: '/resources/:resourceId/edit', element: <EditResource /> },
           { path: '/manage-staff', element: <ManageStaff /> },
+           { path: '/profile', element: <Profile /> },
         ],
       },
     ],
