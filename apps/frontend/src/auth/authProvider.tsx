@@ -82,7 +82,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setAuthState('unauthenticated');
   }, []);
 
+  // Fetches the current user once when the app starts. The lint rule flags refresh's
+  // setAuthState('loading'), but authState already starts as 'loading', so that update
+  // doesn't cause an extra render.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void refresh();
   }, [refresh]);
 
