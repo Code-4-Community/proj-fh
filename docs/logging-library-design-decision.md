@@ -77,6 +77,7 @@ The consequence of Option A is that the log stream has two formats until a later
   - Headers: Pino `redact` on `req.headers.authorization` and `req.headers.cookie` (and `set-cookie` on responses).
   - Body fields: Pino does not log bodies by default. The request serializer includes the body only after the fields `password`, `token`, `accessToken`, `idToken`, `refreshToken`, `access_token`, `id_token`, and `refresh_token` are replaced with `[Redacted]`.
   - URLs: the serializer rewrites query parameters whose names are in the token list, so `?access_token=abc` is logged as `?access_token=[Redacted]`.
+    - `code` is treated as sensitive (OAuth authorization codes), so a body field or query parameter with that exact name is also redacted.
 
 ## 6. Limitations and open questions
 
