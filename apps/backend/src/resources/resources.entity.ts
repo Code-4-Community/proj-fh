@@ -1,12 +1,33 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
-import { Category, County } from './types';
+import {
+  Check,
+  Column,
+  CreateDateColumn,
+  Entity,
+  Index,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+import {
+  Category,
+  County,
+  PublicField,
+  Recommendation,
+  ResponseTime,
+  ReviewStatus,
+  YesNoMaybe,
+} from './types';
 
 /**
  * Represents a Resource entity.
  *
  * This entity is used to store data sources like food pantries or housing programs.
+ * Its columns follow the Food and Housing vetting forms (see docs/resources-tags-form-field-mapping.md).
  */
 @Entity()
+@Check('CHK_resources_responsiveness', '"responsiveness" BETWEEN 1 AND 5')
+@Index('IDX_resources_category', ['category'])
+@Index('IDX_resources_county', ['county'])
+@Index('IDX_resources_zip_code', ['zip_code'])
 export class Resource {
   /**
    * Unique ID of a Resource.
@@ -15,7 +36,10 @@ export class Resource {
    *
    * E.g. 1, 2, 3, 4, 5
    */
-  @PrimaryGeneratedColumn({ type: 'int' })
+  @PrimaryGeneratedColumn({
+    type: 'int',
+    primaryKeyConstraintName: 'PK_resources_resource_id',
+  })
   resource_id!: number;
 
   /**
@@ -28,31 +52,28 @@ export class Resource {
   score_id!: number;
 
   /**
-   * The name of the Resource, representing the title used to identify it.
-   * This is a string value that provides a meaningful representation of the resource for display purposes.
+   * The name of the organization that runs the Resource.
    *
    * E.g. 'Greater Boston Food Bank', 'Pine Street Inn'
    */
   @Column({ type: 'varchar', length: 255 })
-  name!: string;
+  organization_name!: string;
 
   /**
-   * The category (or categories) the Resource belongs to.
-   * This is stored as an array since a single Resource may span more than one Category.
+   * The name of the specific program the Resource describes.
    *
-   * E.g. [Category.FOOD_ACCESS], [Category.HOUSING, Category.OTHER]
+   * E.g. 'Weekly Pantry'
    */
-  @Column({ type: 'enum', enum: Category, array: true })
-  category!: Category[];
+  @Column({ type: 'varchar', length: 255 })
+  program_name!: string;
 
   /**
-   * A free-text description of the Resource providing further detail beyond its name.
-   * This is a string value that gives additional context about what the resource offers.
+   * The category the Resource belongs to. Each Resource has exactly one.
    *
-   * E.g. 'Provides free groceries and hot meals to families in the Greater Boston area.'
+   * E.g. Category.FOOD_ACCESS, Category.HOUSING
    */
-  @Column({ type: 'text', nullable: true })
-  description?: string;
+  @Column({ type: 'enum', enum: Category, enumName: 'category' })
+  category!: Category;
 
   /**
    * The street address of the Resource's location.
@@ -69,7 +90,7 @@ export class Resource {
    *
    * E.g. County.SUFFOLK, County.MIDDLESEX
    */
-  @Column({ type: 'enum', enum: County })
+  @Column({ type: 'enum', enum: County, enumName: 'county' })
   county!: County;
 
   /**
@@ -109,6 +130,21 @@ export class Resource {
   website?: string;
 
   /**
+   * The contact fields approved for display on the public website.
+   * A contact field that is not listed here is non-public.
+   *
+   * E.g. [PublicField.WEBSITE, PublicField.PHONE]
+   */
+  @Column({
+    type: 'enum',
+    enum: PublicField,
+    enumName: 'public_field',
+    array: true,
+    default: '{}',
+  })
+  public_fields!: PublicField[];
+
+  /**
    * A written description of who is eligible to use the Resource.
    * This is a string value that details any restrictions or requirements for access.
    *
@@ -118,7 +154,20 @@ export class Resource {
   eligibility?: string;
 
   /**
-   * The date the Resource's information was last verified.
+   * Where the Resource is in the review workflow.
+   *
+   * E.g. ReviewStatus.PENDING_REVIEW
+   */
+  @Column({
+    type: 'enum',
+    enum: ReviewStatus,
+    enumName: 'review_status',
+    default: ReviewStatus.PENDING_REVIEW,
+  })
+  review_status!: ReviewStatus;
+
+  /**
+   * The date the Resource's information was last verified (the form's "Date Information Verified").
    * This is set when the Resource is created and is expected to be updated as it's re-verified over time.
    *
    * E.g. new Date('2026-01-15')
@@ -127,29 +176,186 @@ export class Resource {
   last_verified_date!: Date;
 
   /**
-   * The vetting status of the Resource, indicating how much its information has been verified.
-   * This is stored as plain text for now since the verification/scoring process hasn't been finalized.
+   * The name of the staff member who completed the vetting form. Copied once from the logged-in user
+   * when the resource is created, so it stays correct if that user is later renamed or deleted.
    *
-   * E.g. 'verified', 'pending review'
+   * E.g. 'Jane Doe'
    */
   @Column({ type: 'varchar', length: 255 })
-  vetting_status!: string;
+  completed_by!: string;
 
   /**
-   * Internal notes left by a reviewer while vetting the Resource.
-   * This is a string value intended for internal use only and won't exist for every resource.
+   * The date the staff member reached out to the organization.
    *
-   * E.g. 'Called and confirmed hours; still need to verify eligibility requirements.'
+   * E.g. new Date('2026-01-10')
+   */
+  @Column({ type: 'date' })
+  outreach_date!: Date;
+
+  /**
+   * The name of the organization's staff contact.
+   *
+   * E.g. 'Sam Lee'
+   */
+  @Column({ type: 'varchar', length: 255 })
+  staff_contact_name!: string;
+
+  /**
+   * The role of the organization's staff contact.
+   *
+   * E.g. 'Program Manager'
+   */
+  @Column({ type: 'varchar', length: 255 })
+  staff_contact_role!: string;
+
+  /**
+   * How responsive the organization was, from 1 (unable to contact) to 5 (very responsive).
+   *
+   * E.g. 1, 3, 5
+   */
+  @Column({ type: 'smallint' })
+  responsiveness!: number;
+
+  /**
+   * How quickly the organization responded to outreach.
+   *
+   * E.g. ResponseTime.SAME_DAY
+   */
+  @Column({ type: 'enum', enum: ResponseTime, enumName: 'response_time' })
+  response_time!: ResponseTime;
+
+  /**
+   * Notes on the interaction with the organization's staff.
+   *
+   * E.g. 'Replied by email within two days.'
+   */
+  @Column({ type: 'text' })
+  interaction_notes!: string;
+
+  /**
+   * Notes on the accessibility of the Resource.
+   *
+   * E.g. 'Near the Orange Line.'
+   */
+  @Column({ type: 'text' })
+  accessibility_notes!: string;
+
+  /**
+   * Optional notes about the program itself
+   * E.g. 'Open Saturdays only.'
    */
   @Column({ type: 'text', nullable: true })
-  reviewer_notes?: string;
+  program_notes?: string;
+
+  /**
+   * A description of the concerns behind any red flags selected for the organization.
+   *
+   * E.g. 'Limited hours.'
+   */
+  @Column({ type: 'text' })
+  red_flag_concerns!: string;
+
+  /**
+   * Whether Fenway Health can refer patients directly to the organization.
+   */
+  @Column({ type: 'boolean' })
+  can_refer_directly!: boolean;
+
+  /**
+   * Whether the organization has a direct referral contact.
+   */
+  @Column({ type: 'boolean' })
+  has_referral_contact!: boolean;
+
+  /**
+   * The name of the direct referral contact, when there is one.
+   *
+   * E.g. 'Sam Lee'
+   */
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  referral_contact?: string;
+
+  /**
+   * Whether the organization provides follow-up or referral updates.
+   */
+  @Column({ type: 'boolean' })
+  provides_followup!: boolean;
+
+  /**
+   * Whether the referral process seemed realistic and manageable for patients.
+   *
+   * E.g. YesNoMaybe.MAYBE
+   */
+  @Column({ type: 'enum', enum: YesNoMaybe, enumName: 'yes_no_maybe' })
+  referral_realistic!: YesNoMaybe;
+
+  /**
+   * Notes on the referral process.
+   *
+   * E.g. 'Email works best.'
+   */
+  @Column({ type: 'text' })
+  referral_notes!: string;
+
+  /**
+   * The reviewer's answer to whether they would refer Fenway Health patients to the organization.
+   *
+   * E.g. Recommendation.RECOMMEND_MINOR_CONCERNS
+   */
+  @Column({ type: 'enum', enum: Recommendation, enumName: 'recommendation' })
+  recommendation!: Recommendation;
+
+  /**
+   * The main strengths of the organization.
+   *
+   * E.g. 'Fresh produce, welcoming staff.'
+   */
+  @Column({ type: 'text' })
+  strengths!: string;
+
+  /**
+   * Any additional follow-up the reviewer thinks is needed.
+   *
+   * E.g. 'Confirm holiday hours.'
+   */
+  @Column({ type: 'text' })
+  followup_needed!: string;
+
+  /**
+   * Optional notes left by a reviewer when changes to the submission are requested.
+   *
+   * E.g. 'Please confirm the phone number.'
+   */
+  @Column({ type: 'text', nullable: true })
+  needs_changes_notes?: string;
+
+  /**
+   * Optional notes left by a reviewer when the submission is rejected.
+   *
+   * E.g. 'Duplicate of an existing resource.'
+   */
+  @Column({ type: 'text', nullable: true })
+  submission_rejection_notes?: string;
 
   /**
    * The list of Tag IDs associated with this Resource.
-   * This starts as an empty array when a Resource is created and can have Tag IDs added to it over time.
+   * This starts as an empty array when a Resource is created. There is no database foreign key,
+   * so the resources service checks that every ID exists.
    *
    * E.g. [], [1, 4, 7]
    */
   @Column({ type: 'int', array: true, default: '{}' })
   tags!: number[];
+
+  /**
+   * When the Resource was created.
+   */
+  @CreateDateColumn({ type: 'timestamptz' })
+  created_at!: Date;
+
+  /**
+   * When the Resource was last updated.
+   */
+  @UpdateDateColumn({ type: 'timestamptz' })
+  updated_at!: Date;
 }

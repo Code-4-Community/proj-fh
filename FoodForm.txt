@@ -1,0 +1,172 @@
+Fenway Health Food Vetting Form 
+* are required questions
+
+Section 1: Basic Information 
+Name of Staff Member Completing this Form*
+Short answer text
+
+Date of Outreach*
+Date
+
+Organization Name*
+Short answer text
+
+Program Name*
+Short answer text
+
+Website*
+Short answer text
+
+Phone Number*
+Short answer text
+
+Email Address*
+Short answer text
+
+Address 
+Short answer text
+
+What is the Zip Code?
+-	Short answer text 
+
+What Country is the Organization in?
+Suffolk County, Middlesex County, Norfolk County, Essex County, Worcester County, Plymouth County, Hampden County, Hampshire County, Berkshire County, Barnstable County, Bristol County, Dukes County, Nantucket County, Franklin County
+
+Which of the above can we display on the website*
+Multiple choice (multi-select) 
+Website, phone number, email address, address
+
+Staff Contact Name*
+Short answer text
+ 
+Staff Contact Name Role* 
+Short answer text
+
+Date Information Verified* 
+Date 
+
+
+Section 2: Food Program Information 
+Type of Food Assistance* 
+Multiple choice (multi-select) 
+Food pantry, Community meals, Grocery vouchers, SNAP/WIC enrollment assistance, Emergency food assistance, Mobile food distribution, Medically tailored meals, Cultural/ Religious Dietary Options, Accepts EBT, Food Assistance, Farm Training, Farmers Market, Discounted Food, Child Nutrition Programs  
+
+Food Types:
+Multiple Choice (Multi-select)
+Produce, Packaged Food, Bread, Prepared meal, Household supplies, Frozen food, Meat, Milk, Eggs
+Pricing
+-	Multiple choice (multi-select)
+Free or Reduced
+
+Population(s) served*
+Multiple choice (multi-select) 
+General population, Families, Youth, Older adults, LGBTQ+ individuals, Immigrants/refugees, People with disabilities, Unhoused individuals, Individuals with chronic illness, Other
+
+Frequency of Services* 
+Multiple choice (choose one)
+Daily, weekly, biweekly, monthly, emergency only, other 
+
+Observation* 
+Table 
+Food appeared organized, nutritional options available, cultural food options available, staff appeared respectful, environment felt welcoming 
+Yes, no, unsure
+
+
+
+Notes 
+Short answer text 
+
+Section 3: Initial Contact & Responsiveness 
+How did you interact with the organization?* 
+Multiple choice (multi-select) 
+Phone call, Email, In person visit, Website review, Virtual meeting, Other 
+Was the organization responsive?*
+1-5 
+1 → Unable to contact, 5 → Very responsive 
+
+Approximate response time*
+Multiple choice (choose one)
+Same Day, 1-3 days, 1 week+, No response 
+
+Notes on interaction with staff*
+Short answer text
+
+
+Section 4: Accessibility & Intake 
+Intake process* 
+Multiple choice (multi-select) 
+Walk-ins accepted, Appointment required, referral required, online application available, phone intake available, in-person intake only, other 
+
+Required Documentation* 
+Multiple choice (multi-select) 
+Government-issued ID, proof of address, proof of income, insurance information, social security number, referral form, immigration documentation, no documentation required, other 
+
+Accessibility Questions*
+Table thing 
+Near public transportation, ADA accessible, Multilingual services available, Website easy to navigate, Hours clearly listed, Intake process clearly explained
+Yes, no, unsure 
+
+Estimated wait time* 
+Multiple choice (choose one) 
+Same day, 1-7 days, 1-4 weeks, 1-3 months, more than 3 months, unknown, other 
+
+Please Describe the Eligibility Requirements:
+-	Free Text
+
+Accessibility notes* 
+Short answer text 
+
+
+Section 5: Cultural Competency & Inclusivity
+Observation* 
+Table 
+LGBTQ+ affirming environment, trauma-informed practices evident, staff culturally responsive, multilingual materials available, inclusive/nonjudgmental environments, gender-inclusive forms/policies
+Yes, no, unsure, inapplicable  
+
+What are red flags of this organization?*
+Multiple choice (multi-select) 
+Long waitlist, difficult intake process, limited resources, inconsistent hours, difficult intake process, poor communication, restrictive eligibility requirements, unsafe or unclean environment, lack of language access, outdated information online, transportation barriers, staff appeared dismissive/unhelpful, other 
+
+Describe concerns* 
+Short answer text 
+
+
+Section 6: Referral Process 
+Can Fenway Health refer directly to this organization?*
+Multiple choice (choose one)
+yes, no
+
+Is there a direct referral contact?*
+Multiple choice (choose one)
+Yes, no
+
+Who is the direct referral contact? 
+Short answer text
+
+Does the organization provide follow-up or referral updates?*
+Multiple choice (choose one)
+Yes, no
+
+Did the referral process seem realistic and manageable for patients?* 
+Multiple choice (choose one)
+Yes, no, maybe
+
+Referral Process Notes* 
+Short answer text 
+
+Section 7: Final Intern Assessment
+Would you feel comfortable referring Fenway Health patients here?* 
+Multiple choice (choose one)
+Yes – strongly recommend, Yes – recommend with minor concerns, Recommend with caution, No – not recommended currently, Needs additional review 
+
+Main strengths of organization* 
+Short answer text 
+
+Additional follow-up needed* 
+Short answer text 
+
+Based on your responses to this assessment, what is your overall rating of the organization?* 
+1-5 scale 
+1 → very poor, 5 —> excellent 
+
+

@@ -5,16 +5,24 @@ import {
   HttpStatus,
   Param,
   ParseArrayPipe,
-  ParseIntPipe,
   Patch,
   Post,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { ResourcesService } from './resources.service';
+import { ParseResourceIdPipe } from './parse-resource-id.pipe';
 import { Resource } from './resources.entity';
 import { FindResourceQueryDto } from './dto/find-resource-by-query.dto';
 import { CreateResourceDto } from './dto/create-resource.dto';
 import { UpdateResourceDto } from './dto/update-resource.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import type { AuthenticatedIdentity } from '../auth/authenticated-identity';
+
+type AuthenticatedRequest = {
+  user: AuthenticatedIdentity;
+};
 
 /**
  * Controller for managing resources. Provides endpoints for retrieving and managing resources in the system.
@@ -31,12 +39,17 @@ export class ResourcesController {
    *
    * @returns 201 with the newly created Resource entity.
    * Returns 400 with a message naming the invalid field if the body fails validation,
+   * 403 if no user record matches the authenticated email,
    * or 500 with a descriptive message if the resource can't be saved to the database.
    */
+  @UseGuards(JwtAuthGuard)
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  create(@Body() createResourceDto: CreateResourceDto): Promise<Resource> {
-    return this.resourcesService.create(createResourceDto);
+  create(
+    @Body() createResourceDto: CreateResourceDto,
+    @Req() request: AuthenticatedRequest,
+  ): Promise<Resource> {
+    return this.resourcesService.create(createResourceDto, request.user.email);
   }
 
   /**
@@ -45,14 +58,14 @@ export class ResourcesController {
    * @param updateResourceDto The fields to change.
    *
    * @returns 200 with the full updated Resource entity.
-   * Returns 400 if the id isn't an integer, the body has no editable fields, or a field fails validation (the message names the field),
+   * Returns 400 if the id isn't an integer, the body has a field that can't be updated (the message names it) or no editable fields, or a field fails validation (the message names the field),
    * 404 if no resource has the given id,
    * or 500 with a descriptive message if the database fails while looking up or saving the resource.
    */
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
   update(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseResourceIdPipe) id: number,
     @Body() updateResourceDto: UpdateResourceDto,
   ): Promise<Resource> {
     return this.resourcesService.update(id, updateResourceDto);
