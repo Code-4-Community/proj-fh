@@ -17,6 +17,18 @@ export enum Category {
 }
 
 /**
+ * Where a Resource is in the review process.
+ * Values are the exact text shown in the UI.
+ */
+export enum ResourceStatus {
+  PENDING_REVIEW = 'Pending Review',
+  APPROVED_PUBLISHED = 'Approved/Published',
+  NEEDS_CHANGES = 'Needs Changes',
+  REJECTED = 'Rejected',
+  ARCHIVED = 'Archived',
+}
+
+/**
  * Represents the Massachusetts county a Resource is located in.
  * Used to power the county filter on the client.
  */
