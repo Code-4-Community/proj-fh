@@ -1,11 +1,11 @@
 export default {
 	displayName: 'frontend',
 	preset: '../../jest.preset.js',
-	testEnvironment: 'node',
+	testEnvironment: 'jsdom',
 	transform: {
-		'^.+\\.[tj]s$': ['ts-jest', { tsconfig: '<rootDir>/tsconfig.spec.json' }],
+		'^.+\\.[tj]sx?$': ['ts-jest', { tsconfig: '<rootDir>/tsconfig.spec.json' }],
 	},
-	moduleFileExtensions: ['ts', 'js', 'html'],
-	testMatch: ['<rootDir>/src/**/*.spec.ts', '<rootDir>/src/**/*.test.ts'],
+	moduleFileExtensions: ['ts', 'tsx', 'js', 'html'],
+	testMatch: ['<rootDir>/src/**/*.spec.ts(x)', '<rootDir>/src/**/*.test.ts?(x)'],
 	coverageDirectory: '../../coverage/apps/frontend',
 };
