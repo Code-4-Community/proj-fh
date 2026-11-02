@@ -1,0 +1,177 @@
+/* Design values only. Backdrop, centering, focus handling and the select dropdown behavior come
+   from the Chakra Dialog and Select components; these rules override their look.
+   The modal renders in a portal outside the page, so variables are declared on its own elements. */
+.modal-backdrop {
+  --modal-backdrop-color: rgba(0, 0, 0, 0.45);
+
+  background: var(--modal-backdrop-color);
+}
+
+.modal-positioner {
+  --modal-width: 520px;
+  --modal-viewport-margin: 16px;
+  --modal-padding: 24px;
+  --modal-radius: 4px;
+  --modal-gap: 16px;
+  --modal-field-gap: 16px;
+  --modal-label-gap: 8px;
+  --modal-title-size: 18px;
+  --modal-text-size: 14px;
+  --modal-control-height: 40px;
+  --modal-textarea-height: 90px;
+  --modal-control-padding-x: 16px;
+  --modal-button-min-width: 120px;
+  --modal-button-gap: 12px;
+  --modal-disabled-opacity: 0.5;
+  --modal-select-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  --modal-focus-outline: 2px solid var(--color-accent);
+  --modal-focus-offset: 2px;
+}
+
+/* Chakra's global reset is off (see main.tsx), so nothing makes the [hidden] attribute win over
+   the display values Chakra sets. Without this, the select's option list stays on screen after
+   it closes and unselected options show their check mark. */
+.modal-positioner [hidden] {
+  display: none;
+}
+
+.modal-panel {
+  box-sizing: border-box;
+  width: min(var(--modal-width), calc(100% - 2 * var(--modal-viewport-margin)));
+  max-width: none;
+  padding: var(--modal-padding);
+  gap: var(--modal-gap);
+  border-radius: var(--modal-radius);
+  background: var(--color-surface);
+  font-family: var(--font-family-base);
+  font-size: var(--modal-text-size);
+  color: var(--color-text);
+}
+
+.modal-title {
+  font-family: var(--font-family-base);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--modal-title-size);
+  line-height: var(--line-height-tight);
+  color: var(--color-text);
+}
+
+.modal-description {
+  margin: 0;
+  font-size: var(--modal-text-size);
+  color: var(--color-text-muted);
+}
+
+.modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--modal-field-gap);
+  padding: 0;
+}
+
+.modal-footer {
+  gap: var(--modal-button-gap);
+  padding: 0;
+}
+
+/* Footer buttons */
+.modal-button {
+  box-sizing: border-box;
+  height: var(--modal-control-height);
+  padding: 0 var(--modal-control-padding-x);
+  border: 1px solid var(--color-surface-muted);
+  border-radius: var(--modal-radius);
+  font-family: var(--font-family-base);
+  font-size: var(--modal-text-size);
+  cursor: pointer;
+}
+
+.modal-button:focus-visible {
+  outline: var(--modal-focus-outline);
+  outline-offset: var(--modal-focus-offset);
+}
+
+.modal-cancel {
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.modal-confirm {
+  min-width: var(--modal-button-min-width);
+  color: var(--color-surface);
+}
+
+.modal-confirm-primary {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+}
+
+.modal-confirm-danger {
+  border-color: var(--color-danger);
+  background: var(--color-danger);
+}
+
+.modal-confirm:disabled {
+  opacity: var(--modal-disabled-opacity);
+  cursor: not-allowed;
+}
+
+/* Fields */
+.modal-field {
+  gap: var(--modal-label-gap);
+}
+
+.modal-field-label {
+  gap: 4px;
+  font-family: var(--font-family-base);
+  font-weight: var(--font-weight-regular);
+  font-size: var(--modal-text-size);
+  color: var(--color-text);
+}
+
+.modal-field-required {
+  color: inherit;
+}
+
+.modal-input,
+.modal-textarea,
+.modal-select-trigger {
+  --focus-color: var(--color-accent);
+
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0 var(--modal-control-padding-x);
+  border: 1px solid var(--color-surface-muted);
+  border-radius: var(--modal-radius);
+  background: var(--color-surface);
+  font-family: var(--font-family-base);
+  font-size: var(--modal-text-size);
+  color: var(--color-text);
+}
+
+.modal-input,
+.modal-select-trigger {
+  height: var(--modal-control-height);
+}
+
+.modal-textarea {
+  min-height: var(--modal-textarea-height);
+  padding-top: 12px;
+  padding-bottom: 12px;
+  resize: vertical;
+}
+
+.modal-input::placeholder,
+.modal-textarea::placeholder,
+.modal-select-trigger [data-placeholder] {
+  color: var(--color-text-muted);
+  opacity: 0.6;
+}
+
+.modal-select-content {
+  font-family: var(--font-family-base);
+  font-size: var(--modal-text-size);
+  border-radius: var(--modal-radius);
+  background: var(--color-surface);
+  box-shadow: var(--modal-select-shadow);
+}
