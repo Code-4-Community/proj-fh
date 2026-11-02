@@ -1,0 +1,176 @@
+/* Design values only. Layout (stacking, alignment, justification) comes from the
+   Chakra components in manageStaff, and outer page padding comes from .page-content
+   in AppLayout. Values are measured from the design reference. */
+.manage-staff {
+  --manage-staff-section-gap: 48px;
+  --manage-staff-content-gap: 24px;
+  --manage-staff-heading-gap: 6px;
+  --manage-staff-title-font-size: 20px;
+  --manage-staff-font-size: 14px;
+  --manage-staff-subtitle-color: #555555;
+  --manage-staff-placeholder-color: #8a8a8a;
+  --manage-staff-border-width: 1px;
+  --manage-staff-border-color: #e2e2e2;
+  --manage-staff-border: var(--manage-staff-border-width) solid
+    var(--manage-staff-border-color);
+  --manage-staff-surface-light: #f2f2f2;
+  --manage-staff-radius: 4px;
+  --manage-staff-add-button-height: 36px;
+  --manage-staff-add-button-padding-x: 24px;
+  --manage-staff-search-height: 38px;
+  --manage-staff-search-padding-x: 12px;
+  --manage-staff-row-height: 40px;
+  --manage-staff-cell-padding-x: 12px;
+  --manage-staff-badge-padding: 3px 8px;
+  --manage-staff-remove-button-height: 32px;
+  --manage-staff-remove-button-padding-x: 16px;
+  --manage-staff-col-name-width: 32%;
+  --manage-staff-col-email-width: 22%;
+  --manage-staff-col-role-width: 12%;
+  --manage-staff-col-date-width: 13%;
+  --manage-staff-col-status-width: 10%;
+  --manage-staff-col-actions-width: 11%;
+  --manage-staff-focus-outline: 2px solid var(--color-text);
+  --manage-staff-focus-offset: 4px;
+
+  gap: var(--manage-staff-section-gap);
+}
+
+.manage-staff-heading {
+  gap: var(--manage-staff-heading-gap);
+}
+
+.manage-staff-content {
+  gap: var(--manage-staff-content-gap);
+}
+
+.manage-staff-title,
+.manage-staff-subtitle,
+.manage-staff-add-button,
+.manage-staff-search,
+.manage-staff-table-column-header,
+.manage-staff-table-cell,
+.manage-staff-badge,
+.manage-staff-remove-button {
+  font-family: var(--font-family-base);
+  font-weight: var(--font-weight-regular);
+  font-style: var(--font-style-normal);
+  font-size: var(--manage-staff-font-size);
+  line-height: var(--line-height-tight);
+  letter-spacing: var(--letter-spacing-none);
+  color: var(--color-text);
+}
+
+.manage-staff-title {
+  margin: 0;
+  font-weight: var(--font-weight-bold);
+  font-size: var(--manage-staff-title-font-size);
+}
+
+.manage-staff-subtitle {
+  margin: 0;
+  color: var(--manage-staff-subtitle-color);
+}
+
+.manage-staff-add-button {
+  height: var(--manage-staff-add-button-height);
+  padding: 0 var(--manage-staff-add-button-padding-x);
+  border: none;
+  border-radius: var(--manage-staff-radius);
+  background: var(--color-accent);
+  color: var(--color-surface);
+  cursor: pointer;
+}
+
+.manage-staff-search {
+  box-sizing: border-box;
+  width: 100%;
+  height: var(--manage-staff-search-height);
+  padding: 0 var(--manage-staff-search-padding-x);
+  border: var(--manage-staff-border);
+  border-radius: var(--manage-staff-radius);
+  background: var(--color-surface);
+}
+
+.manage-staff-search::placeholder {
+  color: var(--manage-staff-placeholder-color);
+}
+
+/* table-layout: fixed makes the table follow the column widths below */
+.manage-staff-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  border: var(--manage-staff-border);
+}
+
+.manage-staff-col-name {
+  width: var(--manage-staff-col-name-width);
+}
+
+.manage-staff-col-email {
+  width: var(--manage-staff-col-email-width);
+}
+
+.manage-staff-col-role {
+  width: var(--manage-staff-col-role-width);
+}
+
+.manage-staff-col-date {
+  width: var(--manage-staff-col-date-width);
+}
+
+.manage-staff-col-status {
+  width: var(--manage-staff-col-status-width);
+}
+
+.manage-staff-col-actions {
+  width: var(--manage-staff-col-actions-width);
+}
+
+.manage-staff-table-column-header,
+.manage-staff-table-cell {
+  height: var(--manage-staff-row-height);
+  padding: 0 var(--manage-staff-cell-padding-x);
+  border-bottom: var(--manage-staff-border);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.manage-staff-table-column-header {
+  font-weight: var(--font-weight-bold);
+  background: var(--manage-staff-surface-light);
+}
+
+/* Transparent border keeps both badge variants the same size */
+.manage-staff-badge {
+  display: inline-block;
+  padding: var(--manage-staff-badge-padding);
+  border: var(--manage-staff-border-width) solid transparent;
+  border-radius: var(--manage-staff-radius);
+}
+
+.manage-staff-badge-filled-light {
+  background: var(--manage-staff-surface-light);
+}
+
+.manage-staff-badge-outlined {
+  border-color: var(--manage-staff-border-color);
+  background: var(--color-surface);
+}
+
+.manage-staff-remove-button {
+  height: var(--manage-staff-remove-button-height);
+  padding: 0 var(--manage-staff-remove-button-padding-x);
+  border: var(--manage-staff-border);
+  border-radius: var(--manage-staff-radius);
+  background: var(--color-surface);
+  cursor: pointer;
+}
+
+.manage-staff-add-button:focus-visible,
+.manage-staff-search:focus-visible,
+.manage-staff-remove-button:focus-visible {
+  outline: var(--manage-staff-focus-outline);
+  outline-offset: var(--manage-staff-focus-offset);
+}

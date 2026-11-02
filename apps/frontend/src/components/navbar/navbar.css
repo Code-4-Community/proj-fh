@@ -1,0 +1,93 @@
+/* Design values only. Layout (flex, alignment, shrinking) and truncation come from
+   the Chakra components in the navbar; below --page-min-width the bar stops shrinking. */
+.navbar {
+  --navbar-height: 80px;
+  --navbar-gap: clamp(16px, 3vw, 56px);
+  --navbar-link-gap: clamp(16px, 2.7vw, 53px);
+  --navbar-logo-height: clamp(20px, 2vw, 28px);
+  --navbar-avatar-size: 48px;
+  --navbar-font-size: 18px;
+  --navbar-user-max-width: 280px;
+  --navbar-link-hover-opacity: 0.6;
+  --navbar-focus-outline: 2px solid var(--color-text);
+  --navbar-focus-offset: 4px;
+  --navbar-focus-radius: 4px;
+
+  box-sizing: border-box;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  gap: var(--navbar-gap);
+  width: 100%;
+  min-width: var(--page-min-width);
+  height: var(--navbar-height);
+  padding: 0 var(--page-padding-x);
+  background: var(--color-surface-muted);
+}
+
+.navbar-logo-img {
+  height: var(--navbar-logo-height);
+  width: auto;
+}
+
+.navbar-links {
+  gap: var(--navbar-link-gap);
+  flex: 1 0 auto;
+}
+
+.navbar-link,
+.navbar-user-name {
+  font-family: var(--font-family-base);
+  font-weight: var(--font-weight-bold);
+  font-style: var(--font-style-normal);
+  font-size: var(--navbar-font-size);
+  line-height: var(--line-height-tight);
+  letter-spacing: var(--letter-spacing-none);
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+/* Inactive links look regular weight, matching the design reference */
+.navbar-link:not(.navbar-link-active) {
+  font-weight: var(--font-weight-regular);
+}
+
+.navbar-link:hover,
+.navbar-user:hover {
+  opacity: var(--navbar-link-hover-opacity);
+}
+
+.navbar-link:focus-visible,
+.navbar-user:focus-visible {
+  outline: var(--navbar-focus-outline);
+  outline-offset: var(--navbar-focus-offset);
+  border-radius: var(--navbar-focus-radius);
+}
+
+.navbar-user,
+.navbar-user:hover,
+.navbar-user:focus-visible,
+.navbar-user-name {
+  text-decoration: none;
+}
+
+.navbar-user {
+  gap: var(--navbar-link-gap);
+  max-width: var(--navbar-user-max-width);
+}
+
+.navbar-user-name {
+  font-weight: var(--font-weight-regular);
+}
+
+.navbar-avatar {
+  width: var(--navbar-avatar-size);
+  height: var(--navbar-avatar-size);
+  border-radius: var(--radius-round);
+  background: var(--color-surface);
+  font-family: var(--font-family-base);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--navbar-font-size);
+  color: var(--color-text);
+  text-transform: uppercase;
+}

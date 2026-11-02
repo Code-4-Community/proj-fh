@@ -10,7 +10,7 @@ RUN yarn install --immutable
 COPY . .    
 RUN npx nx build backend
 
-FROM node:24-alpine AS runtime
+FROM node:24.22.1-alpine AS runtime
 WORKDIR /app
 
 COPY --from=build /app/package*.json ./

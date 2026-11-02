@@ -1,0 +1,7 @@
+/* Base padding for all page content, matching the navbar's horizontal padding.
+   Pages should not add their own outer padding. */
+.page-content {
+  box-sizing: border-box;
+  min-width: var(--page-min-width);
+  padding: var(--page-padding-y) var(--page-padding-x);
+}

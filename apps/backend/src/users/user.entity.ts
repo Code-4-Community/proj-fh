@@ -7,7 +7,7 @@ export class User {
   @Column({ primary: true })
   id: number;
 
-  @Column()
+  @Column({ type: 'varchar' })
   status: Status;
 
   @Column()

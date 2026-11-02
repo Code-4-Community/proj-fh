@@ -1,6 +1,7 @@
 import { AxiosError, AxiosHeaders } from 'axios';
 import apiClient from '../api/apiClient';
 import { signOutUser } from './cognito';
+import { Status } from '../types';
 import { getIdentityAfterSignIn } from './backendIdentity';
 
 jest.mock('../api/apiClient', () => ({
@@ -20,7 +21,7 @@ describe('getIdentityAfterSignIn', () => {
   it('returns the backend user when identity validation succeeds', async () => {
     const identity = {
       id: 1,
-      status: 'STANDARD' as const,
+      status: Status.COMMUNITY_STAFF,
       firstName: 'Test',
       lastName: 'User',
       email: 'person@example.com',

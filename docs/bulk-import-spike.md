@@ -242,8 +242,8 @@ This is still **one resource**. In the app, it appears under both the Housing an
    ```ts
    const categories = new Set<Category>();
 
-   categories.add(Category.FOOD_ACCESS);   // ✅ adds the stored value 'food_access'
-   categories.add('FOOD_ACCESS');          // ❌ does not compile: a hand-typed string is not a Category
+   categories.add(Category.FOOD_ACCESS);   // adds the stored value 'food_access'
+   categories.add('FOOD_ACCESS');          // does not compile: a hand-typed string is not a Category
    ```
 
    Typing the set as `Set<Category>` means TypeScript rejects any hand-typed string, including the key `FOOD_ACCESS` and typos like `'food_acess'`, before the code even runs.

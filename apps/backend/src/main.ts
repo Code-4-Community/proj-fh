@@ -3,24 +3,17 @@
  * This is only a minimal backend to get started.
  */
 
-import { Logger, ValidationPipe } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { NestFactory } from '@nestjs/core';
 
 import { AppModule } from './app.module';
+import { configureGlobalApp, GLOBAL_PREFIX } from './configure-app';
 import { envUtility } from './utils/env';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.enableCors();
-
-  const globalPrefix = 'api';
-  app.setGlobalPrefix(globalPrefix);
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-    }),
-  );
+  configureGlobalApp(app);
 
   const port = 3000;
 
@@ -39,14 +32,14 @@ async function bootstrap() {
     const document = SwaggerModule.createDocument(app, config); // Create the Swagger document
     SwaggerModule.setup('api', app, document); // Setup the Swagger module
     Logger.log(
-      `😎 Swagger is enabled and will be available at: http://localhost:${port}/api`,
+      `Swagger is enabled and will be available at: http://localhost:${port}/api`,
     );
   }
 
   await app.listen(port);
 
   Logger.log(
-    `🚀 Application is running on: http://localhost:${port}/${globalPrefix}`,
+    `Application is running on: http://localhost:${port}/${GLOBAL_PREFIX}`,
   );
 }
 bootstrap();
