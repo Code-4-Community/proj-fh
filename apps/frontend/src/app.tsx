@@ -6,6 +6,7 @@ import Test from '@containers/Test';
 import Success from '@containers/Success';
 import ReviewQueue from '@containers/ReviewQueue';
 import ManageResources from '@containers/ManageResources';
+import ResourceEdit from '@containers/ResourceEdit';
 import ManageStaff from '@containers/ManageStaff';
 import Profile from '@containers/Profile';
 import AppLayout from '@containers/AppLayout';
@@ -15,6 +16,7 @@ import ForgotPasswordConfirmForm from '@components/ForgotPasswordConfirmForm';
 import { AuthProvider } from './auth/AuthProvider';
 import { RequireStatus } from './auth/RequireStatus';
 import { Status } from './types';
+import ModalDemo from '@containers/ModalDemo';
 
 /**
  * The main application component that sets up the router and provides it to the React application.
@@ -23,6 +25,7 @@ import { Status } from './types';
  * Root route: Renders the main application container (Root component). This is necessary but the components may change
  * Test route: Temporary test component that comes from Scaffolding
  * Success route: Temporary route that displays a success page, right now configured specifically for success in signing in.
+ * Modal demo route: Unlinked page for trying the six Modal configurations
  */
 const router = createBrowserRouter([
   {
@@ -35,11 +38,16 @@ const router = createBrowserRouter([
     element: <Test />,
   },
   {
+    path: '/modal-demo',
+    element: <ModalDemo />,
+  },
+  {
     element: <AppLayout />,
     children: [
       { path: '/success', element: <Success /> },
       { path: '/review-queue', element: <ReviewQueue /> },
       { path: '/resources', element: <ManageResources /> },
+      { path: '/resources/:resourceId/edit', element: <ResourceEdit /> },
       { path: '/manage-staff', element: <ManageStaff /> },
       { path: '/profile', element: <Profile /> },
     ],

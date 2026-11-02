@@ -1,10 +1,11 @@
-import { Entity, PrimaryColumn } from 'typeorm';
+import { Check, Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 /**
- * Represents a Score entity in the system.
- * This entity is used to store and manage information about scores associated with various resources.
+ * Represents the scoring information for a Resource.
+ * Each Resource points at one Score through Resource.score_id.
  */
 @Entity()
+@Check('CHK_scores_overall_rating', '"overall_rating" BETWEEN 1 AND 5')
 export class Score {
   /**
    * Unique ID of a Score.
@@ -13,6 +14,18 @@ export class Score {
    *
    * E.g. 1, 2, 3, 4, 5
    */
-  @PrimaryColumn({ type: 'int' })
+  @PrimaryGeneratedColumn({
+    type: 'int',
+    primaryKeyConstraintName: 'PK_scores_score_id',
+  })
   score_id!: number;
+
+  /**
+   * The reviewer's overall rating of the organization from the vetting form, from 1 to 5.
+   * 1 is very poor and 5 is excellent.
+   *
+   * E.g. 1, 4, 5
+   */
+  @Column({ type: 'smallint' })
+  overall_rating!: number;
 }

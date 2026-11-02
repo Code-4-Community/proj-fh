@@ -1,0 +1,217 @@
+/* Design values only. Layout (stacking, alignment) comes from the Chakra components
+   in reviewQueue, and outer page padding comes from .page-content in AppLayout.
+   Values are measured from the design reference (1512px frame). */
+.review-queue {
+  --review-queue-section-gap: 32px;
+  --review-queue-content-gap: 24px;
+  --review-queue-heading-gap: 8px;
+  --review-queue-filter-gap: 16px;
+  --review-queue-label-gap: 6px;
+  --review-queue-title-font-size: 20px;
+  --review-queue-font-size: 14px;
+  --review-queue-border-width: 1px;
+  --review-queue-border: var(--review-queue-border-width) solid
+    var(--color-border);
+  --review-queue-radius: 4px;
+  --review-queue-select-width: 220px;
+  --review-queue-search-width: 420px;
+  --review-queue-control-height: 40px;
+  --review-queue-control-padding-x: 12px;
+  --review-queue-row-height: 44px;
+  --review-queue-cell-padding-x: 12px;
+  --review-queue-badge-padding: 4px 8px;
+  --review-queue-col-name-width: 38%;
+  --review-queue-col-category-width: 16.5%;
+  --review-queue-col-submitted-by-width: 16.5%;
+  --review-queue-col-date-width: 12.5%;
+  --review-queue-col-status-width: 16.5%;
+  --review-queue-focus-outline: 2px solid var(--color-text);
+  --review-queue-focus-offset: 2px;
+
+  gap: var(--review-queue-section-gap);
+}
+
+.review-queue-heading {
+  gap: var(--review-queue-heading-gap);
+}
+
+.review-queue-content {
+  gap: var(--review-queue-content-gap);
+}
+
+.review-queue-filter-bar {
+  gap: var(--review-queue-filter-gap);
+}
+
+.review-queue-title,
+.review-queue-subtitle,
+.review-queue-filter-label,
+.review-queue-select,
+.review-queue-search,
+.review-queue-table-column-header,
+.review-queue-table-cell,
+.review-queue-table-empty,
+.review-queue-badge {
+  font-family: var(--font-family-base);
+  font-weight: var(--font-weight-regular);
+  font-style: var(--font-style-normal);
+  font-size: var(--review-queue-font-size);
+  line-height: var(--line-height-tight);
+  letter-spacing: var(--letter-spacing-none);
+  color: var(--color-text);
+}
+
+.review-queue-title {
+  margin: 0;
+  font-weight: var(--font-weight-bold);
+  font-size: var(--review-queue-title-font-size);
+}
+
+.review-queue-subtitle {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.review-queue-filter-field,
+.review-queue-search-field {
+  gap: var(--review-queue-label-gap);
+}
+
+.review-queue-filter-field {
+  width: var(--review-queue-select-width);
+}
+
+.review-queue-search-field {
+  width: var(--review-queue-search-width);
+}
+
+.review-queue-select,
+.review-queue-search {
+  box-sizing: border-box;
+  width: 100%;
+  height: var(--review-queue-control-height);
+  border: var(--review-queue-border);
+  border-radius: var(--review-queue-radius);
+  background: var(--color-surface);
+}
+
+/* Left padding only: Chakra reserves the right side for the chevron */
+.review-queue-select {
+  padding-inline-start: var(--review-queue-control-padding-x);
+  cursor: pointer;
+}
+
+/* Placeholder grey while "Select an option" is chosen */
+.review-queue-select-empty {
+  color: var(--color-text-placeholder);
+}
+
+.review-queue-select-option {
+  color: var(--color-text);
+}
+
+.review-queue-search {
+  padding: 0 var(--review-queue-control-padding-x);
+}
+
+.review-queue-search::placeholder {
+  color: var(--color-text-placeholder);
+}
+
+.review-queue-search:focus-visible {
+  outline: var(--review-queue-focus-outline);
+  outline-offset: var(--review-queue-focus-offset);
+}
+
+/* table-layout: fixed makes the table follow the column widths below */
+.review-queue-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  border: var(--review-queue-border);
+}
+
+.review-queue-col-name {
+  width: var(--review-queue-col-name-width);
+}
+
+.review-queue-col-category {
+  width: var(--review-queue-col-category-width);
+}
+
+.review-queue-col-submitted-by {
+  width: var(--review-queue-col-submitted-by-width);
+}
+
+.review-queue-col-date {
+  width: var(--review-queue-col-date-width);
+}
+
+.review-queue-col-status {
+  width: var(--review-queue-col-status-width);
+}
+
+.review-queue-table-column-header,
+.review-queue-table-cell,
+.review-queue-table-empty {
+  height: var(--review-queue-row-height);
+  padding: 0 var(--review-queue-cell-padding-x);
+  border-bottom: var(--review-queue-border);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.review-queue-table-column-header {
+  font-weight: var(--font-weight-bold);
+  background: var(--color-surface-subtle);
+}
+
+.review-queue-table-row {
+  cursor: pointer;
+}
+
+.review-queue-table-row:hover {
+  background: var(--color-surface-subtle);
+}
+
+.review-queue-table-row:focus-visible {
+  outline: var(--review-queue-focus-outline);
+  outline-offset: calc(-1 * var(--review-queue-focus-offset));
+}
+
+/* Long values end in "…" instead of widening their column */
+.review-queue-table-cell {
+  color: var(--color-text-body);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.review-queue-table-empty {
+  text-align: center;
+  color: var(--color-text-placeholder);
+}
+
+/* Transparent border keeps both badge variants the same size */
+.review-queue-badge {
+  display: inline-block;
+  padding: var(--review-queue-badge-padding);
+  border: var(--review-queue-border-width) solid transparent;
+  border-radius: var(--review-queue-radius);
+  color: var(--color-text-body);
+  white-space: nowrap;
+}
+
+.review-queue-badge-filled-light {
+  background: var(--color-surface-subtle);
+}
+
+.review-queue-badge-filled-dark {
+  background: var(--color-text);
+  color: var(--color-surface);
+}
+
+.review-queue-badge-outlined {
+  border-color: var(--color-border);
+  background: var(--color-surface);
+}

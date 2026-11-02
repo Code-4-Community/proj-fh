@@ -4,13 +4,23 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { HTTP_CODE_METADATA } from '@nestjs/common/constants';
+import { GUARDS_METADATA, HTTP_CODE_METADATA } from '@nestjs/common/constants';
 import { ResourcesController } from './resources.controller';
 import { ResourcesService } from './resources.service';
 import { Resource } from './resources.entity';
 import { Repository } from 'typeorm';
-import { Category, County } from './types';
-import { FindResourceQueryDTO } from './dto/find-resource-by-query.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { TagsService } from '../tags/tags.service';
+import { ScoreService } from '../score/score.service';
+import { UsersService } from '../users/users.service';
+import {
+  Category,
+  County,
+  Recommendation,
+  ResponseTime,
+  YesNoMaybe,
+} from './types';
+import { FindResourceQueryDto } from './dto/find-resource-by-query.dto';
 import { CreateResourceDto } from './dto/create-resource.dto';
 import { UpdateResourceDto } from './dto/update-resource.dto';
 
@@ -19,21 +29,28 @@ const makeResource = (id: number): Resource =>
   ({
     resource_id: id,
     score_id: 1,
-    name: `Resource ${id}`,
-    category: [Category.FOOD_ACCESS],
+    organization_name: `Organization ${id}`,
+    program_name: `Program ${id}`,
+    category: Category.FOOD_ACCESS,
     county: County.SUFFOLK,
     zip_code: '02115',
     last_verified_date: new Date('2026-01-15'),
-    vetting_status: 'verified',
+    review_status: 'pending_review',
     tags: [],
   }) as Resource;
 
 describe('ResourcesController', () => {
   let controller: ResourcesController;
   let service: ResourcesService;
+  const request = { user: { email: 'reviewer@example.org' } };
 
   beforeEach(() => {
-    service = new ResourcesService({} as Repository<Resource>);
+    service = new ResourcesService(
+      {} as Repository<Resource>,
+      {} as TagsService,
+      {} as UsersService,
+      {} as ScoreService,
+    );
     controller = new ResourcesController(service);
   });
 
@@ -42,14 +59,40 @@ describe('ResourcesController', () => {
   });
 
   const dto: CreateResourceDto = {
-    name: 'Pine Street Inn',
-    category: [Category.HOUSING],
+    organization_name: 'Pine Street Inn',
+    program_name: 'Housing Support',
+    category: Category.HOUSING,
     county: County.SUFFOLK,
     zip_code: '02118',
+    last_verified_date: '2026-10-05',
+    outreach_date: '2026-10-01',
+    staff_contact_name: 'Sam Lee',
+    staff_contact_role: 'Program Manager',
+    responsiveness: 4,
+    response_time: ResponseTime.SAME_DAY,
+    interaction_notes: 'Prompt response.',
+    accessibility_notes: 'Accessible.',
+    red_flag_concerns: 'None.',
+    can_refer_directly: true,
+    has_referral_contact: true,
+    provides_followup: false,
+    referral_realistic: YesNoMaybe.YES,
+    referral_notes: 'Call first.',
+    recommendation: Recommendation.STRONGLY_RECOMMEND,
+    strengths: 'Helpful staff.',
+    followup_needed: 'Confirm hours.',
+    overall_rating: 5,
+    tags: [],
   };
 
   describe('create', () => {
     it('responds with a 201 status code', () => {
+      expect(
+        Reflect.getMetadata(
+          GUARDS_METADATA,
+          ResourcesController.prototype.create,
+        ),
+      ).toContain(JwtAuthGuard);
       expect(
         Reflect.getMetadata(
           HTTP_CODE_METADATA,
@@ -62,8 +105,8 @@ describe('ResourcesController', () => {
       const saved = { resource_id: 1, ...dto } as Resource;
       const create = jest.spyOn(service, 'create').mockResolvedValue(saved);
 
-      await expect(controller.create(dto)).resolves.toEqual(saved);
-      expect(create).toHaveBeenCalledWith(dto);
+      await expect(controller.create(dto, request)).resolves.toEqual(saved);
+      expect(create).toHaveBeenCalledWith(dto, 'reviewer@example.org');
     });
 
     it('forwards validation errors from the service', async () => {
@@ -72,7 +115,7 @@ describe('ResourcesController', () => {
       );
       jest.spyOn(service, 'create').mockRejectedValue(error);
 
-      await expect(controller.create(dto)).rejects.toThrow(error);
+      await expect(controller.create(dto, request)).rejects.toThrow(error);
     });
 
     it('forwards database errors from the service', async () => {
@@ -81,7 +124,7 @@ describe('ResourcesController', () => {
       );
       jest.spyOn(service, 'create').mockRejectedValue(error);
 
-      await expect(controller.create(dto)).rejects.toThrow(error);
+      await expect(controller.create(dto, request)).rejects.toThrow(error);
     });
   });
 
@@ -103,8 +146,9 @@ describe('ResourcesController', () => {
         resource_id: 1,
         ...dto,
         phone: '(617) 555-0100',
-        score_id: 0,
-        vetting_status: 'pending review',
+        score_id: 12,
+        completed_by: 'Jane Doe',
+        review_status: 'pending_review',
         last_verified_date: new Date('2026-10-01'),
         tags: [],
       } as Resource;
@@ -208,8 +252,8 @@ describe('ResourcesController', () => {
     });
 
     it('retrieves resources matching query', async () => {
-      const query: FindResourceQueryDTO = {
-        category: [Category.FOOD_ACCESS],
+      const query: FindResourceQueryDto = {
+        category: Category.FOOD_ACCESS,
         county: County.SUFFOLK,
       };
       const found = [makeResource(1), makeResource(2)];
@@ -242,7 +286,7 @@ describe('ResourcesController', () => {
 
       await expect(
         controller.find({
-          category: ['NOT_A_CATEGORY' as Category],
+          category: 'NOT_A_CATEGORY' as Category,
         }),
       ).rejects.toThrow(
         new BadRequestException('Unknown category: [NOT_A_CATEGORY]'),
