@@ -13,6 +13,9 @@ import AppLayout from '@containers/AppLayout';
 import ForgotPassword from '@containers/forgotPassword';
 import ForgotPasswordRequestForm from '@components/ForgotPasswordRequestForm';
 import ForgotPasswordConfirmForm from '@components/ForgotPasswordConfirmForm';
+import { AuthProvider } from './auth/AuthProvider';
+import { RequireStatus } from './auth/RequireStatus';
+import { Status } from './types';
 import ModalDemo from '@containers/ModalDemo';
 
 /**
@@ -58,6 +61,10 @@ const router = createBrowserRouter([
       { path: 'confirm', element: <ForgotPasswordConfirmForm /> },
     ],
   },
+  {
+    element: <RequireStatus allowed={[Status.ADMIN]} />,
+    children: [{ path: '/admin-only', element: <div>Admin only</div> }]
+  },
 ]);
 
 /**
@@ -67,7 +74,11 @@ const router = createBrowserRouter([
  * @returns The main application component that provides the router to the React application.
  */
 export const App = () => {
-  return <RouterProvider router={router} />;
+  return (
+    <AuthProvider>
+      <RouterProvider router={router} />
+    </AuthProvider>
+  );
 };
 
 export default App;
