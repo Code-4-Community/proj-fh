@@ -1,7 +1,3 @@
 {
   "typescript.tsdk": "node_modules/typescript/lib",
-  "chat.tools.terminal.autoApprove": {
-    "git --no-pager add": true,
-    "git --no-pager commit": true
-  }
 }
