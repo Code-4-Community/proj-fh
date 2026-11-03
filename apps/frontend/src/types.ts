@@ -54,6 +54,8 @@ export enum County {
  */
 export enum Status {
   ADMIN = 'ADMIN',
+  COMMUNITY_STAFF = 'COMMUNITY_STAFF',
+  PATIENT = 'PATIENT',
   STANDARD = 'STANDARD',
   ANONYMOUS = 'ANONYMOUS',
 }
