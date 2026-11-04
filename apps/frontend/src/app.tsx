@@ -6,7 +6,6 @@ import Test from '@containers/Test';
 import Success from '@containers/Success';
 import ReviewQueue from '@containers/ReviewQueue';
 import ManageResources from '@containers/ManageResources';
-import ResourceEdit from '@containers/ResourceEdit';
 import ManageStaff from '@containers/ManageStaff';
 import Profile from '@containers/Profile';
 import AppLayout from '@containers/AppLayout';
@@ -24,7 +23,7 @@ import EditResource from '@containers/EditResource';
  * Test route: Temporary test component that comes from Scaffolding
  * Success route: Temporary route that displays a success page, right now configured specifically for success in signing in.
  * Modal demo route: Unlinked page for trying the six Modal configurations
- * Edit resource route: Unlinked page for the Edit Resource design, reached by typing /edit-resource
+ * Edit resource route: The Edit Resource page for a given resource. Data is hardcoded for now, so any resourceId shows the same page.
  */
 const router = createBrowserRouter([
   {
@@ -46,8 +45,7 @@ const router = createBrowserRouter([
       { path: '/success', element: <Success /> },
       { path: '/review-queue', element: <ReviewQueue /> },
       { path: '/resources', element: <ManageResources /> },
-      { path: '/resources/:resourceId/edit', element: <ResourceEdit /> },
-      { path: '/edit-resource', element: <EditResource /> },
+      { path: '/resources/:resourceId/edit', element: <EditResource /> },
       { path: '/manage-staff', element: <ManageStaff /> },
       { path: '/profile', element: <Profile /> },
     ],
