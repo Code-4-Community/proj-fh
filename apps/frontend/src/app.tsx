@@ -93,11 +93,7 @@ const router = createBrowserRouter([
       { index: true, element: <ForgotPasswordRequestForm /> },
       { path: 'confirm', element: <ForgotPasswordConfirmForm /> },
     ],
-  },
-  {
-    element: <RequireStatus allowed={[Status.ADMIN]} />,
-    children: [{ path: '/admin-only', element: <div>Admin only</div> }]
-  },
+  }
 ]);
 
 /**
