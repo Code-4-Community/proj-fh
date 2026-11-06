@@ -1,5 +1,5 @@
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { signOutUser } from '../auth/cognito';
+import { signOutUser } from '../../auth/cognito';
 
 type SuccessLocationState = {
   email?: string;

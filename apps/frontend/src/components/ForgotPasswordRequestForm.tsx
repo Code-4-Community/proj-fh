@@ -6,7 +6,7 @@ import {
   getPasswordResetErrorMessage,
   isUserNotFoundError,
 } from '../auth/passwordReset';
-import { useForgotPasswordContext } from '@containers/forgotPassword';
+import { useForgotPasswordContext } from '@containers/auth/forgotPassword';
 
 /**
  * Step 1 of the forgot-password flow: the user enters their email and Cognito emails them a code.

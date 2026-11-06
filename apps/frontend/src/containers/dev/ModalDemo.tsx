@@ -5,7 +5,7 @@ import ModalSelectField from '@components/modal/parts/ModalSelectField';
 import ModalTextAreaField from '@components/modal/parts/ModalTextAreaField';
 import ModalTextField from '@components/modal/parts/ModalTextField';
 import { ModalSelectOption } from '@components/modal/types';
-import './page.css';
+import '../page.css';
 import NavbarLogo from '@components/navbar/parts/NavbarLogo';
 
 /** Identifies which of the six demo configurations is open. */

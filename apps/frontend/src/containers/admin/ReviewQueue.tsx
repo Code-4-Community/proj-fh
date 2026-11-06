@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import { Flex } from '@chakra-ui/react';
-import ReviewQueueFilterBar from '../components/reviewQueue/ReviewQueueFilterBar';
-import ReviewQueueTable from '../components/reviewQueue/ReviewQueueTable';
-import ReviewQueueHeader from '../components/reviewQueue/parts/ReviewQueueHeader';
+import ReviewQueueFilterBar from '../../components/reviewQueue/ReviewQueueFilterBar';
+import ReviewQueueTable from '../../components/reviewQueue/ReviewQueueTable';
+import ReviewQueueHeader from '../../components/reviewQueue/parts/ReviewQueueHeader';
 import {
   ReviewQueueFilters,
   ReviewQueueResource,
-} from '../components/reviewQueue/types';
-import { Category, ResourceStatus } from '../types';
-import '../components/reviewQueue/reviewQueue.css';
+} from '../../components/reviewQueue/types';
+import { Category, ResourceStatus } from '../../types';
+import '../../components/reviewQueue/reviewQueue.css';
 
 // TODO: Replace with variable in the future
 const TITLE = 'Review Queue';

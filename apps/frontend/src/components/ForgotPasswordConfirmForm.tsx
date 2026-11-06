@@ -8,7 +8,7 @@ import {
   getPasswordResetErrorMessage,
   isUserNotFoundError,
 } from '../auth/passwordReset';
-import { useForgotPasswordContext } from '@containers/forgotPassword';
+import { useForgotPasswordContext } from '@containers/auth/forgotPassword';
 
 /**
  * Step 2 of the forgot-password flow: the user enters the emailed code and a new password.

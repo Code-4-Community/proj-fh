@@ -3,7 +3,7 @@ import { Outlet, useOutletContext } from 'react-router-dom';
 import { Flex } from '@chakra-ui/react';
 import NavbarLogo from '@components/navbar/parts/NavbarLogo';
 import '@components/navbar/navbar.css';
-import './page.css';
+import '../page.css';
 
 /**
  * Shared state for the two forgot-password steps.
