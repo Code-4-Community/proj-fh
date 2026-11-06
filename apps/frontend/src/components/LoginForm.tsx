@@ -6,6 +6,7 @@ import {
   signInWithEmailPassword,
 } from '../auth/cognito';
 import { getIdentityAfterSignIn } from '../auth/backendIdentity';
+import { useAuth } from '../auth/AuthProvider';
 import { Status } from '../types';
 
 /**
@@ -16,6 +17,7 @@ import { Status } from '../types';
 const LoginForm = () => {
   // navigate function from react-router-dom to programmatically navigate between routes
   const navigate = useNavigate();
+  const { refresh } = useAuth();
   // Set by the forgot-password flow after a successful reset so we can tell the user to log in again
   const passwordReset = (
     useLocation().state as { passwordReset?: boolean } | null
@@ -40,6 +42,8 @@ const LoginForm = () => {
    */
   const finishSignIn = async () => {
     const identity = await getIdentityAfterSignIn();
+    // Reload the auth context so the route guards see the newly signed-in user
+    await refresh();
     if (identity.status === Status.COMMUNITY_STAFF) {
       navigate('/my-resources', { replace: true });
       return;
