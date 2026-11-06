@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import LoginForm from '@components/LoginForm';
 import LoadingScreen from '@components/LoadingScreen';
-import { getSignedInEmail } from '../auth/cognito';
-import { getIdentityAfterSignIn } from '../auth/backendIdentity';
+import { getSignedInEmail } from '../../auth/cognito';
+import { getIdentityAfterSignIn } from '../../auth/backendIdentity';
+import { Status } from '../../types';
 
 const Root = () => {
   const navigate = useNavigate();
@@ -22,6 +23,10 @@ const Root = () => {
           return;
         }
         const identity = await getIdentityAfterSignIn();
+        if (identity.status === Status.COMMUNITY_STAFF) {
+          navigate('/my-resources', { replace: true });
+          return;
+        }
         navigate('/success', {
           replace: true,
           state: { email: identity.email },

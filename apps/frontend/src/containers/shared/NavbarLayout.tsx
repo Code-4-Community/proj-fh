@@ -2,23 +2,17 @@ import { useEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import Navbar from '@components/navbar/Navbar';
 import { NavbarItem } from '@components/navbar/types';
-import { getIdentityAfterSignIn } from '../auth/backendIdentity';
-import './page.css';
-
-/** Links shown in the navbar. Each path must match a route defined in app.tsx. */
-const NAV_ITEMS: NavbarItem[] = [
-  { label: 'Review Queue', path: '/review-queue' },
-  { label: 'Resources', path: '/resources' },
-  { label: 'Manage Staff', path: '/manage-staff' },
-];
+import { getIdentityAfterSignIn } from '../../auth/backendIdentity';
+import '../page.css';
 
 /**
  * Shared layout for authenticated pages: the navbar above the matched child route.
- * Nav items come from the list above; the user's first and last name from the signed-in user's backend record.
+ * The user's first and last name come from the signed-in user's backend record.
  *
+ * @param items - The navbar links for this role. Each path must match a route defined in app.tsx.
  * @returns The navbar followed by the active child route.
  */
-const AppLayout = () => {
+const NavbarLayout = ({ items }: { items: NavbarItem[] }) => {
   const [user, setUser] = useState({ firstName: '', lastName: '' });
 
   useEffect(() => {
@@ -30,7 +24,7 @@ const AppLayout = () => {
   return (
     <>
       <Navbar
-        items={NAV_ITEMS}
+        items={items}
         firstName={user.firstName}
         lastName={user.lastName}
         profilePath="/profile"
@@ -42,4 +36,4 @@ const AppLayout = () => {
   );
 };
 
-export default AppLayout;
+export default NavbarLayout;

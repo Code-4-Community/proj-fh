@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { Flex } from '@chakra-ui/react';
-import ManageStaffTable from '../components/manageStaff/ManageStaffTable';
-import ManageStaffHeader from '../components/manageStaff/parts/ManageStaffHeader';
-import ManageStaffSearchBar from '../components/manageStaff/parts/ManageStaffSearchBar';
-import { StaffStatus, StaffUser } from '../components/manageStaff/types';
-import '../components/manageStaff/manageStaff.css';
+import ManageStaffTable from '../../components/manageStaff/ManageStaffTable';
+import ManageStaffHeader from '../../components/manageStaff/parts/ManageStaffHeader';
+import ManageStaffSearchBar from '../../components/manageStaff/parts/ManageStaffSearchBar';
+import { StaffStatus, StaffUser } from '../../components/manageStaff/types';
+import '../../components/manageStaff/manageStaff.css';
 
 /**
  * Hardcoded staff users that make the page match the design for now.

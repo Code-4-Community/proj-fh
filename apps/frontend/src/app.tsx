@@ -1,22 +1,26 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
-import Root from '@containers/Root';
+import Root from '@containers/auth/Root';
 import NotFound from '@containers/NotFound';
-import Test from '@containers/Test';
-import Success from '@containers/Success';
-import ReviewQueue from '@containers/ReviewQueue';
-import ManageResources from '@containers/ManageResources';
-import ResourceEdit from '@containers/ResourceEdit';
-import ManageStaff from '@containers/ManageStaff';
-import Profile from '@containers/Profile';
-import AppLayout from '@containers/AppLayout';
-import ForgotPassword from '@containers/forgotPassword';
+import Test from '@containers/dev/Test';
+import Success from '@containers/auth/Success';
+import ReviewQueue from '@containers/admin/ReviewQueue';
+import ManageResources from '@containers/admin/ManageResources';
+import ResourceEdit from '@containers/admin/ResourceEdit';
+import ManageStaff from '@containers/admin/ManageStaff';
+import Profile from '@containers/shared/Profile';
+import AdminLayout from '@containers/admin/AdminLayout';
+import StaffLayout from '@containers/staff/StaffLayout';
+import AllRoleLayout from '@containers/shared/AllRoleLayout';
+import MyResources from '@containers/staff/MyResources';
+import AllResources from '@containers/staff/AllResources';
+import ForgotPassword from '@containers/auth/forgotPassword';
 import ForgotPasswordRequestForm from '@components/ForgotPasswordRequestForm';
 import ForgotPasswordConfirmForm from '@components/ForgotPasswordConfirmForm';
 import { AuthProvider } from './auth/AuthProvider';
 import { RequireStatus } from './auth/RequireStatus';
 import { Status } from './types';
-import ModalDemo from '@containers/ModalDemo';
+import ModalDemo from '@containers/dev/ModalDemo';
 
 /**
  * The main application component that sets up the router and provides it to the React application.
@@ -42,16 +46,45 @@ const router = createBrowserRouter([
     element: <ModalDemo />,
   },
   {
-    element: <AppLayout />,
+    element: <RequireStatus allowed={[Status.ADMIN]} />,
     children: [
-      { path: '/success', element: <Success /> },
-      { path: '/review-queue', element: <ReviewQueue /> },
-      { path: '/resources', element: <ManageResources /> },
-      { path: '/resources/:resourceId/edit', element: <ResourceEdit /> },
-      { path: '/manage-staff', element: <ManageStaff /> },
-      { path: '/profile', element: <Profile /> },
+      {
+        element: <AdminLayout />,
+        children: [
+          { path: '/success', element: <Success /> },
+          { path: '/review-queue', element: <ReviewQueue /> },
+          { path: '/resources', element: <ManageResources /> },
+          { path: '/resources/:resourceId/edit', element: <ResourceEdit /> },
+          { path: '/manage-staff', element: <ManageStaff /> },
+        ],
+      },
     ],
-    errorElement: <NotFound />
+    errorElement: <NotFound />,
+  },
+  {
+    element: <RequireStatus allowed={[Status.COMMUNITY_STAFF]} />,
+    children: [
+      {
+        element: <StaffLayout />,
+        children: [
+          { path: '/my-resources', element: <MyResources /> },
+          { path: '/all-resources', element: <AllResources /> },
+        ],
+      },
+    ],
+    errorElement: <NotFound />,
+  },
+  {
+    element: (
+      <RequireStatus allowed={[Status.ADMIN, Status.COMMUNITY_STAFF]} />
+    ),
+    children: [
+      {
+        element: <AllRoleLayout />,
+        children: [{ path: '/profile', element: <Profile /> }],
+      },
+    ],
+    errorElement: <NotFound />,
   },
   {
     path: '/forgot-password',

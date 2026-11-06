@@ -6,6 +6,7 @@ import {
   signInWithEmailPassword,
 } from '../auth/cognito';
 import { getIdentityAfterSignIn } from '../auth/backendIdentity';
+import { Status } from '../types';
 
 /**
  * Temporary login form component without any fancy styling.
@@ -39,6 +40,10 @@ const LoginForm = () => {
    */
   const finishSignIn = async () => {
     const identity = await getIdentityAfterSignIn();
+    if (identity.status === Status.COMMUNITY_STAFF) {
+      navigate('/my-resources', { replace: true });
+      return;
+    }
     navigate('/success', {
       replace: true,
       state: { email: identity.email },
