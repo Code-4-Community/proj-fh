@@ -14,6 +14,8 @@ import StaffLayout from '@containers/staff/StaffLayout';
 import AllRoleLayout from '@containers/shared/AllRoleLayout';
 import MyResources from '@containers/staff/MyResources';
 import AllResources from '@containers/staff/AllResources';
+import SubmitHousingResource from '@containers/staff/SubmitHousingResource';
+import SubmitFoodResource from '@containers/staff/SubmitFoodResource';
 import ForgotPassword from '@containers/auth/forgotPassword';
 import ForgotPasswordRequestForm from '@components/ForgotPasswordRequestForm';
 import ForgotPasswordConfirmForm from '@components/ForgotPasswordConfirmForm';
@@ -69,6 +71,11 @@ const router = createBrowserRouter([
         children: [
           { path: '/my-resources', element: <MyResources /> },
           { path: '/all-resources', element: <AllResources /> },
+          {
+            path: '/submit-resource/housing',
+            element: <SubmitHousingResource />,
+          },
+          { path: '/submit-resource/food', element: <SubmitFoodResource /> },
         ],
       },
     ],
