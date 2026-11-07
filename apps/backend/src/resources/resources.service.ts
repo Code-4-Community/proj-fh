@@ -70,7 +70,6 @@ const EDITABLE_FIELDS: (keyof UpdateResourceDto)[] = [
   'recommendation',
   'strengths',
   'followup_needed',
-  'review_status',
   'needs_changes_notes',
   'submission_rejection_notes',
   'overall_rating',
@@ -78,16 +77,19 @@ const EDITABLE_FIELDS: (keyof UpdateResourceDto)[] = [
   'custom_tags',
 ];
 
-const SEARCHABLE_FIELDS = EDITABLE_FIELDS.filter(
-  (field) => field !== 'custom_tags',
-);
+/**
+ * The fields find can match on: every editable field except custom_tags, plus review_status,
+ * which can't be edited through update but is still searchable (e.g. for the review queue).
+ */
+const SEARCHABLE_FIELDS: (keyof FindResourceQueryDto)[] = [
+  ...EDITABLE_FIELDS.filter((field) => field !== 'custom_tags'),
+  'review_status',
+];
 
 /** The fields a client may send when creating a resource. The review fields are only set through an update. */
 const CREATABLE_FIELDS = EDITABLE_FIELDS.filter(
   (field) =>
-    field !== 'review_status' &&
-    field !== 'needs_changes_notes' &&
-    field !== 'submission_rejection_notes',
+    field !== 'needs_changes_notes' && field !== 'submission_rejection_notes',
 );
 
 /** Transition rules - the allowed transitions between ReviewStatus states. Used to enforce vetting workflow when changing a resource's status. */
@@ -96,16 +98,16 @@ const ALLOWED_TRANSITIONS: Record<ReviewStatus, ReviewStatus[]> = {
     ReviewStatus.APPROVED_PUBLISHED,
     ReviewStatus.REJECTED,
     ReviewStatus.ARCHIVED,
-    ReviewStatus.NEEDS_CHANGES
+    ReviewStatus.NEEDS_CHANGES,
   ],
   [ReviewStatus.NEEDS_CHANGES]: [
     ReviewStatus.APPROVED_PUBLISHED,
     ReviewStatus.REJECTED,
-    ReviewStatus.ARCHIVED
+    ReviewStatus.ARCHIVED,
   ],
   [ReviewStatus.APPROVED_PUBLISHED]: [ReviewStatus.ARCHIVED],
   [ReviewStatus.REJECTED]: [ReviewStatus.ARCHIVED],
-  [ReviewStatus.ARCHIVED]: []
+  [ReviewStatus.ARCHIVED]: [],
 };
 
 /** Builds a 400 that names the field (as sent in the body) and echoes the value that was received. */
@@ -118,7 +120,8 @@ function invalidField(field: string, rule: string, value: unknown) {
 
 /**
  * The ResourcesService is a NestJS service that provides business logic for managing resources in the system.
- * It interacts with the database through the injected repository of the Resource entity, allowing for operations such as creating and retrieving.
+ * It interacts with the database through the injected repository of the Resource entity, allowing for operations
+ * such as creating, updating, retrieving, and changing the review status of resources.
  */
 @Injectable()
 export class ResourcesService {
@@ -443,26 +446,6 @@ export class ResourcesService {
   }
 
   /**
-   * Validates the fields that get default values on creation and can only be changed through an update,
-   * e.g. a reviewer setting the vetting status. Fields that aren't sent are skipped.
-   * @param dto The fields provided for the update.
-   *
-   * @throws BadRequestException with a message naming the first field that fails its check.
-   */
-  private validateUpdateOnlyFields(dto: UpdateResourceDto) {
-    if (
-      dto.review_status !== undefined &&
-      !Object.values(ReviewStatus).includes(dto.review_status as ReviewStatus)
-    ) {
-      throw invalidField(
-        'review_status',
-        `must be one of: ${Object.values(ReviewStatus).join(', ')}.`,
-        dto.review_status,
-      );
-    }
-  }
-
-  /**
    * Creates a new resource after validating its fields.
    *
    * Only the fields in CreateResourceDto are accepted; a field the server manages itself (e.g. resource_id, completed_by, review_status)
@@ -540,7 +523,8 @@ export class ResourcesService {
    * Updates an existing resource after validating the fields being changed.
    *
    * This is a partial update: only the fields in UpdateResourceDto that are sent are changed, and every other field keeps its stored value.
-   * Nullable fields can be cleared by sending null. score_id and completed_by cannot be changed.
+   * Nullable fields can be cleared by sending null. score_id, completed_by, and review_status cannot be changed.
+   * review_status changes must go through transitionStatus, so the review workflow's rules are always applied.
    *
    * @param id The resource_id of the resource to update.
    * @param updateResourceDto The fields to change.
@@ -567,7 +551,6 @@ export class ResourcesService {
     }
 
     this.validateResourceFields(updateResourceDto, true);
-    this.validateUpdateOnlyFields(updateResourceDto);
 
     // Keep only editable fields that were actually sent, so unsent fields aren't overwritten with undefined.
     const changes = Object.fromEntries(
@@ -639,12 +622,14 @@ export class ResourcesService {
   /**
    * Moves an existing resource to a new review status, following the rules in ALLOWED_TRANSITIONS.
    *
-   * Review status can only be changed here, not in the general update method. Every status can move to archived, 
+   * Review status can only be changed here, not in the general update method. Every status can move to archived,
    * and an archived resource can't move to any other status. Moving a resource to the status it already has is not allowed.
    * The change only applies if the resource's status hasn't changed since it was read, so two requests at once can't both apply a transition.
    *
+   * The transition rules are provisional and will be revisited after the next client meeting.
+   *
    * @param id The resource_id of the resource to transition.
-   * @param dto The request body, containing the status to move the resource to.
+   * @param transitionStatusDto The request body, containing the status to move the resource to.
    *
    * @returns A promise that resolves to the updated Resource entity and the transition taken, as { from, to }.
    *
@@ -659,8 +644,8 @@ export class ResourcesService {
     id: number,
     transitionStatusDto: TransitionStatusDto,
   ): Promise<{
-      resource: Resource;
-      transition: { from: ReviewStatus; to: ReviewStatus };
+    resource: Resource;
+    transition: { from: ReviewStatus; to: ReviewStatus };
   }> {
     const next = transitionStatusDto?.status;
     if (!Object.values(ReviewStatus).includes(next)) {
@@ -668,24 +653,26 @@ export class ResourcesService {
         `Status must be one of: ${Object.values(ReviewStatus).join(', ')}.`,
       );
     }
-      
-    let resource : Resource | null;
+
+    let resource: Resource | null;
     try {
       resource = await this.repo.findOneBy({ resource_id: id });
     } catch (error) {
       this.logger.error(`Failed to look up resource ${id}`, error);
-      throw new InternalServerErrorException(`Failed to look up resource ${id}`);
+      throw new InternalServerErrorException(
+        `Failed to look up resource ${id}`,
+      );
     }
 
     if (!resource) {
-      throw new NotFoundException(`Resource with id ${id} does not exist.`);
+      throw new NotFoundException(`Resource with id ${id} was not found.`);
     }
 
     const current = resource.review_status;
     const allowed = ALLOWED_TRANSITIONS[current];
     if (!allowed.includes(next)) {
       throw new BadRequestException(
-        `The transition from ${current} to ${next} is not valid. Allowed: ${allowed.join(', ') || 'none'}. `
+        `The transition from ${current} to ${next} is not valid. Allowed: ${allowed.join(', ') || 'none'}.`,
       );
     }
 
@@ -693,26 +680,30 @@ export class ResourcesService {
     // request in the meantime isn't overwritten.
     let affected: number | undefined;
     try {
-      ({affected} = await this.repo.update(
+      ({ affected } = await this.repo.update(
         { resource_id: id, review_status: current },
         { review_status: next },
       ));
     } catch (error) {
-      this.logger.error(`Failed to update review status of resource ${id}`, error);
-      throw new InternalServerErrorException(`Failed to update review status of resource ${id}`);
+      this.logger.error(
+        `Failed to update review status of resource ${id}`,
+        error,
+      );
+      throw new InternalServerErrorException(
+        `Failed to update review status of resource ${id}`,
+      );
     }
 
     if (affected === 0) {
       throw new ConflictException(
-        `Resource ${id}'s status changed while this request was being processed. Please try again.`
+        `Resource ${id}'s status changed while this request was being processed. Please try again.`,
       );
     }
 
     return {
       resource: { ...resource, review_status: next },
       transition: { from: current, to: next },
-    }
-
+    };
   }
 
   /**
@@ -748,6 +739,7 @@ export class ResourcesService {
    *
    * A resource is only returned if it matches every field provided, and if multiple resources match, all of them are returned.
    * Single-value fields must match exactly. Array fields (public_fields, tags) match resources that contain every value given, in any order.
+   * Any field in SEARCHABLE_FIELDS can be used, including review_status, which can't be changed through update but can be searched.
    * Sent fields are validated with the same rules as create and update, so a value that could never be stored is rejected instead of searched for.
    *
    * @param query The resource fields to match. Any searchable field can be used.
@@ -770,10 +762,7 @@ export class ResourcesService {
     const fields = Object.keys(query) as (keyof FindResourceQueryDto)[];
 
     const unknownFields = fields.filter(
-      (field) =>
-        !SEARCHABLE_FIELDS.includes(
-          field as (typeof SEARCHABLE_FIELDS)[number],
-        ),
+      (field) => !SEARCHABLE_FIELDS.includes(field),
     );
     if (unknownFields.length > 0) {
       throw new BadRequestException(
@@ -789,7 +778,16 @@ export class ResourcesService {
     }
 
     this.validateResourceFields(query, true);
-    this.validateUpdateOnlyFields(query);
+    if (
+      query.review_status !== undefined &&
+      !Object.values(ReviewStatus).includes(query.review_status)
+    ) {
+      throw invalidField(
+        'review_status',
+        `must be one of: ${Object.values(ReviewStatus).join(', ')}.`,
+        query.review_status,
+      );
+    }
 
     // overall_rating lives on the Score, so it is matched through the resources' score_id.
     const { overall_rating, ...resourceQuery } = query;
