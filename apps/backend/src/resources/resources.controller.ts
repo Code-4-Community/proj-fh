@@ -19,6 +19,8 @@ import { CreateResourceDto } from './dto/create-resource.dto';
 import { UpdateResourceDto } from './dto/update-resource.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import type { AuthenticatedIdentity } from '../auth/authenticated-identity';
+import { TransitionStatusDto } from './dto/transition-status.dto';
+import { ReviewStatus } from './types';
 
 type AuthenticatedRequest = {
   user: AuthenticatedIdentity;
@@ -53,7 +55,8 @@ export class ResourcesController {
   }
 
   /**
-   * Updates an existing resource. Only the fields sent in the body are changed.
+   * Updates an existing resource. Only the fields sent in the body are changed. 
+   * review_status can't be changed here; use PATCH /resources/:id/status instead.
    * @param id The resource_id of the resource to update, taken from the URL.
    * @param updateResourceDto The fields to change.
    *
@@ -70,6 +73,31 @@ export class ResourcesController {
   ): Promise<Resource> {
     return this.resourcesService.update(id, updateResourceDto);
   }
+
+  /**
+   * Moves a resource to a new review status, following the review workflow's transition rules.
+   * This is the only endpoint that can change review_status; the general update endpoint rejects it.
+   * @param id The resource_id of the resource to transition, taken from the URL.
+   * @param transitionStatusDto The request body, e.g. { "status": "approved_published" }.
+   *
+   * @returns 200 with the updated Resource entity and the transition taken, as { resource, transition: { from, to } }.
+   * Returns 400 if the id isn't an integer, the status is missing or invalid, or the transition isn't allowed from the resource's current status,
+   * 404 if no resource has the given id,
+   * 409 if the resource's status changed while the request was being processed,
+   * or 500 with a descriptive message if the database fails while looking up or updating the resource.
+   */
+  @Patch(':id')
+  @HttpCode(HttpStatus.OK)
+  transitionStatus(
+    @Param('id', ParseResourceIdPipe) id: number,
+    @Body() transitionStatusDto: TransitionStatusDto,
+  ): Promise<{
+    resource: Resource;
+    transition: { from: ReviewStatus; to: ReviewStatus };
+  }> {
+    return this.resourcesService.transitionStatus(id, transitionStatusDto);
+  }
+
   /**
    * Retrieves resources by their IDs.
    *
