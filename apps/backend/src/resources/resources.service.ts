@@ -88,6 +88,25 @@ const CREATABLE_FIELDS = EDITABLE_FIELDS.filter(
     field !== 'submission_rejection_notes',
 );
 
+/** Transition rules - the allowed transitions between ReviewStatus states. Used to enforce vetting workflow when changing a resource's status. */
+const ALLOWED_TRANSITIONS: Record<ReviewStatus, ReviewStatus[]> = {
+  [ReviewStatus.PENDING_REVIEW]: [
+    ReviewStatus.APPROVED_PUBLISHED,
+    ReviewStatus.REJECTED,
+    ReviewStatus.ARCHIVED,
+    ReviewStatus.NEEDS_CHANGES
+  ],
+  [ReviewStatus.NEEDS_CHANGES]: [
+    ReviewStatus.APPROVED_PUBLISHED,
+    ReviewStatus.REJECTED,
+    ReviewStatus.ARCHIVED
+  ],
+  [ReviewStatus.APPROVED_PUBLISHED]: [ReviewStatus.ARCHIVED],
+  [ReviewStatus.REJECTED]: [ReviewStatus.ARCHIVED],
+  [ReviewStatus.ARCHIVED]: []
+};
+
+
 /** Builds a 400 that names the field (as sent in the body) and echoes the value that was received. */
 function invalidField(field: string, rule: string, value: unknown) {
   const received =
