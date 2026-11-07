@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   HttpException,
   Injectable,
@@ -28,6 +29,7 @@ import {
   ReviewStatus,
   YesNoMaybe,
 } from './types';
+import { TransitionStatusDto } from './dto/transition-status.dto';
 import { UpdateResourceDto } from './dto/update-resource.dto';
 import { Score } from '../score/score.entity';
 import { ScoreService } from '../score/score.service';
@@ -105,7 +107,6 @@ const ALLOWED_TRANSITIONS: Record<ReviewStatus, ReviewStatus[]> = {
   [ReviewStatus.REJECTED]: [ReviewStatus.ARCHIVED],
   [ReviewStatus.ARCHIVED]: []
 };
-
 
 /** Builds a 400 that names the field (as sent in the body) and echoes the value that was received. */
 function invalidField(field: string, rule: string, value: unknown) {
@@ -633,6 +634,85 @@ export class ResourcesService {
       this.logger.error(`Failed to update resource ${id}`, error);
       throw new InternalServerErrorException(`Failed to update resource ${id}`);
     }
+  }
+
+  /**
+   * Moves an existing resource to a new review status, following the rules in ALLOWED_TRANSITIONS.
+   *
+   * Review status can only be changed here, not in the general update method. Every status can move to archived, 
+   * and an archived resource can't move to any other status. Moving a resource to the status it already has is not allowed.
+   * The change only applies if the resource's status hasn't changed since it was read, so two requests at once can't both apply a transition.
+   *
+   * @param id The resource_id of the resource to transition.
+   * @param dto The request body, containing the status to move the resource to.
+   *
+   * @returns A promise that resolves to the updated Resource entity and the transition taken, as { from, to }.
+   *
+   * @throws BadRequestException (400) if the status is missing or not a valid ReviewStatus, or if the transition isn't allowed
+   * from the resource's current status. The message names the current status, the requested status and the allowed ones.
+   * @throws NotFoundException (404) if no resource exists with the given id.
+   * @throws ConflictException (409) if the resource's status changed while this request was being processed. The client can retry.
+   * @throws InternalServerErrorException (500) if the database fails while looking up or updating the resource, e.g. the database is unreachable.
+   * The original database error is logged rather than returned to the client.
+   */
+  async transitionStatus(
+    id: number,
+    transitionStatusDto: TransitionStatusDto,
+  ): Promise<{
+      resource: Resource;
+      transition: { from: ReviewStatus; to: ReviewStatus };
+  }> {
+    const next = transitionStatusDto?.status;
+    if (!Object.values(ReviewStatus).includes(next)) {
+      throw new BadRequestException(
+        `Status must be one of: ${Object.values(ReviewStatus).join(', ')}.`,
+      );
+    }
+      
+    let resource : Resource | null;
+    try {
+      resource = await this.repo.findOneBy({ resource_id: id });
+    } catch (error) {
+      this.logger.error(`Failed to look up resource ${id}`, error);
+      throw new InternalServerErrorException(`Failed to look up resource ${id}`);
+    }
+
+    if (!resource) {
+      throw new NotFoundException(`Resource with id ${id} does not exist.`);
+    }
+
+    const current = resource.review_status;
+    const allowed = ALLOWED_TRANSITIONS[current];
+    if (!allowed.includes(next)) {
+      throw new BadRequestException(
+        `The transition from ${current} to ${next} is not valid. Allowed: ${allowed.join(', ') || 'none'}. `
+      );
+    }
+
+    // Only updates the row if its status is still `current`, so a change made by another
+    // request in the meantime isn't overwritten.
+    let affected: number | undefined;
+    try {
+      ({affected} = await this.repo.update(
+        { resource_id: id, review_status: current },
+        { review_status: next },
+      ));
+    } catch (error) {
+      this.logger.error(`Failed to update review status of resource ${id}`, error);
+      throw new InternalServerErrorException(`Failed to update review status of resource ${id}`);
+    }
+
+    if (affected === 0) {
+      throw new ConflictException(
+        `Resource ${id}'s status changed while this request was being processed. Please try again.`
+      );
+    }
+
+    return {
+      resource: { ...resource, review_status: next },
+      transition: { from: current, to: next },
+    }
+
   }
 
   /**
