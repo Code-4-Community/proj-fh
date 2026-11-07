@@ -179,7 +179,7 @@ describe('ResourcesController', () => {
     });
   });
 
-    /** Tests for PATCH /resources/:id/status. */
+  /** Tests for PATCH /resources/:id/status. */
   describe('transitionStatus', () => {
     it('responds with a 200 status code', () => {
       expect(

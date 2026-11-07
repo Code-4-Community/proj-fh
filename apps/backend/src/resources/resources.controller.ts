@@ -55,7 +55,7 @@ export class ResourcesController {
   }
 
   /**
-   * Updates an existing resource. Only the fields sent in the body are changed. 
+   * Updates an existing resource. Only the fields sent in the body are changed.
    * review_status can't be changed here; use PATCH /resources/:id/status instead.
    * @param id The resource_id of the resource to update, taken from the URL.
    * @param updateResourceDto The fields to change.
