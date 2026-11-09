@@ -7,6 +7,7 @@ import { ReviewQueueTableProps } from './types';
  * class that sets its width.
  */
 const COLUMNS = [
+  { label: 'ID', className: 'review-queue-col-id' },
   { label: 'Resource Name', className: 'review-queue-col-name' },
   { label: 'Category', className: 'review-queue-col-category' },
   { label: 'Submitted By', className: 'review-queue-col-submitted-by' },
@@ -16,13 +17,13 @@ const COLUMNS = [
 
 /**
  * The resource table: fixed column headers and one row per resource, or a
- * message when no resources match. Presentational: filtering happens in the
- * ReviewQueue container. `unstyled` leaves styling to reviewQueue.css.
+ * message when there are none to show. Presentational: loading and filtering
+ * happen in the ReviewQueue container. `unstyled` leaves styling to reviewQueue.css.
  *
- * @param props - The resources to render.
+ * @param props - The resources to render and the message to show when there are none.
  * @returns The table element.
  */
-const ReviewQueueTable = ({ resources }: ReviewQueueTableProps) => (
+const ReviewQueueTable = ({ resources, emptyMessage }: ReviewQueueTableProps) => (
   <Table.Root unstyled className="review-queue-table">
     <Table.ColumnGroup>
       {COLUMNS.map(({ label, className }) => (
@@ -52,7 +53,7 @@ const ReviewQueueTable = ({ resources }: ReviewQueueTableProps) => (
             colSpan={COLUMNS.length}
             className="review-queue-table-empty"
           >
-            No resources match these filters.
+            {emptyMessage}
           </Table.Cell>
         </Table.Row>
       )}

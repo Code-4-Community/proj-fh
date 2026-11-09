@@ -5,7 +5,7 @@ import ReviewQueueStatusBadge from './ReviewQueueStatusBadge';
 import { CATEGORY_LABEL, ReviewQueueTableRowProps } from '../types';
 
 /**
- * One row of the resource table: name, categories, submitter, submission date,
+ * One row of the resource table: id, name, categories, submitter, submission date,
  * and status. The whole row is clickable (and opens with Enter) and leads to the
  * resource's edit page.
  *
@@ -13,14 +13,7 @@ import { CATEGORY_LABEL, ReviewQueueTableRowProps } from '../types';
  * @returns The table row.
  */
 const ReviewQueueTableRow = ({ resource }: ReviewQueueTableRowProps) => {
-  const {
-    resourceId,
-    name,
-    categories,
-    submittedBy,
-    dateSubmitted,
-    status,
-  } = resource;
+  const { resourceId, name, category, submittedBy, dateSubmitted, status } = resource;
   const navigate = useNavigate();
 
   const openResource = () => navigate(`/resources/${resourceId}/edit`);
@@ -34,9 +27,10 @@ const ReviewQueueTableRow = ({ resource }: ReviewQueueTableRowProps) => {
         if (event.key === 'Enter') openResource();
       }}
     >
+      <Table.Cell className="review-queue-table-cell">{resourceId}</Table.Cell>
       <Table.Cell className="review-queue-table-cell">{name}</Table.Cell>
       <Table.Cell className="review-queue-table-cell">
-        {categories.map((category) => CATEGORY_LABEL[category]).join(', ')}
+        {CATEGORY_LABEL[category]}
       </Table.Cell>
       <Table.Cell className="review-queue-table-cell">{submittedBy}</Table.Cell>
       <Table.Cell className="review-queue-table-cell">
