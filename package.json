@@ -18,7 +18,8 @@
     "migration:revert": "yarn typeorm migration:revert -d apps/backend/src/data-source.ts",
     "migration:create": "yarn typeorm migration:create apps/backend/src/migrations/$name",
     "test": "jest",
-    "test:e2e": "jest --config apps/backend/jest.e2e.config.ts --runInBand"
+    "test:e2e": "jest --config apps/backend/jest.e2e.config.ts --runInBand",
+    "seed": "ts-node -r tsconfig-paths/register --project apps/backend/tsconfig.app.json apps/backend/src/seeds/seed.ts"
   },
   "private": true,
   "dependencies": {
