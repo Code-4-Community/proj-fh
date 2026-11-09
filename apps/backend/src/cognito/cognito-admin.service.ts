@@ -1,5 +1,6 @@
 import {
   BadGatewayException,
+  Inject,
   Injectable,
   Logger,
   type OnModuleDestroy,
@@ -10,7 +11,21 @@ import {
   ListUsersCommand,
   UserNotFoundException,
 } from '@aws-sdk/client-cognito-identity-provider';
-import { envUtility } from '../utils/env';
+
+/** Injection token for the Cognito settings (see `CognitoModule`). */
+export const COGNITO_CONFIG = 'COGNITO_CONFIG';
+
+/**
+ * Settings for talking to Cognito. They are injected instead of read from the
+ * env utility here, so importing this service never triggers env validation
+ * (which would break any test that imports `UsersService` without a full `.env`).
+ */
+export type CognitoConfig = {
+  region: string;
+  userPoolId: string;
+  accessKeyId: string;
+  secretAccessKey: string;
+};
 
 /** Whether a Cognito account was removed by a delete call. */
 export type CognitoDeleteResult = 'deleted' | 'already-absent';
@@ -23,14 +38,19 @@ export type CognitoDeleteResult = 'deleted' | 'already-absent';
 @Injectable()
 export class CognitoAdminService implements OnModuleDestroy {
   private readonly logger = new Logger(CognitoAdminService.name);
-  private readonly userPoolId = envUtility.AUTH_COGNITO_USER_POOL_ID;
-  private readonly client = new CognitoIdentityProviderClient({
-    region: envUtility.REGION,
-    credentials: {
-      accessKeyId: envUtility.AWS_ACCESS_KEY_ID,
-      secretAccessKey: envUtility.AWS_SECRET_ACCESS_KEY,
-    },
-  });
+  private readonly userPoolId: string;
+  private readonly client: CognitoIdentityProviderClient;
+
+  constructor(@Inject(COGNITO_CONFIG) config: CognitoConfig) {
+    this.userPoolId = config.userPoolId;
+    this.client = new CognitoIdentityProviderClient({
+      region: config.region,
+      credentials: {
+        accessKeyId: config.accessKeyId,
+        secretAccessKey: config.secretAccessKey,
+      },
+    });
+  }
 
   onModuleDestroy() {
     this.client.destroy();

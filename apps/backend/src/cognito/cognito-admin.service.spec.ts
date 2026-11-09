@@ -7,17 +7,16 @@ import {
 } from '@aws-sdk/client-cognito-identity-provider';
 import {
   CognitoAdminService,
+  type CognitoConfig,
   escapeFilterValue,
 } from './cognito-admin.service';
 
-jest.mock('../utils/env', () => ({
-  envUtility: {
-    REGION: 'us-east-2',
-    AUTH_COGNITO_USER_POOL_ID: 'us-east-2_example',
-    AWS_ACCESS_KEY_ID: 'test-access-key-id',
-    AWS_SECRET_ACCESS_KEY: 'test-secret-access-key',
-  },
-}));
+const config: CognitoConfig = {
+  region: 'us-east-2',
+  userPoolId: 'us-east-2_example',
+  accessKeyId: 'test-access-key-id',
+  secretAccessKey: 'test-secret-access-key',
+};
 
 /**
  * Unit tests for CognitoAdminService. The AWS client's `send` is stubbed, so no
@@ -34,7 +33,7 @@ describe('CognitoAdminService', () => {
   beforeEach(() => {
     send = jest.spyOn(CognitoIdentityProviderClient.prototype, 'send');
     errorLog = jest.spyOn(Logger.prototype, 'error').mockImplementation();
-    service = new CognitoAdminService();
+    service = new CognitoAdminService(config);
   });
 
   afterEach(() => {
