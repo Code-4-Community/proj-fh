@@ -1,3 +1,19 @@
+jest.mock('../utils/env', () => ({
+  envUtility: {
+    POSTGRES_HOST: 'localhost',
+    POSTGRES_PORT: 5432,
+    POSTGRES_USER: 'test_user',
+    POSTGRES_PASSWORD: 'test_password',
+    POSTGRES_DB: 'test_db',
+    SWAGGER_ENABLED: false,
+    REGION: 'us-east-2',
+    AUTH_COGNITO_APP_CLIENT_ID: 'test-client-id',
+    AUTH_COGNITO_USER_POOL_ID: 'us-east-2_test',
+    AWS_ACCESS_KEY_ID: 'test-key',
+    AWS_SECRET_ACCESS_KEY: 'test-secret',
+  },
+}));
+
 import {
   ExecutionContext,
   ForbiddenException,
