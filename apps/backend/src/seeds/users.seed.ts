@@ -1,4 +1,4 @@
-import { EntityManager, Like } from 'typeorm';
+import { EntityManager, In } from 'typeorm';
 import { Status } from '../users/types';
 import { User } from '../users/user.entity';
 
@@ -59,8 +59,8 @@ export const SEED_USERS: SeedUser[] = [
 ];
 
 /**
- * Replaces all seeded users. Users outside the seed email domain, such as
- * local auth test accounts, are left untouched.
+ * Replaces the seeded users, matched by exact email. Every other user is left
+ * untouched.
  *
  * New users continue the existing ID sequence because UsersService.create
  * assigns IDs as count() + 1. If the remaining IDs already have a gap, seeding
@@ -69,7 +69,9 @@ export const SEED_USERS: SeedUser[] = [
  * @returns The number of users inserted.
  */
 export async function seedUsers(manager: EntityManager): Promise<number> {
-  await manager.delete(User, { email: Like(`%@${SEED_EMAIL_DOMAIN}`) });
+  await manager.delete(User, {
+    email: In(SEED_USERS.map((user) => user.email)),
+  });
 
   const count = await manager.count(User);
   const maxId = (await manager.maximum(User, 'id')) ?? 0;
