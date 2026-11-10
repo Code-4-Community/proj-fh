@@ -20,11 +20,12 @@
   --review-queue-row-height: 44px;
   --review-queue-cell-padding-x: 12px;
   --review-queue-badge-padding: 4px 8px;
-  --review-queue-col-name-width: 38%;
-  --review-queue-col-category-width: 16.5%;
-  --review-queue-col-submitted-by-width: 16.5%;
-  --review-queue-col-date-width: 12.5%;
-  --review-queue-col-status-width: 16.5%;
+  --review-queue-col-id-width: 8%;
+  --review-queue-col-name-width: 34%;
+  --review-queue-col-category-width: 13%;
+  --review-queue-col-submitted-by-width: 16%;
+  --review-queue-col-date-width: 13%;
+  --review-queue-col-status-width: 16%;
   --review-queue-focus-outline: 2px solid var(--color-text);
   --review-queue-focus-offset: 2px;
 
@@ -51,6 +52,7 @@
 .review-queue-table-column-header,
 .review-queue-table-cell,
 .review-queue-table-empty,
+.review-queue-message,
 .review-queue-badge {
   font-family: var(--font-family-base);
   font-weight: var(--font-weight-regular);
@@ -129,6 +131,10 @@
   table-layout: fixed;
   border-collapse: collapse;
   border: var(--review-queue-border);
+}
+
+.review-queue-col-id {
+  width: var(--review-queue-col-id-width);
 }
 
 .review-queue-col-name {
@@ -214,4 +220,14 @@
 .review-queue-badge-outlined {
   border-color: var(--color-border);
   background: var(--color-surface);
+}
+
+/* Loading and error messages, shown in place of the table */
+.review-queue-message {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.review-queue-message-error {
+  color: var(--color-danger);
 }

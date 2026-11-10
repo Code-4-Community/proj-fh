@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { Category, ResourceStatus } from '../types';
 
-const mockGet = jest.fn();
-const mockPost = jest.fn();
+const mockGet = jest.fn<(path: string) => Promise<unknown>>();
+const mockPost = jest.fn<(path: string, body?: unknown) => Promise<unknown>>();
 const mockAxiosCreate = jest.fn(() => ({
   get: mockGet,
   post: mockPost,
@@ -12,6 +13,8 @@ jest.mock('axios', () => ({
   __esModule: true,
   default: {
     create: mockAxiosCreate,
+    isAxiosError: (error: unknown) =>
+      (error as { isAxiosError?: boolean } | null)?.isAxiosError === true,
   },
 }));
 
@@ -26,6 +29,7 @@ jest.mock('../auth/cognito', () => ({
 const { ApiClient } = require('./apiClient') as typeof import('./apiClient');
 const RESOURCES_URL = '/api/resources/findByIds';
 const TAGS_URL = '/api/tags/findByIds';
+const FIND_URL = '/api/resources/find';
 const scoreUrl = (id: number) => `/api/score/findOneById/${id}`;
 
 describe('ApiClient', () => {
@@ -274,6 +278,163 @@ describe('ApiClient', () => {
           partial: true,
           failed: ['score', 'tags'],
         });
+      });
+    });
+  });
+
+  describe('getReviewQueueResources', () => {
+    /** A backend resource with only the fields the queue reads; override any field per test. */
+    const backendResource = (overrides: Record<string, unknown> = {}) => ({
+      resource_id: 1,
+      organization_name: 'Greater Boston Food Bank',
+      program_name: 'Weekly Pantry',
+      category: 'food_access',
+      review_status: 'pending_review',
+      completed_by: 'Jane Doe',
+      created_at: '2026-11-01T14:30:00.000Z',
+      ...overrides,
+    });
+
+    /** An error shaped like the one axios throws for an HTTP error status. */
+    const axiosError = (status: number) => ({
+      isAxiosError: true,
+      response: { status },
+    });
+
+    let client: InstanceType<typeof ApiClient>;
+
+    beforeEach(() => {
+      client = new ApiClient();
+    });
+
+    describe('tests a successful method call', () => {
+      it('requests every resource by sending an empty query to find', async () => {
+        mockPost.mockResolvedValue({ data: [] });
+
+        await client.getReviewQueueResources();
+
+        expect(mockPost).toHaveBeenCalledWith(FIND_URL, {});
+      });
+
+      it("maps a resource to the queue's display shape", async () => {
+        mockPost.mockResolvedValue({ data: [backendResource()] });
+
+        const result = await client.getReviewQueueResources();
+
+        expect(result).toEqual([
+          {
+            resourceId: 1,
+            name: 'Greater Boston Food Bank — Weekly Pantry',
+            category: Category.FOOD_ACCESS,
+            submittedBy: 'Jane Doe',
+            dateSubmitted: new Date('2026-11-01T14:30:00.000Z'),
+            status: ResourceStatus.PENDING_REVIEW,
+          },
+        ]);
+      });
+
+      it('converts created_at from a string to a Date', async () => {
+        mockPost.mockResolvedValue({ data: [backendResource()] });
+
+        const [resource] = await client.getReviewQueueResources();
+
+        expect(resource.dateSubmitted).toBeInstanceOf(Date);
+        expect(resource.dateSubmitted.toISOString()).toBe(
+          '2026-11-01T14:30:00.000Z',
+        );
+      });
+
+      it.each([
+        ['pending_review', ResourceStatus.PENDING_REVIEW],
+        ['approved_published', ResourceStatus.APPROVED_PUBLISHED],
+        ['needs_changes', ResourceStatus.NEEDS_CHANGES],
+      ])('maps review_status %s to %s', async (reviewStatus, expected) => {
+        mockPost.mockResolvedValue({
+          data: [backendResource({ review_status: reviewStatus })],
+        });
+
+        const [resource] = await client.getReviewQueueResources();
+
+        expect(resource.status).toBe(expected);
+      });
+
+      it('keeps a resource with an unrecognized status and gives it a null status', async () => {
+        mockPost.mockResolvedValue({
+          data: [backendResource({ review_status: 'in_review' })],
+        });
+
+        const result = await client.getReviewQueueResources();
+
+        expect(result).toHaveLength(1);
+        expect(result[0].status).toBeNull();
+      });
+
+      it('leaves out Rejected and Archived resources', async () => {
+        mockPost.mockResolvedValue({
+          data: [
+            backendResource({ resource_id: 1, review_status: 'pending_review' }),
+            backendResource({ resource_id: 2, review_status: 'rejected' }),
+            backendResource({ resource_id: 3, review_status: 'archived' }),
+            backendResource({ resource_id: 4, review_status: 'needs_changes' }),
+          ],
+        });
+
+        const result = await client.getReviewQueueResources();
+
+        expect(result.map((resource) => resource.resourceId)).toEqual([1, 4]);
+      });
+
+      it('sorts resources by ID', async () => {
+        mockPost.mockResolvedValue({
+          data: [
+            backendResource({ resource_id: 3 }),
+            backendResource({ resource_id: 1 }),
+            backendResource({ resource_id: 2 }),
+          ],
+        });
+
+        const result = await client.getReviewQueueResources();
+
+        expect(result.map((resource) => resource.resourceId)).toEqual([1, 2, 3]);
+      });
+    });
+
+    describe('tests method when there are no resources to show', () => {
+      it('returns an empty list when find responds with 404', async () => {
+        mockPost.mockRejectedValue(axiosError(404));
+
+        await expect(client.getReviewQueueResources()).resolves.toEqual([]);
+      });
+
+      it('returns an empty list when every resource is Rejected or Archived', async () => {
+        mockPost.mockResolvedValue({
+          data: [
+            backendResource({ resource_id: 1, review_status: 'rejected' }),
+            backendResource({ resource_id: 2, review_status: 'archived' }),
+          ],
+        });
+
+        await expect(client.getReviewQueueResources()).resolves.toEqual([]);
+      });
+    });
+
+    describe('tests method when the request fails', () => {
+      it.each([400, 500])(
+        'rethrows an HTTP %s error instead of returning an empty list',
+        async (status) => {
+          const error = axiosError(status);
+          mockPost.mockRejectedValue(error);
+
+          await expect(client.getReviewQueueResources()).rejects.toBe(error);
+        },
+      );
+
+      it('rethrows a network error', async () => {
+        mockPost.mockRejectedValue(new Error('Network error'));
+
+        await expect(client.getReviewQueueResources()).rejects.toThrow(
+          'Network error',
+        );
       });
     });
   });

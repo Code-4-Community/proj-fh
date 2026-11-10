@@ -16,6 +16,16 @@ export const CATEGORY_LABEL: Record<Category, string> = {
 export type ResourceStatusBadgeVariant = 'filled-light' | 'outlined' | 'filled-dark';
 
 /**
+ * Text shown in the status badge when the backend sends a status the frontend doesn't recognize.
+ */
+export const UNKNOWN_STATUS_LABEL = 'Unknown';
+
+/**
+ * Badge variant for a status the frontend doesn't recognize.
+ */
+export const UNKNOWN_STATUS_BADGE_VARIANT: ResourceStatusBadgeVariant = 'outlined';
+
+/**
  * Badge variant for each resource status. Change a status's look here.
  */
 export const RESOURCE_STATUS_BADGE_VARIANT: Record<
@@ -47,28 +57,60 @@ export const CATEGORY_OPTIONS: FilterOption<Category>[] = Object.values(
 ).map((category) => ({ value: category, label: CATEGORY_LABEL[category] }));
 
 /**
- * Options for the Status dropdown, in enum order.
+ * Statuses that are never shown in the review queue.
+ */
+export const REVIEW_QUEUE_HIDDEN_STATUSES: ResourceStatus[] = [
+  ResourceStatus.REJECTED,
+  ResourceStatus.ARCHIVED,
+];
+
+/**
+ * Options for the Status dropdown, in enum order. Hidden statuses are left out,
+ * since selecting them could never match a row.
  */
 export const STATUS_OPTIONS: FilterOption<ResourceStatus>[] = Object.values(
   ResourceStatus,
-).map((status) => ({ value: status, label: status }));
+)
+  .filter((status) => !REVIEW_QUEUE_HIDDEN_STATUSES.includes(status))
+  .map((status) => ({ value: status, label: status }));
+
+/**
+ * The fields of a backend Resource that the review queue uses, as returned by POST /api/resources/find.
+ * The shared Resource type is out of date with the backend, so the queue uses this narrow type instead.
+ */
+export interface ReviewQueueResourceResponse {
+  /** E.g. 12 */
+  resource_id: number;
+  /** E.g. 'Greater Boston Food Bank' */
+  organization_name: string;
+  /** E.g. 'Weekly Pantry' */
+  program_name: string;
+  /** Exactly one per resource. E.g. Category.FOOD_ACCESS */
+  category: Category;
+  /** The raw backend value, e.g. 'pending_review'. A string so values the frontend doesn't recognize can be handled. */
+  review_status: string;
+  /** Name of the staff member who completed the vetting form. E.g. 'Jane Doe' */
+  completed_by: string;
+  /** When the resource was created, as an ISO timestamp. E.g. '2026-11-08T14:30:00.000Z' */
+  created_at: string;
+}
 
 /**
  * A resource as displayed in one row of the review queue.
  */
 export interface ReviewQueueResource {
-  /** Identifies this specific resource; used to build its edit link. */
+  /** Identifies this specific resource; shown in the ID column and used to build its edit link. */
   resourceId: number;
-  /** Name, shown in the Resource Name column and matched by search. */
+  /** "Organization — Program", shown in the Resource Name column and matched by search. */
   name: string;
-  /** Every category the resource belongs to, shown as labels in the Category column. */
-  categories: Category[];
+  /** The resource's category, shown as a label in the Category column. */
+  category: Category;
+  /** Review status, shown as a badge in the Status column. Null if the backend sent a status the frontend doesn't recognize. */
+  status: ResourceStatus | null;
   /** Name of the staff member who submitted it, shown in the Submitted By column. */
   submittedBy: string;
   /** When it was submitted, shown as mm/dd/yyyy in the Date Submitted column. */
   dateSubmitted: Date;
-  /** Review status, shown as a badge in the Status column. */
-  status: ResourceStatus;
 }
 
 /**
@@ -82,6 +124,11 @@ export interface ReviewQueueFilters {
   /** Search text matched against resource names. */
   search: string;
 }
+
+/**
+ * Where the review queue's request for resources is: still in flight, failed, or finished.
+ */
+export type ReviewQueueLoadState = 'loading' | 'error' | 'success';
 
 /**
  * Props for the page header.
@@ -133,6 +180,8 @@ export interface ReviewQueueSearchBarProps {
 export interface ReviewQueueTableProps {
   /** Resources to render, one per row, in order. */
   resources: ReviewQueueResource[];
+  /** Text shown in place of rows when resources is empty */
+  emptyMessage: string;
 }
 
 /**
@@ -148,5 +197,5 @@ export interface ReviewQueueTableRowProps {
  */
 export interface ReviewQueueStatusBadgeProps {
   /** The status to render. */
-  status: ResourceStatus;
+  status: ResourceStatus | null;
 }

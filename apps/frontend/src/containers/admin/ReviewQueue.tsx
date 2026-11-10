@@ -1,13 +1,15 @@
-import { useState } from 'react';
-import { Flex } from '@chakra-ui/react';
+import { useEffect, useState } from 'react';
+import { Flex, Text } from '@chakra-ui/react';
 import ReviewQueueFilterBar from '../../components/reviewQueue/ReviewQueueFilterBar';
 import ReviewQueueTable from '../../components/reviewQueue/ReviewQueueTable';
 import ReviewQueueHeader from '../../components/reviewQueue/parts/ReviewQueueHeader';
-import {
-  ReviewQueueFilters,
-  ReviewQueueResource,
-} from '../../components/reviewQueue/types';
-import { Category, ResourceStatus } from '../../types';
+  import {
+    ReviewQueueFilters,
+    ReviewQueueLoadState,
+    ReviewQueueResource,
+  } from '../../components/reviewQueue/types';
+import { filterReviewQueueResources } from '../../components/reviewQueue/filterReviewQueueResources';
+import apiClient from '../../api/apiClient';
 import '../../components/reviewQueue/reviewQueue.css';
 
 // TODO: Replace with variable in the future
@@ -16,102 +18,80 @@ const TITLE = 'Review Queue';
 // TODO: Replace with variable in the future
 const SUBTITLE = 'Pending and incomplete submissions waiting for vetting';
 
-/**
- * Hardcoded resources that make the page match the design for now.
- * Date months are 0-indexed: new Date(2026, 9, 14) is October 14, 2026.
- */
-const RESOURCES: ReviewQueueResource[] = [
-  // TODO: Replace with variable in the future
-  {
-    resourceId: 1,
-    name: 'Greater Boston Food Bank',
-    categories: [Category.FOOD_ACCESS],
-    submittedBy: 'Jordan Lee',
-    dateSubmitted: new Date(2026, 9, 14),
-    status: ResourceStatus.REJECTED,
-  },
-  // TODO: Replace with variable in the future
-  {
-    resourceId: 2,
-    name: 'Pine Street Inn',
-    categories: [Category.HOUSING],
-    submittedBy: 'Maria Santos',
-    dateSubmitted: new Date(2026, 9, 16),
-    status: ResourceStatus.PENDING_REVIEW,
-  },
-  // TODO: Replace with variable in the future
-  {
-    resourceId: 3,
-    name: 'Community Servings',
-    categories: [Category.FOOD_ACCESS, Category.OTHER],
-    submittedBy: 'Alex Kim',
-    dateSubmitted: new Date(2026, 9, 18),
-    status: ResourceStatus.NEEDS_CHANGES,
-  },
-  // TODO: Replace with variable in the future
-  {
-    resourceId: 4,
-    name: 'Boston Housing Authority',
-    categories: [Category.HOUSING],
-    submittedBy: 'Jordan Lee',
-    dateSubmitted: new Date(2026, 9, 20),
-    status: ResourceStatus.PENDING_REVIEW,
-  },
-  // TODO: Replace with variable in the future
-  {
-    resourceId: 5,
-    name: 'Women’s Lunch Place',
-    categories: [Category.FOOD_ACCESS],
-    submittedBy: 'Priya Patel',
-    dateSubmitted: new Date(2026, 9, 22),
-    status: ResourceStatus.APPROVED_PUBLISHED,
-  },
-  // TODO: Replace with variable in the future
-  {
-    resourceId: 6,
-    name: 'Legal Aid Clinic',
-    categories: [Category.OTHER],
-    submittedBy: 'Maria Santos',
-    dateSubmitted: new Date(2026, 9, 25),
-    status: ResourceStatus.ARCHIVED,
-  },
-  // TODO: Replace with variable in the future
-  {
-    resourceId: 7,
-    name: 'HomeStart',
-    categories: [Category.HOUSING, Category.OTHER],
-    submittedBy: 'Alex Kim',
-    dateSubmitted: new Date(2026, 9, 28),
-    status: ResourceStatus.PENDING_REVIEW,
-  },
-];
+// TODO: Replace with variable in the future
+const LOADING_MESSAGE = 'Loading resources…';
+
+// TODO: Replace with variable in the future
+const ERROR_MESSAGE = "Couldn't load resources. Please try again later.";
+
+// TODO: Replace with variable in the future
+const EMPTY_QUEUE_MESSAGE = 'There are no resources to review.';
+
+// TODO: Replace with variable in the future
+const NO_MATCHES_MESSAGE = 'No resources match these filters.';
 
 const NO_FILTERS: ReviewQueueFilters = { category: '', status: '', search: '' };
 
 /**
- * Review Queue page: lists resources with their category and status and lets
- * admins filter them by category, status, and name. Owns the filter state and
- * the filtering, and passes each component only the data it renders.
+ * Review Queue page: loads resources from the backend, lists them with their ID,
+ * name, category, and status, and lets admins filter them by category, status,
+ * and name. Owns the loaded data, the request's loading and error state, the
+ * filter state, and the filtering, and passes each component only the data it renders.
  *
  * @returns The Review Queue page.
  */
 const ReviewQueue = () => {
   const [filters, setFilters] = useState<ReviewQueueFilters>(NO_FILTERS);
 
-  const query = filters.search.trim().toLowerCase();
-  const visibleResources = RESOURCES.filter(
-    (resource) =>
-      (!filters.category || resource.categories.includes(filters.category)) &&
-      (!filters.status || resource.status === filters.status) &&
-      resource.name.toLowerCase().includes(query),
-  );
+  const [resources, setResources] = useState<ReviewQueueResource[]>([]);
+  const [loadState, setLoadState] = useState<ReviewQueueLoadState>('loading');
+
+  useEffect(() => {
+    // Stops a response that arrives after the page unmounts from updating state.
+    let ignore = false;
+    apiClient
+      .getReviewQueueResources()
+      .then((loaded) => {
+        if (ignore) return;
+        setResources(loaded);
+        setLoadState('success');
+      })
+      .catch(() => {
+        if (!ignore) setLoadState('error');
+      });
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
+  const visibleResources = filterReviewQueueResources(resources, filters);
+  const emptyMessage =
+    resources.length === 0 ? EMPTY_QUEUE_MESSAGE : NO_MATCHES_MESSAGE;
 
   return (
     <Flex direction="column" className="review-queue">
       <ReviewQueueHeader title={TITLE} subtitle={SUBTITLE} />
       <Flex direction="column" className="review-queue-content">
         <ReviewQueueFilterBar filters={filters} onFiltersChange={setFilters} />
-        <ReviewQueueTable resources={visibleResources} />
+                {loadState === 'loading' && (
+          <Text role="status" className="review-queue-message">
+            {LOADING_MESSAGE}
+          </Text>
+        )}
+        {loadState === 'error' && (
+          <Text
+            role="alert"
+            className="review-queue-message review-queue-message-error"
+          >
+            {ERROR_MESSAGE}
+          </Text>
+        )}
+        {loadState === 'success' && (
+          <ReviewQueueTable
+            resources={visibleResources}
+            emptyMessage={emptyMessage}
+          />
+        )}
       </Flex>
     </Flex>
   );
