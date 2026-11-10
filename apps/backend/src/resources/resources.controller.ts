@@ -86,7 +86,7 @@ export class ResourcesController {
    * 409 if the resource's status changed while the request was being processed,
    * or 500 with a descriptive message if the database fails while looking up or updating the resource.
    */
-  @Patch(':id')
+  @Patch(':id/status')
   @HttpCode(HttpStatus.OK)
   transitionStatus(
     @Param('id', ParseResourceIdPipe) id: number,
