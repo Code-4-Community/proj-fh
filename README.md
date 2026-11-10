@@ -83,6 +83,22 @@ To revert the most recent migration:
 yarn migration:revert
 ```
 
+**Seed sample data (optional, development only):**
+
+After running migrations, fill your local database with fictional resources and users:
+
+```bash
+POSTGRES_HOST=localhost yarn seed
+```
+
+> **Windows users:** In PowerShell, run `$env:POSTGRES_HOST="localhost"; yarn seed`.
+
+- The seed refuses to run unless `POSTGRES_HOST` is `localhost`, `127.0.0.1`, or `host.docker.internal`, so it can't touch a remote database.
+- It inserts sample users (5 admins, 5 community staff, 5 patients) with `@c4cneu.com` emails, plus sample resources.
+- It is safe to run again. Each run truncates all resources and scores, and replaces the seed users (matched by exact email). Other users and all tags are left untouched.
+- User ids come from the database, so seeding never collides with other users.
+- Seed users exist only in the database, not in Cognito. To sign in as one, create a matching Cognito account with the same email.
+
 ## Start the app
 
 Build and run the containers from the repo root.

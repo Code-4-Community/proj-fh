@@ -1,10 +1,10 @@
-import { Entity, Column } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
 import type { Status } from './types';
 
 @Entity()
 export class User {
-  @Column({ primary: true })
+  @PrimaryGeneratedColumn()
   id: number;
 
   @Column({ type: 'varchar' })
