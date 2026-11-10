@@ -42,9 +42,7 @@ describe('UserInvitationService', () => {
   let service: UserInvitationService;
   let queryBuilder: {
     where: jest.Mock;
-    select: jest.Mock;
     getOne: jest.Mock;
-    getRawOne: jest.Mock;
   };
   let repo: { createQueryBuilder: jest.Mock; insert: jest.Mock };
   let cognito: {
@@ -65,13 +63,11 @@ describe('UserInvitationService', () => {
   beforeEach(() => {
     queryBuilder = {
       where: jest.fn().mockReturnThis(),
-      select: jest.fn().mockReturnThis(),
       getOne: jest.fn().mockResolvedValue(null),
-      getRawOne: jest.fn().mockResolvedValue({ maxId: 4 }),
     };
     repo = {
       createQueryBuilder: jest.fn(() => queryBuilder),
-      insert: jest.fn().mockResolvedValue(undefined),
+      insert: jest.fn().mockResolvedValue({ identifiers: [{ id: 5 }] }),
     };
     cognito = {
       userPoolId: 'us-east-2_test',
@@ -109,7 +105,6 @@ describe('UserInvitationService', () => {
       });
       expect(cognito.createInvitedUser).toHaveBeenCalledWith('jane.doe@example.com');
       expect(repo.insert).toHaveBeenCalledWith({
-        id: 5,
         email: 'jane.doe@example.com',
         firstName: 'Jane',
         lastName: 'Doe',

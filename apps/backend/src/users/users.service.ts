@@ -27,9 +27,7 @@ export class UsersService {
     lastName: string,
     status: Status = Status.COMMUNITY_STAFF,
   ) {
-    const userId = (await this.repo.count()) + 1;
     const user = this.repo.create({
-      id: userId,
       status,
       firstName,
       lastName,

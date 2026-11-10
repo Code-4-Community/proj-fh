@@ -187,3 +187,21 @@ describe('UsersService.remove', () => {
     });
   });
 });
+
+describe('UsersService.create', () => {
+  it('lets the database generate the id instead of computing one', async () => {
+    const repo = {
+      create: jest.fn((attrs: Partial<User>) => attrs),
+      save: jest.fn((user: Partial<User>) => Promise.resolve(user)),
+      count: jest.fn(),
+    };
+    const service = new UsersService(repo as never, {} as never);
+
+    await service.create('a@example.com', 'A', 'B');
+
+    expect(repo.count).not.toHaveBeenCalled();
+    expect(repo.create).toHaveBeenCalledWith(
+      expect.not.objectContaining({ id: expect.anything() }),
+    );
+  });
+});

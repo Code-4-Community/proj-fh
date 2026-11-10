@@ -116,22 +116,13 @@ export class UserInvitationService {
     cognitoUsername: string,
   ): Promise<number> {
     try {
-      // The id column is not auto-generated. MAX + 1 avoids reusing an id after a
-      // deletion, and insert() fails on a collision instead of overwriting a row.
-      const raw = await this.repo
-        .createQueryBuilder('u')
-        .select('MAX(u.id)', 'maxId')
-        .getRawOne<{ maxId: number | string | null }>();
-      const id = Number(raw?.maxId ?? 0) + 1;
-
-      await this.repo.insert({
-        id,
+      const result = await this.repo.insert({
         email,
         firstName: dto.firstName,
         lastName: dto.lastName,
         status: dto.role,
       });
-      return id;
+      return (result.identifiers[0] as { id: number }).id;
     } catch (err) {
       this.logger.error({
         msg: 'Database save failed after the Cognito user was created',
