@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   HttpStatus,
   InternalServerErrorException,
   NotFoundException,
@@ -18,6 +19,7 @@ import {
   County,
   Recommendation,
   ResponseTime,
+  ReviewStatus,
   YesNoMaybe,
 } from './types';
 import { FindResourceQueryDto } from './dto/find-resource-by-query.dto';
@@ -35,9 +37,9 @@ const makeResource = (id: number): Resource =>
     county: County.SUFFOLK,
     zip_code: '02115',
     last_verified_date: new Date('2026-01-15'),
-    review_status: 'pending_review',
+    review_status: ReviewStatus.PENDING_REVIEW,
     tags: [],
-  }) as Resource;
+  }) as unknown as Resource;
 
 describe('ResourcesController', () => {
   let controller: ResourcesController;
@@ -148,10 +150,10 @@ describe('ResourcesController', () => {
         phone: '(617) 555-0100',
         score_id: 12,
         completed_by: 'Jane Doe',
-        review_status: 'pending_review',
+        review_status: ReviewStatus.PENDING_REVIEW,
         last_verified_date: new Date('2026-10-01'),
         tags: [],
-      } as Resource;
+      } as unknown as Resource;
       const update = jest.spyOn(service, 'update').mockResolvedValue(updated);
 
       await expect(controller.update(1, changes)).resolves.toEqual(updated);
@@ -174,6 +176,69 @@ describe('ResourcesController', () => {
       jest.spyOn(service, 'update').mockRejectedValue(error);
 
       await expect(controller.update(1, changes)).rejects.toThrow(error);
+    });
+  });
+
+  /** Tests for PATCH /resources/:id/status. */
+  describe('transitionStatus', () => {
+    it('responds with a 200 status code', () => {
+      expect(
+        Reflect.getMetadata(
+          HTTP_CODE_METADATA,
+          ResourcesController.prototype.transitionStatus,
+        ),
+      ).toBe(HttpStatus.OK);
+    });
+
+    it('passes the id and body to the service and returns its result', async () => {
+      const result = {
+        resource: {
+          resource_id: 1,
+          review_status: ReviewStatus.ARCHIVED,
+        } as Resource,
+        transition: {
+          from: ReviewStatus.PENDING_REVIEW,
+          to: ReviewStatus.ARCHIVED,
+        },
+      };
+      const transitionStatus = jest
+        .spyOn(service, 'transitionStatus')
+        .mockResolvedValue(result);
+
+      await expect(
+        controller.transitionStatus(1, { status: ReviewStatus.ARCHIVED }),
+      ).resolves.toEqual(result);
+      expect(transitionStatus).toHaveBeenCalledWith(1, {
+        status: ReviewStatus.ARCHIVED,
+      });
+    });
+
+    it.each([
+      [
+        'invalid transition',
+        new BadRequestException(
+          'The transition from archived to pending_review is not valid. Allowed: none.',
+        ),
+      ],
+      ['not found', new NotFoundException('Resource with id 1 was not found.')],
+      [
+        'conflict',
+        new ConflictException(
+          "Resource 1's status changed while this request was being processed. Please try again.",
+        ),
+      ],
+      [
+        'database',
+        new InternalServerErrorException(
+          'Failed to update review status of resource 1',
+        ),
+      ],
+    ])('forwards %s errors from the service', async (_, error) => {
+      jest.spyOn(service, 'transitionStatus').mockRejectedValue(error);
+
+      await expect(
+        controller.transitionStatus(1, { status: ReviewStatus.PENDING_REVIEW }),
+      ).rejects.toThrow(error);
     });
   });
 

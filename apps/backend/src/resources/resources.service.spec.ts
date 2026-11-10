@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   InternalServerErrorException,
   Logger,
@@ -24,6 +25,7 @@ import { UsersService } from '../users/users.service';
 import { CreateResourceDto } from './dto/create-resource.dto';
 import { UpdateResourceDto } from './dto/update-resource.dto';
 import { FindResourceQueryDto } from './dto/find-resource-by-query.dto';
+import { TransitionStatusDto } from './dto/transition-status.dto';
 
 /** Builds a resource with the given ID for use as a test fixture. */
 const makeResource = (id: number): Resource =>
@@ -55,7 +57,7 @@ const makeResource = (id: number): Resource =>
     followup_needed: 'None.',
     review_status: ReviewStatus.PENDING_REVIEW,
     tags: [],
-  }) as Resource;
+  }) as unknown as Resource;
 
 describe('ResourcesService', () => {
   let service: ResourcesService;
@@ -71,6 +73,8 @@ describe('ResourcesService', () => {
   let repository: {
     manager: { transaction: jest.Mock };
     find: jest.Mock;
+    findOneBy: jest.Mock;
+    update: jest.Mock;
   };
 
   beforeEach(() => {
@@ -100,6 +104,8 @@ describe('ResourcesService', () => {
         transaction: jest.fn((callback) => callback(manager)),
       },
       find: jest.fn(),
+      findOneBy: jest.fn(),
+      update: jest.fn(),
     };
 
     service = new ResourcesService(
@@ -195,7 +201,6 @@ describe('ResourcesService', () => {
     'recommendation',
     'strengths',
     'followup_needed',
-    'review_status',
     'needs_changes_notes',
     'submission_rejection_notes',
     'overall_rating',
@@ -206,11 +211,7 @@ describe('ResourcesService', () => {
   const CREATABLE_LIST = EDITABLE_LIST.split(', ')
     .filter(
       (field) =>
-        ![
-          'review_status',
-          'needs_changes_notes',
-          'submission_rejection_notes',
-        ].includes(field),
+        !['needs_changes_notes', 'submission_rejection_notes'].includes(field),
     )
     .join(', ');
 
@@ -481,6 +482,11 @@ describe('ResourcesService', () => {
         { tags: 'abc' },
         `Invalid tags (received "abc"): ${TAGS_RULE}`,
       ],
+      [
+        'review_status',
+        { review_status: 'not_a_status' },
+        `Invalid review_status (received "not_a_status"): must be one of: ${Object.values(ReviewStatus).join(', ')}.`,
+      ],
     ])(
       'rejects an invalid %s without querying the database',
       async (_, body, message) => {
@@ -617,14 +623,13 @@ describe('ResourcesService', () => {
     const existing = {
       resource_id: 1,
       ...allFields,
-      last_verified_date: new Date(allFields.last_verified_date),
       outreach_date: new Date(allFields.outreach_date),
       score_id: 12,
       completed_by: 'Jane Doe',
       review_status: ReviewStatus.PENDING_REVIEW,
       last_verified_date: new Date('2026-09-01'),
       tags: [3],
-    } as Resource;
+    } as unknown as Resource;
 
     beforeEach(() => {
       manager.findOneBy.mockResolvedValue({ ...existing });
@@ -658,7 +663,6 @@ describe('ResourcesService', () => {
 
     it('updates fields that are set to defaults on creation', async () => {
       const changes: UpdateResourceDto = {
-        review_status: ReviewStatus.APPROVED_PUBLISHED,
         last_verified_date: '2026-10-05',
         overall_rating: 2,
         tags: [1, 4],
@@ -673,7 +677,6 @@ describe('ResourcesService', () => {
       );
       expect(manager.save).toHaveBeenCalledWith(Resource, {
         ...existing,
-        review_status: ReviewStatus.APPROVED_PUBLISHED,
         last_verified_date: new Date('2026-10-05'),
         tags: [1, 4],
       });
@@ -690,6 +693,11 @@ describe('ResourcesService', () => {
         'several fields that cannot be edited',
         { completed_by: 'Other', score_id: 5 },
         'completed_by, score_id',
+      ],
+      [
+        'review_status, which must go through transitionStatus',
+        { review_status: ReviewStatus.APPROVED_PUBLISHED },
+        'review_status',
       ],
     ])(
       'rejects %s instead of silently ignoring it',
@@ -858,6 +866,125 @@ describe('ResourcesService', () => {
       await expect(
         service.update(1, { program_notes: 'Now open on Saturdays.' }),
       ).resolves.toBeDefined();
+    });
+  });
+
+  /** Tests for moving a resource between review statuses. */
+  describe('transitionStatus', () => {
+    const resourceWithStatus = (review_status: ReviewStatus) =>
+      ({ resource_id: 1, review_status }) as Resource;
+
+    // The transition rules from the ticket. Update this list when the rules are finalized.
+    it.each<[ReviewStatus, ReviewStatus]>([
+      [ReviewStatus.PENDING_REVIEW, ReviewStatus.APPROVED_PUBLISHED],
+      [ReviewStatus.PENDING_REVIEW, ReviewStatus.REJECTED],
+      [ReviewStatus.PENDING_REVIEW, ReviewStatus.NEEDS_CHANGES],
+      [ReviewStatus.PENDING_REVIEW, ReviewStatus.ARCHIVED],
+      [ReviewStatus.NEEDS_CHANGES, ReviewStatus.APPROVED_PUBLISHED],
+      [ReviewStatus.NEEDS_CHANGES, ReviewStatus.REJECTED],
+      [ReviewStatus.NEEDS_CHANGES, ReviewStatus.ARCHIVED],
+      [ReviewStatus.APPROVED_PUBLISHED, ReviewStatus.ARCHIVED],
+      [ReviewStatus.REJECTED, ReviewStatus.ARCHIVED],
+    ])('moves a resource from %s to %s', async (from, to) => {
+      repository.findOneBy.mockResolvedValue(resourceWithStatus(from));
+      repository.update.mockResolvedValue({ affected: 1 });
+
+      await expect(
+        service.transitionStatus(1, { status: to }),
+      ).resolves.toEqual({
+        resource: resourceWithStatus(to),
+        transition: { from, to },
+      });
+      // Only updates the row if its status is still `from`, so concurrent changes aren't overwritten.
+      expect(repository.update).toHaveBeenCalledWith(
+        { resource_id: 1, review_status: from },
+        { review_status: to },
+      );
+    });
+
+    it.each<[ReviewStatus, ReviewStatus]>([
+      [ReviewStatus.PENDING_REVIEW, ReviewStatus.PENDING_REVIEW],
+      [ReviewStatus.NEEDS_CHANGES, ReviewStatus.PENDING_REVIEW],
+      [ReviewStatus.APPROVED_PUBLISHED, ReviewStatus.PENDING_REVIEW],
+      [ReviewStatus.APPROVED_PUBLISHED, ReviewStatus.NEEDS_CHANGES],
+      [ReviewStatus.REJECTED, ReviewStatus.APPROVED_PUBLISHED],
+      [ReviewStatus.ARCHIVED, ReviewStatus.PENDING_REVIEW],
+      [ReviewStatus.ARCHIVED, ReviewStatus.ARCHIVED],
+    ])('rejects moving a resource from %s to %s', async (from, to) => {
+      repository.findOneBy.mockResolvedValue(resourceWithStatus(from));
+
+      await expect(service.transitionStatus(1, { status: to })).rejects.toThrow(
+        BadRequestException,
+      );
+      await expect(service.transitionStatus(1, { status: to })).rejects.toThrow(
+        `The transition from ${from} to ${to} is not valid.`,
+      );
+      expect(repository.update).not.toHaveBeenCalled();
+    });
+
+    it.each<[string, unknown]>([
+      ['a missing status', {}],
+      ['an unknown status', { status: 'not_a_status' }],
+      ['a missing body', undefined],
+    ])('rejects %s without looking up the resource', async (_, body) => {
+      await expect(
+        service.transitionStatus(1, body as TransitionStatusDto),
+      ).rejects.toThrow(
+        new BadRequestException(
+          `Status must be one of: ${Object.values(ReviewStatus).join(', ')}.`,
+        ),
+      );
+      expect(repository.findOneBy).not.toHaveBeenCalled();
+    });
+
+    it('returns a not found error when no resource has the given id', async () => {
+      repository.findOneBy.mockResolvedValue(null);
+
+      await expect(
+        service.transitionStatus(42, { status: ReviewStatus.ARCHIVED }),
+      ).rejects.toThrow(
+        new NotFoundException('Resource with id 42 was not found.'),
+      );
+      expect(repository.update).not.toHaveBeenCalled();
+    });
+
+    it('returns a conflict when the status changed during the request', async () => {
+      repository.findOneBy.mockResolvedValue(
+        resourceWithStatus(ReviewStatus.PENDING_REVIEW),
+      );
+      // Another request changed the status first, so the conditional update matches no rows.
+      repository.update.mockResolvedValue({ affected: 0 });
+
+      await expect(
+        service.transitionStatus(1, {
+          status: ReviewStatus.APPROVED_PUBLISHED,
+        }),
+      ).rejects.toThrow(ConflictException);
+    });
+
+    it('returns a descriptive error when the database errors while looking up the resource', async () => {
+      repository.findOneBy.mockRejectedValue(new Error('connection refused'));
+
+      await expect(
+        service.transitionStatus(1, { status: ReviewStatus.ARCHIVED }),
+      ).rejects.toThrow(
+        new InternalServerErrorException('Failed to look up resource 1'),
+      );
+    });
+
+    it('returns a descriptive error when the database errors while updating the status', async () => {
+      repository.findOneBy.mockResolvedValue(
+        resourceWithStatus(ReviewStatus.PENDING_REVIEW),
+      );
+      repository.update.mockRejectedValue(new Error('connection refused'));
+
+      await expect(
+        service.transitionStatus(1, { status: ReviewStatus.ARCHIVED }),
+      ).rejects.toThrow(
+        new InternalServerErrorException(
+          'Failed to update review status of resource 1',
+        ),
+      );
     });
   });
 });
