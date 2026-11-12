@@ -4,6 +4,7 @@ import Root from '@containers/auth/Root';
 import NotFound from '@containers/NotFound';
 import Test from '@containers/dev/Test';
 import Success from '@containers/auth/Success';
+import Home from '@containers/admin/Home';
 import ReviewQueue from '@containers/admin/ReviewQueue';
 import ManageResources from '@containers/admin/ManageResources';
 import ResourceEdit from '@containers/admin/ResourceEdit';
@@ -54,6 +55,7 @@ const router = createBrowserRouter([
         element: <AdminLayout />,
         children: [
           { path: '/success', element: <Success /> },
+          { path: '/home', element: <Home /> },
           { path: '/review-queue', element: <ReviewQueue /> },
           { path: '/resources', element: <ManageResources /> },
           { path: '/resources/:resourceId/edit', element: <ResourceEdit /> },

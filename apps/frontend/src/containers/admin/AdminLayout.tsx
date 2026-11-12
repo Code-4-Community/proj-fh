@@ -3,6 +3,7 @@ import NavbarLayout from '@containers/shared/NavbarLayout';
 
 /** Links shown in the admin navbar. Each path must match a route defined in app.tsx. */
 const ADMIN_NAV_ITEMS: NavbarItem[] = [
+  { label: 'Home', path: '/home' },
   { label: 'Review Queue', path: '/review-queue' },
   { label: 'Resources', path: '/resources' },
   { label: 'Manage Staff', path: '/manage-staff' },

@@ -27,6 +27,10 @@ const Root = () => {
           navigate('/my-resources', { replace: true });
           return;
         }
+        if (identity.status === Status.ADMIN) {
+          navigate('/home', { replace: true });
+          return;
+        }
         navigate('/success', {
           replace: true,
           state: { email: identity.email },
