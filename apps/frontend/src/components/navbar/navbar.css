@@ -8,6 +8,8 @@
   --navbar-avatar-size: 48px;
   --navbar-font-size: 18px;
   --navbar-user-max-width: 280px;
+  --navbar-link-icon-size: 20px;
+  --navbar-link-icon-gap: 8px;
   --navbar-link-hover-opacity: 0.6;
   --navbar-focus-outline: 2px solid var(--color-text);
   --navbar-focus-offset: 4px;
@@ -33,6 +35,20 @@
 .navbar-links {
   gap: var(--navbar-link-gap);
   flex: 1 0 auto;
+}
+
+/* Anonymous variant: no user section, so the links sit on the right */
+.navbar-links-end {
+  justify-content: flex-end;
+}
+
+.navbar-link {
+  gap: var(--navbar-link-icon-gap);
+}
+
+.navbar-link-icon {
+  width: var(--navbar-link-icon-size);
+  height: var(--navbar-link-icon-size);
 }
 
 .navbar-link,
