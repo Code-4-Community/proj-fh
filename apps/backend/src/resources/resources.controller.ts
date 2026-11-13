@@ -1,12 +1,15 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Param,
   ParseArrayPipe,
+  ParseBoolPipe,
   Patch,
   Post,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -52,6 +55,35 @@ export class ResourcesController {
     @Req() request: AuthenticatedRequest,
   ): Promise<Resource> {
     return this.resourcesService.create(createResourceDto, request.user.email);
+  }
+
+  /**
+   * Retrieves the resources submitted by the logged-in user, newest first.
+   * The user comes from the auth token, so a client can only ever list its own resources.
+   *
+   * @param includeRejectedAndArchived optional `include_rejected_and_archived` query parameter.
+   * When omitted or `false` (the default), rejected and archived resources are left out.
+   * `true` includes them.
+   *
+   * @returns 200 with the user's resources (an empty list if they haven't submitted any),
+   * 403 if no user record matches the authenticated email,
+   * or 500 if the database query fails.
+   */
+  @UseGuards(JwtAuthGuard)
+  @Get('mine')
+  @HttpCode(HttpStatus.OK)
+  findMine(
+    @Req() request: AuthenticatedRequest,
+    @Query(
+      'include_rejected_and_archived',
+      new ParseBoolPipe({ optional: true }),
+    )
+    includeRejectedAndArchived?: boolean,
+  ): Promise<Resource[]> {
+    return this.resourcesService.findMine(
+      request.user.email,
+      includeRejectedAndArchived ?? false,
+    );
   }
 
   /**

@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { ResourcesService } from './resources.service';
 import { Resource } from './resources.entity';
-import { ArrayContains, In, Repository } from 'typeorm';
+import { ArrayContains, In, Not, Repository } from 'typeorm';
 import {
   Category,
   County,
@@ -40,6 +40,7 @@ const makeResource = (id: number): Resource =>
     last_verified_date: new Date('2026-01-15'),
     outreach_date: new Date('2026-01-01'),
     completed_by: 'Jane Doe',
+    completed_by_user_id: 7,
     staff_contact_name: 'Sam Lee',
     staff_contact_role: 'Manager',
     responsiveness: 4,
@@ -91,6 +92,7 @@ describe('ResourcesService', () => {
     };
     usersService = {
       findByEmail: jest.fn().mockResolvedValue({
+        id: 7,
         firstName: 'Jane',
         lastName: 'Doe',
       }),
@@ -231,6 +233,7 @@ describe('ResourcesService', () => {
         last_verified_date: new Date(requiredFields.last_verified_date),
         outreach_date: new Date(requiredFields.outreach_date),
         completed_by: 'Jane Doe',
+        completed_by_user_id: 7,
         score_id: 12,
         review_status: ReviewStatus.PENDING_REVIEW,
         tags: [],
@@ -258,6 +261,7 @@ describe('ResourcesService', () => {
         last_verified_date: new Date(allFields.last_verified_date),
         outreach_date: new Date(allFields.outreach_date),
         completed_by: 'Jane Doe',
+        completed_by_user_id: 7,
         score_id: 12,
         review_status: ReviewStatus.PENDING_REVIEW,
         tags: [],
@@ -278,8 +282,13 @@ describe('ResourcesService', () => {
       ],
       [
         'several server-managed fields',
-        { completed_by: 'Other User', score_id: 5, needs_changes_notes: 'x' },
-        'completed_by, score_id, needs_changes_notes',
+        {
+          completed_by: 'Other User',
+          completed_by_user_id: 9,
+          score_id: 5,
+          needs_changes_notes: 'x',
+        },
+        'completed_by, completed_by_user_id, score_id, needs_changes_notes',
       ],
       ['an unknown field', { not_a_field: 'x' }, 'not_a_field'],
     ])(
@@ -321,6 +330,68 @@ describe('ResourcesService', () => {
       ).rejects.toThrow(
         new InternalServerErrorException(
           'Failed to save the resource to the database. Please try again later.',
+        ),
+      );
+    });
+  });
+
+  /** Tests for retrieving the logged-in user's own resources. */
+  describe('findMine', () => {
+    it("returns the user's resources by user ID, newest first, excluding rejected and archived by default", async () => {
+      const found = [makeResource(2), makeResource(1)];
+      repository.find.mockResolvedValue(found);
+
+      await expect(service.findMine('jane@example.org')).resolves.toEqual(
+        found,
+      );
+      expect(usersService.findByEmail).toHaveBeenCalledWith('jane@example.org');
+      expect(repository.find).toHaveBeenCalledWith({
+        where: {
+          completed_by_user_id: 7,
+          review_status: Not(
+            In([ReviewStatus.REJECTED, ReviewStatus.ARCHIVED]),
+          ),
+        },
+        order: { created_at: 'DESC' },
+      });
+    });
+
+    it('includes rejected and archived resources when asked', async () => {
+      const found = [makeResource(1)];
+      repository.find.mockResolvedValue(found);
+
+      await expect(service.findMine('jane@example.org', true)).resolves.toEqual(
+        found,
+      );
+      expect(repository.find).toHaveBeenCalledWith({
+        where: { completed_by_user_id: 7 },
+        order: { created_at: 'DESC' },
+      });
+    });
+
+    it('returns an empty list when the user has no resources', async () => {
+      repository.find.mockResolvedValue([]);
+
+      await expect(service.findMine('jane@example.org')).resolves.toEqual([]);
+    });
+
+    it('rejects a user without a matching account', async () => {
+      usersService.findByEmail.mockResolvedValue(null);
+
+      await expect(service.findMine('unknown@example.org')).rejects.toThrow(
+        new ForbiddenException(
+          'No user record exists for unknown@example.org.',
+        ),
+      );
+      expect(repository.find).not.toHaveBeenCalled();
+    });
+
+    it('returns a descriptive error when the database errors', async () => {
+      repository.find.mockRejectedValue(new Error('connection refused'));
+
+      await expect(service.findMine('jane@example.org')).rejects.toThrow(
+        new InternalServerErrorException(
+          'Failed to retrieve resources from the database. Please try again later.',
         ),
       );
     });
@@ -691,8 +762,8 @@ describe('ResourcesService', () => {
       ['an unknown field', { not_a_field: 'x' }, 'not_a_field'],
       [
         'several fields that cannot be edited',
-        { completed_by: 'Other', score_id: 5 },
-        'completed_by, score_id',
+        { completed_by: 'Other', score_id: 5, completed_by_user_id: 9 },
+        'completed_by, score_id, completed_by_user_id',
       ],
       [
         'review_status, which must go through transitionStatus',

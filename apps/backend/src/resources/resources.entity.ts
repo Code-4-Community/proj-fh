@@ -28,6 +28,7 @@ import {
 @Index('IDX_resources_category', ['category'])
 @Index('IDX_resources_county', ['county'])
 @Index('IDX_resources_zip_code', ['zip_code'])
+@Index('IDX_resources_completed_by_user_id', ['completed_by_user_id'])
 export class Resource {
   /**
    * Unique ID of a Resource.
@@ -178,11 +179,22 @@ export class Resource {
   /**
    * The name of the staff member who completed the vetting form. Copied once from the logged-in user
    * when the resource is created, so it stays correct if that user is later renamed or deleted.
+   * This is for display only; use completed_by_user_id to identify the submitter.
    *
    * E.g. 'Jane Doe'
    */
   @Column({ type: 'varchar', length: 255 })
   completed_by!: string;
+
+  /**
+   * The users.id of the staff member who submitted the Resource, set by the backend on creation.
+   * The migration adds a foreign key to users with ON DELETE SET NULL, so this becomes null if that
+   * user is removed while the Resource and its completed_by name are kept.
+   *
+   * E.g. 7, null
+   */
+  @Column({ type: 'integer', nullable: true })
+  completed_by_user_id?: number | null;
 
   /**
    * The date the staff member reached out to the organization.

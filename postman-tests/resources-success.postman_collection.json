@@ -39,12 +39,32 @@
         },
         "url": {
           "raw": "{{baseUrl}}/resources",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "resources"
-          ]
+          "host": ["{{baseUrl}}"],
+          "path": ["resources"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Find mine",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('returns 200', () => pm.response.to.have.status(200));\npm.test('includes the resource just created', () => {\n  const ids = pm.response.json().map((resource) => resource.resource_id);\n  pm.expect(ids).to.include(Number(pm.collectionVariables.get('resourceId')));\n});\npm.test('every resource belongs to the caller', () => {\n  const submitters = new Set(pm.response.json().map((resource) => resource.completed_by_user_id));\n  pm.expect(submitters.size).to.eql(1);\n  pm.expect([...submitters][0]).to.be.a('number');\n});\npm.test('excludes rejected and archived resources by default', () => {\n  const statuses = pm.response.json().map((resource) => resource.review_status);\n  pm.expect(statuses).to.not.include.members(['rejected', 'archived']);\n});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/resources/mine",
+          "host": ["{{baseUrl}}"],
+          "path": ["resources", "mine"]
         }
       },
       "response": []
@@ -70,13 +90,8 @@
         },
         "url": {
           "raw": "{{baseUrl}}/resources/{{resourceId}}",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "resources",
-            "{{resourceId}}"
-          ]
+          "host": ["{{baseUrl}}"],
+          "path": ["resources", "{{resourceId}}"]
         }
       },
       "response": []
@@ -102,13 +117,8 @@
         },
         "url": {
           "raw": "{{baseUrl}}/resources/findByIds",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "resources",
-            "findByIds"
-          ]
+          "host": ["{{baseUrl}}"],
+          "path": ["resources", "findByIds"]
         }
       },
       "response": []
@@ -134,13 +144,8 @@
         },
         "url": {
           "raw": "{{baseUrl}}/resources/find",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "resources",
-            "find"
-          ]
+          "host": ["{{baseUrl}}"],
+          "path": ["resources", "find"]
         }
       },
       "response": []
@@ -172,14 +177,8 @@
         },
         "url": {
           "raw": "{{baseUrl}}/resources/{{resourceId}}/status",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "resources",
-            "{{resourceId}}",
-            "status"
-          ]
+          "host": ["{{baseUrl}}"],
+          "path": ["resources", "{{resourceId}}", "status"]
         }
       },
       "response": []
@@ -211,14 +210,8 @@
         },
         "url": {
           "raw": "{{baseUrl}}/resources/{{resourceId}}/status",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "resources",
-            "{{resourceId}}",
-            "status"
-          ]
+          "host": ["{{baseUrl}}"],
+          "path": ["resources", "{{resourceId}}", "status"]
         }
       },
       "response": []

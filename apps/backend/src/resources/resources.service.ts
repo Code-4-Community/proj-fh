@@ -15,6 +15,7 @@ import {
   DeepPartial,
   FindOptionsWhere,
   In,
+  Not,
   Repository,
 } from 'typeorm';
 import { FindResourceQueryDto } from './dto/find-resource-by-query.dto';
@@ -448,7 +449,7 @@ export class ResourcesService {
   /**
    * Creates a new resource after validating its fields.
    *
-   * Only the fields in CreateResourceDto are accepted; a field the server manages itself (e.g. resource_id, completed_by, review_status)
+   * Only the fields in CreateResourceDto are accepted; a field the server manages itself (e.g. resource_id, completed_by, completed_by_user_id, review_status)
    * or an unknown field is rejected instead of being silently dropped.
    * The overall rating is saved with the resource's Score, and tags are resolved in the same transaction.
    *
@@ -503,6 +504,7 @@ export class ResourcesService {
           public_fields: resourceFields.public_fields ?? [],
           last_verified_date: new Date(resourceFields.last_verified_date),
           completed_by: `${user.firstName} ${user.lastName}`.trim(),
+          completed_by_user_id: user.id,
           outreach_date: new Date(resourceFields.outreach_date),
           score_id: score.score_id,
           review_status: ReviewStatus.PENDING_REVIEW,
@@ -523,7 +525,7 @@ export class ResourcesService {
    * Updates an existing resource after validating the fields being changed.
    *
    * This is a partial update: only the fields in UpdateResourceDto that are sent are changed, and every other field keeps its stored value.
-   * Nullable fields can be cleared by sending null. score_id, completed_by, and review_status cannot be changed.
+   * Nullable fields can be cleared by sending null. score_id, completed_by, completed_by_user_id and review_status cannot be changed.
    * review_status changes must go through transitionStatus, so the review workflow's rules are always applied.
    *
    * @param id The resource_id of the resource to update.
@@ -704,6 +706,58 @@ export class ResourcesService {
       resource: { ...resource, review_status: next },
       transition: { from: current, to: next },
     };
+  }
+
+  /**
+   * Retrieves the resources submitted by the logged-in user, newest first.
+   *
+   * Resources are matched on completed_by_user_id, not on the completed_by name, since two users can share a name.
+   * The user is resolved from the authenticated email, so a client can't ask for another user's resources.
+   *
+   * @param email The email of the logged-in user.
+   * @param includeRejectedAndArchived When false (the default), resources with review_status
+   * REJECTED or ARCHIVED are left out. When true, every status is included.
+   *
+   * @returns A promise that resolves to the user's resources. An empty list means they haven't submitted any yet.
+   *
+   * @throws ForbiddenException (403) if no user account matches the authenticated email.
+   * @throws InternalServerErrorException (500) if the database query fails.
+   * The original database error is logged rather than returned to the client.
+   */
+  async findMine(
+    email?: string,
+    includeRejectedAndArchived = false,
+  ): Promise<Resource[]> {
+    const user = email ? await this.usersService.findByEmail(email) : null;
+    if (!user) {
+      throw new ForbiddenException(
+        `No user record exists for ${email ?? 'this token'}.`,
+      );
+    }
+
+    try {
+      return await this.repo.find({
+        where: {
+          completed_by_user_id: user.id,
+          ...(includeRejectedAndArchived
+            ? {}
+            : {
+                review_status: Not(
+                  In([ReviewStatus.REJECTED, ReviewStatus.ARCHIVED]),
+                ),
+              }),
+        },
+        order: { created_at: 'DESC' },
+      });
+    } catch (error) {
+      this.logger.error(
+        `Failed to retrieve resources submitted by user ${user.id}`,
+        error,
+      );
+      throw new InternalServerErrorException(
+        'Failed to retrieve resources from the database. Please try again later.',
+      );
+    }
   }
 
   /**

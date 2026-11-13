@@ -13,22 +13,22 @@ Companion to [resources-tags-refactor-plan.md](./resources-tags-refactor-plan.md
 
 ## 1. Basic Information (both forms)
 
-| Question | Required | Type | Maps to |
-|---|---|---|---|
-| Name of Staff Member Completing this Form | no (not asked) | none | `resources.completed_by`, the logged-in user's name copied onto the resource when it is created (no FK) |
-| Date of Outreach | yes | date | `resources.outreach_date` |
-| Organization Name | yes | short text | `resources.organization_name` |
-| Program Name | yes | short text | `resources.program_name` |
-| Website | yes | short text | `resources.website` |
-| Phone Number | yes | short text | `resources.phone` |
-| Email Address | yes | short text | `resources.email` |
-| Address | no | short text | `resources.address` |
-| What is the Zip Code? | no | short text | `resources.zip_code` |
-| What Country [sic: County] is the Organization in? | no | single choice | `resources.county` (enum, 14 options below) |
-| Which of the above can we display on the website | yes | multi-select | `resources.public_fields` (`public_field[]`, enum array) |
-| Staff Contact Name | yes | short text | `resources.staff_contact_name` |
-| Staff Contact Name Role | yes | short text | `resources.staff_contact_role` |
-| Date Information Verified | yes | date | `resources.last_verified_date` |
+| Question                                           | Required       | Type          | Maps to                                                                                                                                                                                                                                        |
+| -------------------------------------------------- | -------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Name of Staff Member Completing this Form          | no (not asked) | none          | `resources.completed_by`, the logged-in user's name copied onto the resource when it is created (display only, no FK), and `resources.completed_by_user_id`, that user's `users.id` (FK, `ON DELETE SET NULL`), which identifies the submitter |
+| Date of Outreach                                   | yes            | date          | `resources.outreach_date`                                                                                                                                                                                                                      |
+| Organization Name                                  | yes            | short text    | `resources.organization_name`                                                                                                                                                                                                                  |
+| Program Name                                       | yes            | short text    | `resources.program_name`                                                                                                                                                                                                                       |
+| Website                                            | yes            | short text    | `resources.website`                                                                                                                                                                                                                            |
+| Phone Number                                       | yes            | short text    | `resources.phone`                                                                                                                                                                                                                              |
+| Email Address                                      | yes            | short text    | `resources.email`                                                                                                                                                                                                                              |
+| Address                                            | no             | short text    | `resources.address`                                                                                                                                                                                                                            |
+| What is the Zip Code?                              | no             | short text    | `resources.zip_code`                                                                                                                                                                                                                           |
+| What Country [sic: County] is the Organization in? | no             | single choice | `resources.county` (enum, 14 options below)                                                                                                                                                                                                    |
+| Which of the above can we display on the website   | yes            | multi-select  | `resources.public_fields` (`public_field[]`, enum array)                                                                                                                                                                                       |
+| Staff Contact Name                                 | yes            | short text    | `resources.staff_contact_name`                                                                                                                                                                                                                 |
+| Staff Contact Name Role                            | yes            | short text    | `resources.staff_contact_role`                                                                                                                                                                                                                 |
+| Date Information Verified                          | yes            | date          | `resources.last_verified_date`                                                                                                                                                                                                                 |
 
 The form label says "Country". The data is a county, so it maps to `resources.county`.
 
@@ -38,15 +38,15 @@ The form label says "Country". The data is a county, so it maps to `resources.co
 
 ## 2a. Food Program Information (food form only, category `food_access`)
 
-| Question | Required | Type | Maps to |
-|---|---|---|---|
-| Type of Food Assistance | yes | multi-select | `tags` table, group `food_assistance_type`, category `food_access` |
-| Food Types | no | multi-select | `tags` table, group `food_type`, category `food_access` |
-| Pricing | no | multi-select | `tags` table, group `pricing`, category `food_access` |
-| Population(s) served | yes | multi-select | `tags` table, group `population` (see section 2c) |
-| Frequency of Services | yes | single choice | `tags` table, group `frequency` (single), category `food_access` |
-| Observation | yes | Yes / No / Unsure table | `tags` table, group `program_observation`, category `food_access` |
-| Notes | no | short text | `resources.program_notes` |
+| Question                | Required | Type                    | Maps to                                                            |
+| ----------------------- | -------- | ----------------------- | ------------------------------------------------------------------ |
+| Type of Food Assistance | yes      | multi-select            | `tags` table, group `food_assistance_type`, category `food_access` |
+| Food Types              | no       | multi-select            | `tags` table, group `food_type`, category `food_access`            |
+| Pricing                 | no       | multi-select            | `tags` table, group `pricing`, category `food_access`              |
+| Population(s) served    | yes      | multi-select            | `tags` table, group `population` (see section 2c)                  |
+| Frequency of Services   | yes      | single choice           | `tags` table, group `frequency` (single), category `food_access`   |
+| Observation             | yes      | Yes / No / Unsure table | `tags` table, group `program_observation`, category `food_access`  |
+| Notes                   | no       | short text              | `resources.program_notes`                                          |
 
 **Type of Food Assistance options** (each one tag in `food_assistance_type`): Food pantry, Community meals, Grocery vouchers, SNAP/WIC enrollment assistance, Emergency food assistance, Mobile food distribution, Medically tailored meals, Cultural/Religious Dietary Options, Accepts EBT, Food Assistance, Farm Training, Farmers Market, Discounted Food, Child Nutrition Programs.
 
@@ -58,20 +58,20 @@ The form label says "Country". The data is a county, so it maps to `resources.co
 
 **Observation rows** (each row is a Yes tag and an "(unsure)" tag in `program_observation`, so 10 tags):
 
-| Row | Yes tag | Unsure tag |
-|---|---|---|
-| Food appeared organized | `food-appeared-organized` | `food-appeared-organized-unsure` |
-| Nutritional options available | `nutritional-options-available` | `nutritional-options-available-unsure` |
+| Row                             | Yes tag                           | Unsure tag                               |
+| ------------------------------- | --------------------------------- | ---------------------------------------- |
+| Food appeared organized         | `food-appeared-organized`         | `food-appeared-organized-unsure`         |
+| Nutritional options available   | `nutritional-options-available`   | `nutritional-options-available-unsure`   |
 | Cultural food options available | `cultural-food-options-available` | `cultural-food-options-available-unsure` |
-| Staff appeared respectful | `staff-appeared-respectful` | `staff-appeared-respectful-unsure` |
-| Environment felt welcoming | `environment-felt-welcoming` | `environment-felt-welcoming-unsure` |
+| Staff appeared respectful       | `staff-appeared-respectful`       | `staff-appeared-respectful-unsure`       |
+| Environment felt welcoming      | `environment-felt-welcoming`      | `environment-felt-welcoming-unsure`      |
 
 ## 2b. Housing Program Information (housing form only, category `housing`)
 
-| Question | Required | Type | Maps to |
-|---|---|---|---|
-| What services does the organization provide? | yes | multi-select | `tags` table, group `housing_service_type`, category `housing` |
-| Population(s) served | yes | multi-select | `tags` table, group `population` (see section 2c) |
+| Question                                     | Required | Type         | Maps to                                                        |
+| -------------------------------------------- | -------- | ------------ | -------------------------------------------------------------- |
+| What services does the organization provide? | yes      | multi-select | `tags` table, group `housing_service_type`, category `housing` |
+| Population(s) served                         | yes      | multi-select | `tags` table, group `population` (see section 2c)              |
 
 **Service options** (`housing_service_type`): Emergency shelter, Transitional housing, Permanent housing, Rental assistance, Housing navigation/case management, Rapid rehousing, Domestic violence shelter, Youth housing, Recovery housing, LGBTQ+ affirming housing, Section 8, Basic Needs, Other + text.
 
@@ -79,33 +79,33 @@ The form label says "Country". The data is a county, so it maps to `resources.co
 
 One group, with each option's tag category set by which form lists it.
 
-| Option | Food form | Housing form | Tag category |
-|---|---|---|---|
-| General population | yes | yes | `common` |
-| Families | yes | yes | `common` |
-| Youth | yes | yes | `common` |
-| Older adults | yes | yes | `common` |
-| LGBTQ+ individuals | yes | yes | `common` |
-| Immigrants/refugees | yes | yes | `common` |
-| People with disabilities | yes | yes | `common` |
-| Unhoused individuals | yes | yes | `common` |
-| Other + text | yes | yes | `common` |
-| Individuals with chronic illness | yes | no | `food_access` |
-| Individuals with HIV/AIDS | no | yes | `housing` |
-| Women Only | no | yes | `housing` |
-| Women and Children Only | no | yes | `housing` |
-| Unaccompanied Youth | no | yes | `housing` |
-| Survivors of Domestic Violence | no | yes | `housing` |
-| Veterans | no | yes | `housing` |
+| Option                           | Food form | Housing form | Tag category  |
+| -------------------------------- | --------- | ------------ | ------------- |
+| General population               | yes       | yes          | `common`      |
+| Families                         | yes       | yes          | `common`      |
+| Youth                            | yes       | yes          | `common`      |
+| Older adults                     | yes       | yes          | `common`      |
+| LGBTQ+ individuals               | yes       | yes          | `common`      |
+| Immigrants/refugees              | yes       | yes          | `common`      |
+| People with disabilities         | yes       | yes          | `common`      |
+| Unhoused individuals             | yes       | yes          | `common`      |
+| Other + text                     | yes       | yes          | `common`      |
+| Individuals with chronic illness | yes       | no           | `food_access` |
+| Individuals with HIV/AIDS        | no        | yes          | `housing`     |
+| Women Only                       | no        | yes          | `housing`     |
+| Women and Children Only          | no        | yes          | `housing`     |
+| Unaccompanied Youth              | no        | yes          | `housing`     |
+| Survivors of Domestic Violence   | no        | yes          | `housing`     |
+| Veterans                         | no        | yes          | `housing`     |
 
 ## 3. Initial Contact & Responsiveness (both forms, all tags `common`)
 
-| Question | Required | Type | Maps to |
-|---|---|---|---|
-| How did you interact with the organization? | yes | multi-select | `tags` table, group `contact_method` |
-| Was the organization responsive? (1-5) | yes | rating | `resources.responsiveness` (smallint, CHECK 1-5; 1 = unable to contact, 5 = very responsive) |
-| Approximate response time | yes | single choice | `resources.response_time` (enum) |
-| Notes on interaction with staff | yes | short text | `resources.interaction_notes` |
+| Question                                    | Required | Type          | Maps to                                                                                      |
+| ------------------------------------------- | -------- | ------------- | -------------------------------------------------------------------------------------------- |
+| How did you interact with the organization? | yes      | multi-select  | `tags` table, group `contact_method`                                                         |
+| Was the organization responsive? (1-5)      | yes      | rating        | `resources.responsiveness` (smallint, CHECK 1-5; 1 = unable to contact, 5 = very responsive) |
+| Approximate response time                   | yes      | single choice | `resources.response_time` (enum)                                                             |
+| Notes on interaction with staff             | yes      | short text    | `resources.interaction_notes`                                                                |
 
 **Contact method options** (`contact_method`): Phone call, Email, In person visit, Website review, Virtual meeting, Other + text.
 
@@ -113,14 +113,14 @@ One group, with each option's tag category set by which form lists it.
 
 ## 4. Accessibility & Intake (both forms, all tags `common`)
 
-| Question | Required | Type | Maps to |
-|---|---|---|---|
-| Intake process | yes | multi-select | `tags` table, group `intake_process` |
-| Required Documentation | yes | multi-select | `tags` table, group `required_documentation` |
-| Accessibility Questions | yes | Yes / No / Unsure table | `tags` table, group `accessibility` |
-| Estimated wait time | yes | single choice | `tags` table, group `estimated_wait_time` (single) |
-| Please describe the eligibility requirements | no | free text | `resources.eligibility` |
-| Accessibility notes | yes | short text | `resources.accessibility_notes` |
+| Question                                     | Required | Type                    | Maps to                                            |
+| -------------------------------------------- | -------- | ----------------------- | -------------------------------------------------- |
+| Intake process                               | yes      | multi-select            | `tags` table, group `intake_process`               |
+| Required Documentation                       | yes      | multi-select            | `tags` table, group `required_documentation`       |
+| Accessibility Questions                      | yes      | Yes / No / Unsure table | `tags` table, group `accessibility`                |
+| Estimated wait time                          | yes      | single choice           | `tags` table, group `estimated_wait_time` (single) |
+| Please describe the eligibility requirements | no       | free text               | `resources.eligibility`                            |
+| Accessibility notes                          | yes      | short text              | `resources.accessibility_notes`                    |
 
 **Intake process options** (`intake_process`): Walk-ins accepted, Appointment required, Referral required, Online application available, Phone intake available, In-person intake only, Other + text.
 
@@ -130,35 +130,35 @@ One group, with each option's tag category set by which form lists it.
 
 **Accessibility rows** (each row is a Yes tag and an "(unsure)" tag in `accessibility`, so 12 tags):
 
-| Row | Yes tag | Unsure tag |
-|---|---|---|
-| Near public transportation | `near-public-transportation` | `near-public-transportation-unsure` |
-| ADA accessible | `ada-accessible` | `ada-accessible-unsure` |
-| Multilingual services available | `multilingual-services-available` | `multilingual-services-available-unsure` |
-| Website easy to navigate | `website-easy-to-navigate` | `website-easy-to-navigate-unsure` |
-| Hours clearly listed | `hours-clearly-listed` | `hours-clearly-listed-unsure` |
+| Row                              | Yes tag                            | Unsure tag                                |
+| -------------------------------- | ---------------------------------- | ----------------------------------------- |
+| Near public transportation       | `near-public-transportation`       | `near-public-transportation-unsure`       |
+| ADA accessible                   | `ada-accessible`                   | `ada-accessible-unsure`                   |
+| Multilingual services available  | `multilingual-services-available`  | `multilingual-services-available-unsure`  |
+| Website easy to navigate         | `website-easy-to-navigate`         | `website-easy-to-navigate-unsure`         |
+| Hours clearly listed             | `hours-clearly-listed`             | `hours-clearly-listed-unsure`             |
 | Intake process clearly explained | `intake-process-clearly-explained` | `intake-process-clearly-explained-unsure` |
 
 The eligibility question appears in Section 2 on the food form and after Accessibility notes on the housing form. Both write to `resources.eligibility`.
 
 ## 5. Cultural Competency & Inclusivity (both forms, all tags `common`)
 
-| Question | Required | Type | Maps to |
-|---|---|---|---|
-| Observation | yes | Yes / No / Unsure / Inapplicable table | `tags` table, group `cultural_competency` |
-| What are red flags of this organization? | yes | multi-select | `tags` table, group `red_flag` |
-| Describe concerns | yes | short text | `resources.red_flag_concerns` |
+| Question                                 | Required | Type                                   | Maps to                                   |
+| ---------------------------------------- | -------- | -------------------------------------- | ----------------------------------------- |
+| Observation                              | yes      | Yes / No / Unsure / Inapplicable table | `tags` table, group `cultural_competency` |
+| What are red flags of this organization? | yes      | multi-select                           | `tags` table, group `red_flag`            |
+| Describe concerns                        | yes      | short text                             | `resources.red_flag_concerns`             |
 
 **Observation rows** (each row is a Yes tag, an "(unsure)" tag and an "(inapplicable)" tag in `cultural_competency`, so 18 tags):
 
-| Row | Yes tag | Unsure tag | Inapplicable tag |
-|---|---|---|---|
-| LGBTQ+ affirming environment | `lgbtq-affirming-environment` | `lgbtq-affirming-environment-unsure` | `lgbtq-affirming-environment-inapplicable` |
-| Trauma-informed practices evident | `trauma-informed-practices-evident` | `trauma-informed-practices-evident-unsure` | `trauma-informed-practices-evident-inapplicable` |
-| Staff culturally responsive | `staff-culturally-responsive` | `staff-culturally-responsive-unsure` | `staff-culturally-responsive-inapplicable` |
-| Multilingual materials available | `multilingual-materials-available` | `multilingual-materials-available-unsure` | `multilingual-materials-available-inapplicable` |
+| Row                                  | Yes tag                                | Unsure tag                                    | Inapplicable tag                                    |
+| ------------------------------------ | -------------------------------------- | --------------------------------------------- | --------------------------------------------------- |
+| LGBTQ+ affirming environment         | `lgbtq-affirming-environment`          | `lgbtq-affirming-environment-unsure`          | `lgbtq-affirming-environment-inapplicable`          |
+| Trauma-informed practices evident    | `trauma-informed-practices-evident`    | `trauma-informed-practices-evident-unsure`    | `trauma-informed-practices-evident-inapplicable`    |
+| Staff culturally responsive          | `staff-culturally-responsive`          | `staff-culturally-responsive-unsure`          | `staff-culturally-responsive-inapplicable`          |
+| Multilingual materials available     | `multilingual-materials-available`     | `multilingual-materials-available-unsure`     | `multilingual-materials-available-inapplicable`     |
 | Inclusive/nonjudgmental environments | `inclusive-nonjudgmental-environments` | `inclusive-nonjudgmental-environments-unsure` | `inclusive-nonjudgmental-environments-inapplicable` |
-| Gender-inclusive forms/policies | `gender-inclusive-forms-policies` | `gender-inclusive-forms-policies-unsure` | `gender-inclusive-forms-policies-inapplicable` |
+| Gender-inclusive forms/policies      | `gender-inclusive-forms-policies`      | `gender-inclusive-forms-policies-unsure`      | `gender-inclusive-forms-policies-inapplicable`      |
 
 **Inapplicable has its own tag** (slug suffix `-inapplicable`, label suffix "(inapplicable)"). At most one of the Yes, Unsure and Inapplicable tags can be on a resource for a given row. "No" is still the absence of all three.
 
@@ -166,23 +166,23 @@ The eligibility question appears in Section 2 on the food form and after Accessi
 
 ## 6. Referral Process (both forms)
 
-| Question | Required | Type | Maps to |
-|---|---|---|---|
-| Can Fenway Health refer directly to this organization? | yes | yes / no | `resources.can_refer_directly` (boolean) |
-| Is there a direct referral contact? | yes | yes / no | `resources.has_referral_contact` (boolean) |
-| Who is the direct referral contact? | no | short text | `resources.referral_contact` (nullable) |
-| Does the organization provide follow-up or referral updates? | yes | yes / no | `resources.provides_followup` (boolean) |
-| Did the referral process seem realistic and manageable for patients? | yes | yes / no / maybe | `resources.referral_realistic` (enum `yes_no_maybe`: `yes`, `no`, `maybe`) |
-| Referral Process Notes | yes | short text | `resources.referral_notes` |
+| Question                                                             | Required | Type             | Maps to                                                                    |
+| -------------------------------------------------------------------- | -------- | ---------------- | -------------------------------------------------------------------------- |
+| Can Fenway Health refer directly to this organization?               | yes      | yes / no         | `resources.can_refer_directly` (boolean)                                   |
+| Is there a direct referral contact?                                  | yes      | yes / no         | `resources.has_referral_contact` (boolean)                                 |
+| Who is the direct referral contact?                                  | no       | short text       | `resources.referral_contact` (nullable)                                    |
+| Does the organization provide follow-up or referral updates?         | yes      | yes / no         | `resources.provides_followup` (boolean)                                    |
+| Did the referral process seem realistic and manageable for patients? | yes      | yes / no / maybe | `resources.referral_realistic` (enum `yes_no_maybe`: `yes`, `no`, `maybe`) |
+| Referral Process Notes                                               | yes      | short text       | `resources.referral_notes`                                                 |
 
 ## 7. Final Intern Assessment (both forms)
 
-| Question | Required | Type | Maps to |
-|---|---|---|---|
-| Would you feel comfortable referring Fenway Health patients here? | yes | single choice | `resources.recommendation` (enum) |
-| Main strengths of organization | yes | short text | `resources.strengths` |
-| Additional follow-up needed | yes | short text | `resources.followup_needed` |
-| Overall rating (1-5) | yes | rating | `scores.overall_rating` (smallint, CHECK 1-5; 1 = very poor, 5 = excellent), reached through `resources.score_id` |
+| Question                                                          | Required | Type          | Maps to                                                                                                           |
+| ----------------------------------------------------------------- | -------- | ------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Would you feel comfortable referring Fenway Health patients here? | yes      | single choice | `resources.recommendation` (enum)                                                                                 |
+| Main strengths of organization                                    | yes      | short text    | `resources.strengths`                                                                                             |
+| Additional follow-up needed                                       | yes      | short text    | `resources.followup_needed`                                                                                       |
+| Overall rating (1-5)                                              | yes      | rating        | `scores.overall_rating` (smallint, CHECK 1-5; 1 = very poor, 5 = excellent), reached through `resources.score_id` |
 
 **Recommendation options** (enum `recommendation` on `resources.recommendation`): Yes – strongly recommend → `strongly_recommend`, Yes – recommend with minor concerns → `recommend_minor_concerns`, Recommend with caution → `recommend_with_caution`, No – not recommended currently → `not_recommended`, Needs additional review → `needs_review`.
 
@@ -190,14 +190,14 @@ The eligibility question appears in Section 2 on the food form and after Accessi
 
 These columns are set by the system or by reviewers, not by the form. All are on the `resources` table.
 
-| Column | Source |
-|---|---|
-| `resources.resource_id`, `resources.created_at`, `resources.updated_at` | generated |
-| `resources.category` | which form was used |
-| `resources.score_id` | scoring system; the `scores` row it points to holds `scores.overall_rating` |
-| `resources.review_status` | review workflow |
-| `resources.needs_changes_notes` | reviewer, optional |
-| `resources.submission_rejection_notes` | reviewer, optional |
+| Column                                                                  | Source                                                                      |
+| ----------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| `resources.resource_id`, `resources.created_at`, `resources.updated_at` | generated                                                                   |
+| `resources.category`                                                    | which form was used                                                         |
+| `resources.score_id`                                                    | scoring system; the `scores` row it points to holds `scores.overall_rating` |
+| `resources.review_status`                                               | review workflow                                                             |
+| `resources.needs_changes_notes`                                         | reviewer, optional                                                          |
+| `resources.submission_rejection_notes`                                  | reviewer, optional                                                          |
 
 ## Coverage check
 
