@@ -12,8 +12,7 @@ import {
 import { Score } from '../score/score.entity';
 import { Tag } from '../tags/tag.entity';
 import { TagCategory, TagGroup } from '../tags/types';
-import { Status } from '../users/types';
-import { SEED_USERS } from './users.seed';
+import { User } from '../users/user.entity';
 
 /**
  * Number of resources seeded for each review status and category pair.
@@ -334,13 +333,6 @@ const STAFF_CONTACTS: SampleContact[] = [
 ];
 
 /**
- * Names used for completed_by: the seeded community staff, who do the outreach.
- */
-const COMPLETED_BY_NAMES: string[] = SEED_USERS.filter(
-  (user) => user.status === Status.COMMUNITY_STAFF,
-).map((user) => `${user.firstName} ${user.lastName}`);
-
-/**
  * Returns the item at index, wrapping around the end of the list, so sample
  * details rotate across resources without any randomness.
  */
@@ -440,11 +432,13 @@ function buildResource(
   slot: ResourceSlot,
   scoreId: number,
   tagIds: number[],
+  submitters: readonly User[],
 ): NewResource {
   const profile = STATUS_PROFILES[slot.status];
   const template = CATEGORY_TEMPLATES[slot.category];
   const location = rotate(LOCATIONS, slot.categoryIndex);
   const contact = rotate(STAFF_CONTACTS, slot.categoryIndex);
+  const submitter = rotate(submitters, slot.categoryIndex);
 
   const slug = `${template.label} ${profile.label} ${slot.numberInGroup}`
     .toLowerCase()
@@ -467,7 +461,8 @@ function buildResource(
     eligibility: template.eligibility,
     review_status: slot.status,
     last_verified_date: lastVerifiedDate,
-    completed_by: rotate(COMPLETED_BY_NAMES, slot.categoryIndex),
+    completed_by: `${submitter.firstName} ${submitter.lastName}`,
+    completed_by_user_id: submitter.id,
     outreach_date: daysBefore(lastVerifiedDate, 7),
     staff_contact_name: contact.name,
     staff_contact_role: contact.role,
@@ -499,9 +494,13 @@ function buildResource(
  *
  * Tags are only read, never modified. They come from migrations.
  *
+ * @param submitters The seeded community staff, rotated across resources as their submitters.
  * @returns The number of resources inserted.
  */
-export async function seedResources(manager: EntityManager): Promise<number> {
+export async function seedResources(
+  manager: EntityManager,
+  submitters: readonly User[],
+): Promise<number> {
   await manager.query('TRUNCATE TABLE resources, scores RESTART IDENTITY');
   const tagLookup = await loadTagLookup(manager);
 
@@ -532,7 +531,10 @@ export async function seedResources(manager: EntityManager): Promise<number> {
         const tagIds = pickTags(tagLookup, slot);
         await manager.save(
           Resource,
-          manager.create(Resource, buildResource(slot, score.score_id, tagIds)),
+          manager.create(
+            Resource,
+            buildResource(slot, score.score_id, tagIds, submitters),
+          ),
         );
 
         index++;

@@ -5,15 +5,29 @@
  *
  * Running it again replaces the sample data: all resources and scores are
  * truncated, and the seeded users (matched by exact email) are replaced.
- * Other users and all tags are left untouched.
+ * Auth test users (manually created Cognito accounts used for role testing,
+ * see AUTH_TEST_USERS in users.seed.ts) are inserted only if missing, and are
+ * never replaced. Other users and all tags are left untouched.
+ *
+ * Re-running is idempotent in row count and content, but not in id: resources
+ * get a fresh users.id and resource_id every run, since resources.resource_id
+ * is restarted via TRUNCATE ... RESTART IDENTITY, but users.id is not (there's
+ * no "RESTART IDENTITY" for a delete), so re-seeding the same 15 SEED_USERS
+ * keeps growing users.id instead of reusing the ids from the previous run.
+ * Anything that stored an old resources.completed_by_user_id or users.id from
+ * a prior seed run (e.g. a Postman variable) will point at a row that no
+ * longer exists after reseeding.
  */
 
 import { Logger } from '@nestjs/common';
 
 import AppDataSource from '../data-source';
-import { seedUsers } from './users.seed';
+import { seedAuthTestUsers, seedUsers } from './users.seed';
 import { envUtility } from '../utils/env';
 import { seedResources } from './resources.seed';
+import { Status } from '../users/types';
+import { User } from '../users/user.entity';
+import { Resource } from '../resources/resources.entity';
 
 /*
  * Context label shown in the logs output. e.g "[Seed] Seed complete"
@@ -57,9 +71,20 @@ async function main(): Promise<void> {
   await AppDataSource.initialize();
   try {
     const counts = await AppDataSource.transaction(async (manager) => {
+      const usersBefore = await manager.count(User);
+      const resourcesBefore = await manager.count(Resource);
+
       const users = await seedUsers(manager);
-      const resources = await seedResources(manager);
-      return { users, resources };
+      await seedAuthTestUsers(manager);
+      const submitters = users.filter(
+        (user) => user.status === Status.COMMUNITY_STAFF,
+      );
+      await seedResources(manager, submitters);
+
+      return {
+        users: (await manager.count(User)) - usersBefore,
+        resources: (await manager.count(Resource)) - resourcesBefore,
+      };
     });
     Logger.log(
       `Seed complete: inserted ${counts.users} users and ${counts.resources} resources.`,

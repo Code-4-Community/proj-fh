@@ -87,6 +87,39 @@ describe('ResourcesController', () => {
     tags: [],
   };
 
+  describe('findMine', () => {
+    it('requires authentication and responds with a 200 status code', () => {
+      expect(
+        Reflect.getMetadata(
+          GUARDS_METADATA,
+          ResourcesController.prototype.findMine,
+        ),
+      ).toContain(JwtAuthGuard);
+      expect(
+        Reflect.getMetadata(
+          HTTP_CODE_METADATA,
+          ResourcesController.prototype.findMine,
+        ),
+      ).toBe(HttpStatus.OK);
+    });
+
+    it("returns the authenticated user's resources, excluding rejected and archived by default", async () => {
+      const found = [makeResource(1)];
+      const findMine = jest.spyOn(service, 'findMine').mockResolvedValue(found);
+
+      await expect(controller.findMine(request)).resolves.toEqual(found);
+      expect(findMine).toHaveBeenCalledWith('reviewer@example.org', false);
+    });
+
+    it('passes includeRejectedAndArchived through when requested', async () => {
+      const found = [makeResource(1)];
+      const findMine = jest.spyOn(service, 'findMine').mockResolvedValue(found);
+
+      await expect(controller.findMine(request, true)).resolves.toEqual(found);
+      expect(findMine).toHaveBeenCalledWith('reviewer@example.org', true);
+    });
+  });
+
   describe('create', () => {
     it('responds with a 201 status code', () => {
       expect(
