@@ -23,12 +23,7 @@ const NavbarLayout = ({ items }: { items: NavbarItem[] }) => {
 
   return (
     <>
-      <Navbar
-        items={items}
-        firstName={user.firstName}
-        lastName={user.lastName}
-        profilePath="/profile"
-      />
+      <Navbar items={items} user={{ ...user, profilePath: '/profile' }} />
       <main className="page-content">
         <Outlet />
       </main>

@@ -24,6 +24,8 @@ import { AuthProvider } from './auth/AuthProvider';
 import { RequireStatus } from './auth/RequireStatus';
 import { Status } from './types';
 import ModalDemo from '@containers/dev/ModalDemo';
+import AnonymousLayout from '@containers/shared/AnonymousLayout';
+import PublicResources from '@containers/public/PublicResources';
 
 /**
  * The main application component that sets up the router and provides it to the React application.
@@ -33,6 +35,7 @@ import ModalDemo from '@containers/dev/ModalDemo';
  * Test route: Temporary test component that comes from Scaffolding
  * Success route: Temporary route that displays a success page, right now configured specifically for success in signing in.
  * Modal demo route: Unlinked page for trying the six Modal configurations
+ * Public routes: Pages that don't require login, shown under the anonymous navbar (Resources, Log In)
  */
 const router = createBrowserRouter([
   {
@@ -47,6 +50,10 @@ const router = createBrowserRouter([
   {
     path: '/modal-demo',
     element: <ModalDemo />,
+  },
+  {
+    element: <AnonymousLayout />,
+    children: [{ path: '/public-resources', element: <PublicResources /> }],
   },
   {
     element: <RequireStatus allowed={[Status.ADMIN]} />,

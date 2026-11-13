@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import LoginForm from '@components/LoginForm';
 import LoadingScreen from '@components/LoadingScreen';
+import AnonymousLayout from '@containers/shared/AnonymousLayout';
 import { getSignedInEmail } from '../../auth/cognito';
 import { getIdentityAfterSignIn } from '../../auth/backendIdentity';
 import { Status } from '../../types';
@@ -39,7 +40,15 @@ const Root = () => {
       .catch(() => setCheckingSession(false));
   }, [navigate]);
 
-  return checkingSession ? <LoadingScreen /> : <LoginForm />;
+  // The anonymous navbar only appears with the login form, so signed-in users being
+  // redirected never see it flash during the session check.
+  return checkingSession ? (
+    <LoadingScreen />
+  ) : (
+    <AnonymousLayout>
+      <LoginForm />
+    </AnonymousLayout>
+  );
 };
 
 export default Root;
