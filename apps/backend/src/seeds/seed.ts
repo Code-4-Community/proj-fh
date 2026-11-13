@@ -8,6 +8,15 @@
  * Auth test users (manually created Cognito accounts used for role testing,
  * see AUTH_TEST_USERS in users.seed.ts) are inserted only if missing, and are
  * never replaced. Other users and all tags are left untouched.
+ *
+ * Re-running is idempotent in row count and content, but not in id: resources
+ * get a fresh users.id and resource_id every run, since resources.resource_id
+ * is restarted via TRUNCATE ... RESTART IDENTITY, but users.id is not (there's
+ * no "RESTART IDENTITY" for a delete), so re-seeding the same 15 SEED_USERS
+ * keeps growing users.id instead of reusing the ids from the previous run.
+ * Anything that stored an old resources.completed_by_user_id or users.id from
+ * a prior seed run (e.g. a Postman variable) will point at a row that no
+ * longer exists after reseeding.
  */
 
 import { Logger } from '@nestjs/common';
