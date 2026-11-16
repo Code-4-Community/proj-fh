@@ -6,21 +6,21 @@
 :root {
   /* Layout */
   --edit-resource-max-width: 80.75rem;
-  --edit-resource-page-padding-top: 3rem;
+  --edit-resource-page-padding-top: 0;
   --edit-resource-page-padding-x: 6.75rem;
   --edit-resource-page-padding-bottom: 3rem;
   --edit-resource-column-gap: 2.75rem;
   --edit-resource-form-area-width: 3.17fr;
   --edit-resource-status-width: 1fr;
-  --edit-resource-field-gap: 0.875rem;
-  --edit-resource-label-gap: 0.5625rem;
+  --edit-resource-field-gap: 1.25rem;
+  --edit-resource-label-gap: 0.25rem;
   --edit-resource-button-gap: 0.75rem;
   --edit-resource-actions-margin-top: 1.5rem;
 
   /* Header spacing */
-  --edit-resource-back-to-title-gap: 1.75rem;
+  --edit-resource-back-to-title-gap: 0.75rem;
   --edit-resource-title-to-subtitle-gap: 0.125rem;
-  --edit-resource-header-bottom-gap: 1.75rem;
+  --edit-resource-header-bottom-gap: 1.5rem;
 
   /* Status panel spacing */
   --edit-resource-status-label-gap: 0.5rem;
@@ -170,4 +170,173 @@
   border-radius: var(--edit-resource-radius);
 }
 
-/* The class sits on Chakra's select
+/* The class sits on Chakra's select wrapper, so the wrapper stays invisible
+   and the real <select> inside it gets the input look. */
+.edit-resource-select {
+  height: auto;
+  padding: 0;
+  border: none;
+  background: none;
+}
+
+.edit-resource-select select {
+  width: 100%;
+  height: var(--edit-resource-control-height);
+  padding: 0 var(--edit-resource-control-padding-x);
+  font-size: var(--edit-resource-input-size);
+  color: var(--edit-resource-placeholder);
+  background: var(--edit-resource-surface);
+  border: 1px solid var(--edit-resource-border);
+  border-radius: var(--edit-resource-radius);
+}
+
+.edit-resource-textarea {
+  min-height: var(--edit-resource-textarea-height);
+  padding: var(--edit-resource-control-padding-x);
+  font-size: var(--edit-resource-input-size);
+  background: var(--edit-resource-surface);
+  border: 1px solid var(--edit-resource-border);
+  border-radius: var(--edit-resource-radius);
+  resize: vertical;
+}
+
+.edit-resource-input::placeholder,
+.edit-resource-textarea::placeholder {
+  color: var(--edit-resource-placeholder);
+}
+
+/* ==========================================================================
+   Checkboxes
+   ========================================================================== */
+.edit-resource-checkbox-group {
+  flex-wrap: wrap;
+  gap: var(--edit-resource-checkbox-option-gap);
+}
+
+.edit-resource-checkbox {
+  display: flex;
+  align-items: center;
+  gap: var(--edit-resource-checkbox-label-gap);
+  cursor: pointer;
+}
+
+.edit-resource-checkbox-control {
+  width: var(--edit-resource-checkbox-size);
+  height: var(--edit-resource-checkbox-size);
+  border: 1px solid var(--edit-resource-border);
+  border-radius: var(--edit-resource-checkbox-radius);
+}
+
+.edit-resource-checkbox-control[data-state='checked'] {
+  background: var(--edit-resource-dark);
+  border-color: var(--edit-resource-dark);
+  color: var(--edit-resource-on-dark);
+}
+
+.edit-resource-checkbox-label {
+  font-size: var(--edit-resource-label-size);
+  font-weight: 400;
+}
+
+/* ==========================================================================
+   Buttons
+   ========================================================================== */
+/* The row holding Save Changes and Cancel */
+.edit-resource-form-actions {
+  display: flex;
+  gap: var(--edit-resource-button-gap);
+  margin-top: var(--edit-resource-actions-margin-top);
+}
+
+.edit-resource-button {
+  height: var(--edit-resource-control-height);
+  font-size: var(--edit-resource-button-size);
+  font-weight: 400;
+  border-radius: var(--edit-resource-radius);
+  cursor: pointer;
+}
+
+.edit-resource-button-primary {
+  min-width: var(--edit-resource-primary-button-width);
+  background: var(--edit-resource-primary);
+  color: var(--edit-resource-on-dark);
+  border: 1px solid var(--edit-resource-primary);
+}
+
+.edit-resource-button-outline {
+  min-width: var(--edit-resource-secondary-button-width);
+  background: var(--edit-resource-surface);
+  color: var(--edit-resource-text);
+  border: 1px solid var(--edit-resource-border);
+}
+
+/* The Back link: strip Chakra's button height so it doesn't add vertical space */
+.edit-resource-button-link {
+  height: auto;
+  min-height: 0;
+  min-width: 0;
+  padding: 0;
+  line-height: 1.2;
+  font-size: var(--edit-resource-small-size);
+  background: none;
+  border: none;
+  color: var(--edit-resource-text);
+}
+
+/* ==========================================================================
+   Status panel
+   ========================================================================== */
+.edit-resource-status-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--edit-resource-button-gap);
+}
+
+.edit-resource-status-panel .edit-resource-button {
+  width: 100%;
+}
+
+.edit-resource-status-label {
+  margin: 0 0 calc(var(--edit-resource-status-label-gap) - var(--edit-resource-button-gap));
+  font-size: var(--edit-resource-small-size);
+  color: var(--edit-resource-muted-text);
+  line-height: 1.2;
+}
+
+/* Badge base; variants are named by appearance (see components/editResource/types.ts) */
+.edit-resource-status-badge {
+  align-self: flex-start;
+  margin: 0;
+  padding: var(--edit-resource-badge-padding-y) var(--edit-resource-badge-padding-x);
+  font-size: var(--edit-resource-small-size);
+  font-weight: 400;
+  text-transform: none;
+  border-radius: var(--edit-resource-radius);
+}
+
+.edit-resource-status-badge-filled-dark {
+  background: var(--edit-resource-dark);
+  color: var(--edit-resource-on-dark);
+}
+
+.edit-resource-status-badge-filled-light {
+  background: var(--edit-resource-light);
+  color: var(--edit-resource-text);
+}
+
+.edit-resource-status-badge-filled-muted {
+  background: var(--edit-resource-muted);
+  color: var(--edit-resource-on-dark);
+}
+
+.edit-resource-status-badge-outlined {
+  background: transparent;
+  border: 1px solid var(--edit-resource-border);
+  color: var(--edit-resource-text);
+}
+
+.edit-resource-status-badge-outlined-dark {
+  background: transparent;
+  border: 1px solid var(--edit-resource-dark);
+  color: var(--edit-resource-dark);
+}

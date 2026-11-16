@@ -1,4 +1,4 @@
-import { Stack } from '@chakra-ui/react';
+import { Flex } from '@chakra-ui/react';
 import FieldRenderer from './parts/FieldRenderer';
 import { FieldChangeHandler, FieldDefinition, FormValues } from './types';
 
@@ -14,12 +14,13 @@ interface FormColumnProps {
 /**
  * One generic column of form fields. It doesn't know which fields it holds;
  * the parent decides placement using each definition's column value.
+ * Uses Flex rather than Stack so editResource.css controls the spacing.
  *
  * @param props - The fields to render, the form values, and the change handler.
- * @returns A vertical stack of fields.
+ * @returns A vertical column of fields.
  */
 const FormColumn = ({ fields, values, onChange }: FormColumnProps) => (
-  <Stack className="edit-resource-column">
+  <Flex className="edit-resource-column">
     {fields.map((field) => (
       <FieldRenderer
         key={field.key}
@@ -28,7 +29,7 @@ const FormColumn = ({ fields, values, onChange }: FormColumnProps) => (
         onChange={onChange}
       />
     ))}
-  </Stack>
+  </Flex>
 );
 
 export default FormColumn;
