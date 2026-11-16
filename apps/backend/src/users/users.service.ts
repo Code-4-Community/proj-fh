@@ -6,11 +6,18 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 
 import { User } from './user.entity';
 import { Status } from './types';
 import { CognitoAdminService } from '../cognito/cognito-admin.service';
+import { toOnboardingStage } from './onboarding-stage';
+import {
+    STAFF_ROLES,
+    StaffMemberResponse,
+    StaffRole,
+} from './dto/staff-member.response';
+
 
 @Injectable()
 export class UsersService {
@@ -118,5 +125,70 @@ export class UsersService {
         'The user is no longer in Cognito but could not be removed from the database. Retry the request to finish removal.',
       );
     }
+  }
+    /**
+   * Lists every admin and community staff user with their onboarding stage.
+   *
+   * The stage is read from Cognito on every call and never stored, so it always
+   * matches Cognito. The response contains no Cognito identifiers or raw statuses.
+   *
+   * @returns The staff list, oldest account first.
+   * @throws {BadGatewayException} If Cognito cannot be read. No partial list is
+   * returned, so the page never shows a guessed stage.
+   */
+  async findStaffWithOnboardingStage(): Promise<StaffMemberResponse[]> {
+    const staff = await this.findStaffUsers();
+    if (staff.length === 0) {
+      return [];
+    }
+
+    const statusesByEmail = await this.cognito.listAccountStatusesByEmail();
+    return staff.map((user) => this.toStaffMember(user, statusesByEmail));
+  }
+
+    /** Loads every admin and community staff user, oldest account first. Patients are excluded. */
+  private findStaffUsers(): Promise<User[]> {
+    return this.repo.find({
+      where: { status: In([...STAFF_ROLES]) },
+      order: { id: 'ASC' },
+    });
+  }
+
+    /**
+   * Builds the response row for one user, with the onboarding stage taken from
+   * their Cognito account.
+   */
+  private toStaffMember(
+    user: User,
+    statusesByEmail: Map<string, string | undefined>,
+  ): StaffMemberResponse {
+    return {
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      role: user.status as StaffRole,
+      onboardingStage: toOnboardingStage(
+        this.cognitoStatusFor(user, statusesByEmail),
+      ),
+    };
+  }
+
+  /**
+   * Finds the Cognito status for a user, matching emails case-insensitively.
+   * Logs a warning, with the user id only, when the user has no Cognito account.
+   * @returns The Cognito status, or undefined if there is no matching account.
+   */
+  private cognitoStatusFor(
+    user: User,
+    statusesByEmail: Map<string, string | undefined>,
+  ): string | undefined {
+    const email = user.email.toLowerCase();
+    if (!statusesByEmail.has(email)) {
+      this.logger.warn(
+        `No Cognito account found for user id=${user.id}; onboarding stage unknown.`,
+      );
+    }
+    return statusesByEmail.get(email);
   }
 }

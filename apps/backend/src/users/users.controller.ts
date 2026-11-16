@@ -10,6 +10,7 @@ import {
   Post,
   UseGuards,
   ValidationPipe,
+  NotFoundException
 } from '@nestjs/common';
 import {
   ApiBadGatewayResponse,
@@ -19,6 +20,7 @@ import {
   ApiCreatedResponse,
   ApiForbiddenResponse,
   ApiInternalServerErrorResponse,
+  ApiOkResponse,
   ApiOperation,
   ApiTags,
   ApiTooManyRequestsResponse,
@@ -29,6 +31,7 @@ import { User } from './user.entity';
 import { Status } from './types';
 import { CreateUserDto } from './dto/create-user.dto';
 import { CreatedUserResponse } from './dto/created-user.response';
+import { StaffMemberResponse } from './dto/staff-member.response';
 import { UserInvitationService } from './user-invitation.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
@@ -89,10 +92,42 @@ export class UsersController {
     return this.userInvitationService.invite(dto);
   }
 
+    /**
+   * Lists admins and community staff with their onboarding stage. Admin only.
+   *
+   * The onboarding stage is read live from Cognito, so it always matches
+   * Cognito. Patients are not included.
+   */
+  @Get()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Status.ADMIN)
+  @ApiOperation({ summary: 'List staff users with their onboarding stage' })
+  @ApiOkResponse({
+    type: StaffMemberResponse,
+    isArray: true,
+    description:
+      'Every admin and community staff user, oldest account first, with their onboarding stage.',
+  })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid ID token.' })
+  @ApiForbiddenResponse({ description: 'The caller is not an admin.' })
+  @ApiBadGatewayResponse({
+    description:
+      'Cognito could not be read. No list is returned, so no stage is ever guessed.',
+  })
+  listStaff(): Promise<StaffMemberResponse[]> {
+    return this.usersService.findStaffWithOnboardingStage();
+  }
+
   @Get('/:userId')
   async getUser(@Param('userId', ParseIntPipe) userId: number): Promise<User> {
-    return this.usersService.findOne(userId);
+    const user = await this.usersService.findOne(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return user;
   }
+
+  
 
   /**
    * Removes a community staff user from both Cognito and the database.
