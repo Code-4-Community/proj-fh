@@ -1,4 +1,4 @@
-import { Heading, Stack, Text } from '@chakra-ui/react';
+import { Flex, Heading, Text } from '@chakra-ui/react';
 import ActionButton from './parts/ActionButton';
 import { ActionDefinition } from './types';
 
@@ -13,6 +13,7 @@ interface EditResourceHeaderProps {
 
 /**
  * The top of the page: a back button, the page title, and a subtitle.
+ * Uses Flex rather than Stack so editResource.css controls the spacing.
  *
  * @param props - The title, subtitle, and back button definition.
  * @returns The page header.
@@ -22,13 +23,13 @@ const EditResourceHeader = ({
   subtitle,
   backAction,
 }: EditResourceHeaderProps) => (
-  <Stack as="header" className="edit-resource-header">
+  <Flex as="header" className="edit-resource-header">
     <ActionButton {...backAction} />
     <Heading as="h1" className="edit-resource-title">
       {title}
     </Heading>
     <Text className="edit-resource-subtitle">{subtitle}</Text>
-  </Stack>
+  </Flex>
 );
 
 export default EditResourceHeader;
