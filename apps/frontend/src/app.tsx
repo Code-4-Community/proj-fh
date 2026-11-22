@@ -17,7 +17,6 @@ import MyResources from '@containers/staff/MyResources';
 import AllResources from '@containers/staff/AllResources';
 import SubmitHousingResource from '@containers/staff/SubmitHousingResource';
 import SubmitFoodResource from '@containers/staff/SubmitFoodResource';
-import ForgotPassword from '@containers/auth/forgotPassword';
 import ForgotPasswordRequestForm from '@components/ForgotPasswordRequestForm';
 import ForgotPasswordConfirmForm from '@components/ForgotPasswordConfirmForm';
 import { AuthProvider } from './auth/AuthProvider';
@@ -26,16 +25,20 @@ import { Status } from './types';
 import ModalDemo from '@containers/dev/ModalDemo';
 import AnonymousLayout from '@containers/shared/AnonymousLayout';
 import PublicResources from '@containers/public/PublicResources';
+import EditResource from '@containers/EditResource';
+import ForgotPassword from '@containers/auth/forgotPassword';
 
 /**
  * The main application component that sets up the router and provides it to the React application.
  * This component uses React Router to define the application's routes and their corresponding components.
  *
+ * Public routes: Pages that don't require login, shown under the anonymous navbar (Resources, Log In)
+ * 
  * Root route: Renders the main application container (Root component). This is necessary but the components may change
  * Test route: Temporary test component that comes from Scaffolding
  * Success route: Temporary route that displays a success page, right now configured specifically for success in signing in.
  * Modal demo route: Unlinked page for trying the six Modal configurations
- * Public routes: Pages that don't require login, shown under the anonymous navbar (Resources, Log In)
+ * Edit resource route: The Edit Resource page for a given resource. Data is hardcoded for now, so any resourceId shows the same page.
  */
 const router = createBrowserRouter([
   {
@@ -65,7 +68,7 @@ const router = createBrowserRouter([
           { path: '/home', element: <Home /> },
           { path: '/review-queue', element: <ReviewQueue /> },
           { path: '/resources', element: <ManageResources /> },
-          { path: '/resources/:resourceId/edit', element: <ResourceEdit /> },
+          { path: '/resources/:resourceId/edit', element: <EditResource /> },
           { path: '/manage-staff', element: <ManageStaff /> },
         ],
       },
