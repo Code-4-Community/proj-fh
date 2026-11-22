@@ -12,7 +12,7 @@ const ReviewQueueHeader = ({ title, subtitle }: ReviewQueueHeaderProps) => (
     <Heading as="h1" className="review-queue-title">
       {title}
     </Heading>
-    <Text className="review-queue-subtitle">{subtitle}</Text>
+    {subtitle && <Text className="review-queue-subtitle">{subtitle}</Text>}
   </Flex>
 );
 

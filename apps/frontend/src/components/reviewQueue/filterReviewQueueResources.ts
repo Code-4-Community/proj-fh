@@ -8,10 +8,12 @@ import { ReviewQueueFilters, ReviewQueueResource } from './types';
  * @param filters - The current filter selections.
  * @returns The resources that match every active filter, in their original order.
  */
-export const filterReviewQueueResources = (
-  resources: ReviewQueueResource[],
+export const filterReviewQueueResources = <
+  T extends Pick<ReviewQueueResource, 'name' | 'category' | 'status'>,
+>(
+  resources: T[],
   { category, status, search }: ReviewQueueFilters,
-): ReviewQueueResource[] => {
+): T[] => {
   const query = search.trim().toLowerCase();
   return resources.filter(
     (resource) =>

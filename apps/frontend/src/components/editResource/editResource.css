@@ -213,6 +213,11 @@
   gap: var(--edit-resource-checkbox-option-gap);
 }
 
+/* The "Other" text input, shown under the checkboxes */
+.edit-resource-other-input {
+  margin-top: var(--edit-resource-button-gap);
+}
+
 .edit-resource-checkbox {
   display: flex;
   align-items: center;
@@ -301,6 +306,17 @@
   font-size: var(--edit-resource-small-size);
   color: var(--edit-resource-muted-text);
   line-height: 1.2;
+}
+
+/* Read-only Needs Changes notes under the status actions; plain text, so line breaks are kept */
+.edit-resource-notes-text {
+  margin: var(--edit-resource-label-gap) 0 0;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--edit-resource-border);
+  font-size: var(--edit-resource-small-size);
+  line-height: 1.4;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 /* Badge base; variants are named by appearance (see components/editResource/types.ts) */
