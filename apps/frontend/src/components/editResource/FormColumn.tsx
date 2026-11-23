@@ -27,6 +27,7 @@ const FormColumn = ({ fields, values, onChange }: FormColumnProps) => (
         field={field}
         value={values[field.key]}
         onChange={onChange}
+        otherValue={field.otherInput && values[field.otherInput.key]}
       />
     ))}
   </Flex>

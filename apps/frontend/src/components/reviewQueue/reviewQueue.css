@@ -26,6 +26,7 @@
   --review-queue-col-submitted-by-width: 16%;
   --review-queue-col-date-width: 13%;
   --review-queue-col-status-width: 16%;
+  --review-queue-col-action-width: 16%;
   --review-queue-focus-outline: 2px solid var(--color-text);
   --review-queue-focus-offset: 2px;
 
@@ -157,6 +158,10 @@
   width: var(--review-queue-col-status-width);
 }
 
+.review-queue-col-action {
+  width: var(--review-queue-col-action-width);
+}
+
 .review-queue-table-column-header,
 .review-queue-table-cell,
 .review-queue-table-empty {
@@ -172,11 +177,11 @@
   background: var(--color-surface-subtle);
 }
 
-.review-queue-table-row {
+.review-queue-table-row-clickable {
   cursor: pointer;
 }
 
-.review-queue-table-row:hover {
+.review-queue-table-row-clickable:hover {
   background: var(--color-surface-subtle);
 }
 
@@ -220,6 +225,58 @@
 .review-queue-badge-outlined {
   border-color: var(--color-border);
   background: var(--color-surface);
+}
+
+/* Pencil link in the Action column */
+.review-queue-edit-link {
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-text);
+}
+
+.review-queue-edit-link:focus-visible,
+.review-queue-add-button:focus-visible,
+.review-queue-menu-item[data-highlighted] {
+  outline: var(--review-queue-focus-outline);
+  outline-offset: var(--review-queue-focus-offset);
+}
+
+/* Add button and its dropdown menu */
+.review-queue-add-button {
+  box-sizing: border-box;
+  height: var(--review-queue-control-height);
+  padding: 0 var(--review-queue-control-padding-x);
+  border: none;
+  border-radius: var(--review-queue-radius);
+  background: var(--color-accent);
+  font-family: var(--font-family-base);
+  font-size: var(--review-queue-font-size);
+  color: var(--color-surface);
+  cursor: pointer;
+}
+
+.review-queue-menu {
+  min-width: var(--review-queue-select-width);
+  border: var(--review-queue-border);
+  border-radius: var(--review-queue-radius);
+  background: var(--color-surface);
+  z-index: 1;
+}
+
+.review-queue-menu-item {
+  padding: 0 var(--review-queue-control-padding-x);
+  height: var(--review-queue-control-height);
+  display: flex;
+  align-items: center;
+  font-family: var(--font-family-base);
+  font-size: var(--review-queue-font-size);
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.review-queue-menu-item[data-highlighted] {
+  background: var(--color-surface-subtle);
+  outline-offset: calc(-1 * var(--review-queue-focus-offset));
 }
 
 /* Loading and error messages, shown in place of the table */

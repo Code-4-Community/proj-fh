@@ -1,3 +1,4 @@
+import { ReactNode } from 'react';
 import { Category, ResourceStatus } from '../../types';
 
 /**
@@ -107,8 +108,8 @@ export interface ReviewQueueResource {
   category: Category;
   /** Review status, shown as a badge in the Status column. Null if the backend sent a status the frontend doesn't recognize. */
   status: ResourceStatus | null;
-  /** Name of the staff member who submitted it, shown in the Submitted By column. */
-  submittedBy: string;
+  /** Name of the staff member who submitted it, shown in the Submitted By column. Unused by tables that hide that column. */
+  submittedBy?: string;
   /** When it was submitted, shown as mm/dd/yyyy in the Date Submitted column. */
   dateSubmitted: Date;
 }
@@ -136,8 +137,8 @@ export type ReviewQueueLoadState = 'loading' | 'error' | 'success';
 export interface ReviewQueueHeaderProps {
   /** Page title. */
   title: string;
-  /** Short description shown under the title. */
-  subtitle: string;
+  /** Short description shown under the title. Omit for no subtitle. */
+  subtitle?: string;
 }
 
 /**
@@ -182,6 +183,12 @@ export interface ReviewQueueTableProps {
   resources: ReviewQueueResource[];
   /** Text shown in place of rows when resources is empty */
   emptyMessage: string;
+  /** Whether to show the Submitted By column. Defaults to true. */
+  showSubmittedBy?: boolean;
+  /** Whether clicking a row opens the resource's edit page. Defaults to true. */
+  rowsClickable?: boolean;
+  /** Renders the cell in a trailing Action column. Omit for no Action column. */
+  renderAction?: (resource: ReviewQueueResource) => ReactNode;
 }
 
 /**
@@ -190,6 +197,42 @@ export interface ReviewQueueTableProps {
 export interface ReviewQueueTableRowProps {
   /** The resource to render in this row. */
   resource: ReviewQueueResource;
+  /** Whether to show the Submitted By cell. Defaults to true. */
+  showSubmittedBy?: boolean;
+  /** Whether clicking the row opens the resource's edit page. Defaults to true. */
+  rowsClickable?: boolean;
+  /** Content of the trailing Action cell. Omit for no Action cell. */
+  action?: ReactNode;
+}
+
+/**
+ * Props for the edit link shown in the Action column.
+ */
+export interface ReviewQueueEditLinkProps {
+  /** Path of the resource's edit page. */
+  to: string;
+  /** The resource's name, used in the link's accessible label. */
+  resourceName: string;
+}
+
+/**
+ * One entry in the add menu.
+ */
+export interface ReviewQueueAddMenuItem {
+  /** Text shown in the menu. */
+  label: string;
+  /** Page the item leads to. */
+  path: string;
+}
+
+/**
+ * Props for the add menu button.
+ */
+export interface ReviewQueueAddMenuProps {
+  /** Text shown on the button. */
+  label: string;
+  /** Items in the menu, in order. */
+  items: ReviewQueueAddMenuItem[];
 }
 
 /**

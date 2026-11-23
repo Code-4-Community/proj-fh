@@ -15,6 +15,8 @@ interface FieldRendererProps {
   value: FormValue | undefined;
   /** Called with the field key and new value on every change. */
   onChange: FieldChangeHandler;
+  /** The value of the field's other input, if it has one. */
+  otherValue?: FormValue;
 }
 
 /** Returns the value as a string, or an empty string if it is not one. */
@@ -32,8 +34,13 @@ const asList = (value: FormValue | undefined): string[] =>
  * @param props - The field definition, its current value, and the change handler.
  * @returns The matching field component.
  */
-const FieldRenderer = ({ field, value, onChange }: FieldRendererProps) => {
-  const { key, label, inputType, placeholder, options = [] } = field;
+const FieldRenderer = ({
+  field,
+  value,
+  onChange,
+  otherValue,
+}: FieldRendererProps) => {
+  const { key, label, inputType, placeholder, options = [], otherInput } = field;
 
   switch (inputType) {
     case 'textarea':
@@ -65,6 +72,8 @@ const FieldRenderer = ({ field, value, onChange }: FieldRendererProps) => {
           value={asList(value)}
           options={options}
           onChange={onChange}
+          otherInput={otherInput}
+          otherValue={asString(otherValue)}
         />
       );
     default:

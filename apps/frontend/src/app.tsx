@@ -82,6 +82,7 @@ const router = createBrowserRouter([
         element: <StaffLayout />,
         children: [
           { path: '/my-resources', element: <MyResources /> },
+          { path: '/my-resources/:resourceId/edit', element: <EditResource /> },
           { path: '/all-resources', element: <AllResources /> },
           {
             path: '/submit-resource/housing',

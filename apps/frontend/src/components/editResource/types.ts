@@ -34,6 +34,19 @@ export interface FieldDefinition {
   placeholder?: string;
 
   options?: FieldOption[];
+
+  /** For checkbox groups: a text input shown while the option with `optionValue` is checked. */
+  otherInput?: OtherInputDefinition;
+}
+
+/** A free-text input tied to one option of a checkbox group, e.g. "Other". */
+export interface OtherInputDefinition {
+  /** The value of the checkbox option that reveals the input. */
+  optionValue: string;
+  /** Form values key that holds the typed text. */
+  key: string;
+  label: string;
+  placeholder?: string;
 }
 
 /** a field's value: a string, or a list of strings for checkbox groups. */
