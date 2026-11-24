@@ -9,7 +9,9 @@ import {
   AdminDeleteUserCommand,
   CognitoIdentityProviderClient,
   ListUsersCommand,
+  ListUsersCommandOutput,
   UserNotFoundException,
+  UserType,
 } from '@aws-sdk/client-cognito-identity-provider';
 
 /** Injection token for the Cognito settings (see `CognitoModule`). */
@@ -29,6 +31,7 @@ export type CognitoConfig = {
 
 /** Whether a Cognito account was removed by a delete call. */
 export type CognitoDeleteResult = 'deleted' | 'already-absent';
+const LIST_USERS_PAGE_SIZE = 60;
 
 /**
  * Admin access to the Cognito user pool, using the backend's configured AWS
@@ -94,6 +97,83 @@ export class CognitoAdminService implements OnModuleDestroy {
   }
 
   /**
+   * Returns the Cognito status of every account in the pool, keyed by email in
+   * lowercase. Reads every page of results, so the map covers the whole pool.
+   *
+   * Only the email attribute is requested from Cognito, and only error names are
+   * logged, so no account details leave this method except the statuses.
+   *
+   * @returns A map from lowercase email to Cognito status. An email shared by
+   * more than one account maps to undefined, since its status is ambiguous.
+   * @throws {BadGatewayException} If any page of the lookup fails.
+   */
+  async listAccountStatusesByEmail(): Promise<Map<string, string | undefined>> {
+    const statusesByEmail = new Map<string, string | undefined>();
+    let paginationToken: string | undefined;
+
+    do {
+      const page = await this.fetchUsersPage(paginationToken);
+      this.addPageToMap(page.Users ?? [], statusesByEmail);
+      paginationToken = page.PaginationToken;
+    } while (paginationToken);
+
+    return statusesByEmail;
+  }
+
+    /**
+   * Fetches one page of accounts, with only the email attribute.
+   * @param paginationToken Where to continue, or undefined for the first page.
+   * @throws {BadGatewayException} If Cognito cannot be reached or refuses the request.
+   */
+  private async fetchUsersPage(
+    paginationToken: string | undefined,
+  ): Promise<ListUsersCommandOutput> {
+    try {
+      return await this.client.send(
+        new ListUsersCommand({
+          UserPoolId: this.userPoolId,
+          AttributesToGet: ['email'],
+          Limit: LIST_USERS_PAGE_SIZE,
+          PaginationToken: paginationToken,
+        }),
+      );
+    } catch (error) {
+      this.logger.error(`Cognito account listing failed: ${describeError(error)}`);
+      throw new BadGatewayException(
+        'Failed to load account information from Cognito.',
+      );
+    }
+  }
+
+    /**
+   * Adds one page of accounts to the email-to-status map. Accounts without an
+   * email are skipped. If two accounts share an email with different statuses,
+   * that email maps to undefined, because which one belongs to the user is
+   * ambiguous.
+   */
+  private addPageToMap(
+    users: UserType[],
+    statusesByEmail: Map<string, string | undefined>,
+  ): void {
+    for (const user of users) {
+      const email = emailOf(user);
+      if (!email) {
+        continue;
+      }
+
+      const alreadySeen = statusesByEmail.has(email);
+      if (alreadySeen && statusesByEmail.get(email) !== user.UserStatus) {
+        this.logger.warn(
+          'More than one Cognito account shares an email; its onboarding stage cannot be determined.',
+        );
+        statusesByEmail.set(email, undefined);
+      } else {
+        statusesByEmail.set(email, user.UserStatus);
+      }
+    }
+  }
+
+  /**
    * Resolves Cognito's canonical username for the account with this email.
    * @returns the username, or `null` if no account matches.
    */
@@ -135,4 +215,10 @@ export function escapeFilterValue(value: string): string {
 /** Error name only: AWS error messages can echo request details. */
 function describeError(error: unknown): string {
   return error instanceof Error ? error.name : 'UnknownError';
+}
+
+/** The account's email in lowercase, or undefined if it has none. */
+function emailOf(user: UserType): string | undefined {
+  return user.Attributes?.find((attribute) => attribute.Name === 'email')
+    ?.Value?.toLowerCase();
 }
