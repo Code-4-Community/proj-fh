@@ -8,7 +8,7 @@ import { Category } from "../../types";
  * @returns The housing resource submission page.
  */
 const SubmitHousingResource = () => (
-    <SubmitResource category ={Category.HOUSING_ACCESS} />
+    <SubmitResource category ={Category.HOUSING} />
 );
 
 export default SubmitHousingResource;
