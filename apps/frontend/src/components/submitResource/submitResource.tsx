@@ -14,7 +14,7 @@ import {
 import { Button, Flex, Heading } from '@chakra-ui/react';
 import BackButton from './parts/BackButton';
 import TableOfContents from './parts/TableOfContents';
-import SubmitResourceForm from './parts/SubmitResourceForm';
+import SubmitResourceForm from './SubmitResourceForm';
 import './submitResource.css';
 
 // TODO: Replace with variable in the future
