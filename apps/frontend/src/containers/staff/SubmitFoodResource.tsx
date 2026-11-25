@@ -1,8 +1,14 @@
+import { SubmitResource } from '@components/submitResource/SubmitResource';
+import { Category } from "../../types";
+
 /**
- * Placeholder for the staff food resource submission page.
+ * Staff page for submitting a new food resource.
+ * Renders the shared submission form with the food category.
  *
  * @returns The food resource submission page.
  */
-const SubmitFoodResource = () => <h1>Submit Food Resource</h1>;
+const SubmitFoodResource = () => (
+    <SubmitResource category ={Category.FOOD_ACCESS} />
+);
 
 export default SubmitFoodResource;
