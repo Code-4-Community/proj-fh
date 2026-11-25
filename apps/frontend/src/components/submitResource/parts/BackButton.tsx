@@ -19,15 +19,7 @@ interface BackButtonProps {
  */
 const BackButton = ({ label, to }: BackButtonProps) => {
   return (
-    <Link
-      asChild
-      unstyled
-      display="inline-flex"
-      alignItems="center"
-      flexShrink={0}
-      whiteSpace="nowrap"
-      className="submit-resource-back"
-    >
+    <Link asChild unstyled className="submit-resource-back">
       <RouterLink to={to}>
         <BackArrowIcon />
         {label}
