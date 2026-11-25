@@ -14,7 +14,7 @@ import {
 import { Button, Flex, Heading } from '@chakra-ui/react';
 import BackButton from './parts/BackButton';
 import TableOfContents from './parts/TableOfContents';
-import SubmitResourceForm from './SubmitResourceForm';
+import SubmitResourceForm from './parts/SubmitResourceForm';
 import './submitResource.css';
 
 // TODO: Replace with variable in the future
@@ -306,14 +306,16 @@ const SubmitResource = ({ category }: SubmitResourceProps) => {
   };
 
   return (
-    <Flex direction="column" className="submit-resource">
-      <BackButton label="Back" to={MY_RESOURCES_PATH} />
-      <Heading as="h1" className="submit-resource-title">
-        {title}
-      </Heading>
-
-      <Flex className="submit-resource-body">
+    <Flex className="submit-resource">
+      <Flex direction="column" className="submit-resource-sidebar">
+        <BackButton label="Back" to={MY_RESOURCES_PATH} />
         <TableOfContents sections={SECTIONS} />
+      </Flex>
+
+      <Flex direction="column" className="submit-resource-main">
+        <Heading as="h1" className="submit-resource-title">
+          {title}
+        </Heading>
 
         <Flex asChild direction="column" className="submit-resource-form">
           <form onSubmit={handleSubmit} noValidate>
