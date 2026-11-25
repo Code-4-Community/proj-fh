@@ -90,3 +90,15 @@ export type FormErrors = Partial<Record<string, string>>;
 
 /** called by field components when their value changes. */
 export type FieldChangeHandler = (key: string, value: FormValue) => void;
+
+/** Props every field component receives. T is the kind of value that field holds. */
+export interface FieldComponentProps<T extends FormValue> {
+  /** The field to render: its label, options and other settings. */
+  field: FieldDefinition;
+  /** The field's current value. */
+  value: T;
+  /** The field's validation error, if any. */
+  error?: string;
+  /** Called with the field's key and new value when it changes. */
+  onChange: FieldChangeHandler;
+}

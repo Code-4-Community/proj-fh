@@ -31,8 +31,8 @@ const FieldRowBlock = ({ row, values, errors, onChange }: FieldRowBlockProps) =>
         <FormField 
             key={field.key}
             field={field}
-            values={values[field.key]}
-            errors={errors[field.key]}
+            value={values[field.key]}
+            error={errors[field.key]}
             onChange={onChange}
         />
       ))}
