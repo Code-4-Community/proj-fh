@@ -86,7 +86,7 @@ export type FormValue =
 export type FormValues = Record<string, FormValue>;
 
 /** the whole form's validation errors, keyed by field key. Fields with no errors are missing. */
-export type FormError = Partial<Record<string, string>>;
+export type FormErrors = Partial<Record<string, string>>;
 
 /** called by field components when their value changes. */
 export type FieldChangeHandler = (key: string, value: FormValue) => void;
